@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { supabase } from "../lib/supabase";
 
 const PAGES = ["pop-ups", "om-oss", "kontakt", "blogg", "webbshop"] as const;
 type Page = (typeof PAGES)[number] | "home";
