@@ -434,8 +434,7 @@ export default function Home() {
                 <p>Sanshō är japonska för pepparträdet vars bär ger en unik, elektriserande hetta. Precis som vi vill att vår mat ska kännas.</p>
               </div>
               <div className="about-img">
-                <img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", padding: "20px", borderRadius: 12 }} />
-              </div>
+<img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", minWidth: "900px", padding: "20px", borderRadius: 12 }} />              </div>
             </div>
           </div>
         )}
