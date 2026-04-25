@@ -39,10 +39,34 @@ export default function Home() {
 
   const nav = (p: Page) => { setPage(p); setSelectedEvent(null); setConfirmed(false); };
 
-  const handleBook = () => {
+  const handleBook = async () => {
     const code = "RMN-" + Math.floor(1000 + Math.random() * 9000);
     setConfirmCode(code);
-    setConfirmed(true);
+
+    if (!selectedEvent) return;
+
+    // Spara bokningen till Supabase
+const { error } = await supabase.from("bookings").insert([
+    {
+      event_id: selectedEvent.id,
+      event_name: selectedEvent.title,
+      fname: booking.fname,
+      lname: booking.lname,
+      email: booking.email,
+      guests: Number(booking.guests),
+      note: booking.note,
+      total_price: Number(booking.guests) * selectedEvent.price,
+      status: "paid",
+      booking_code: code,
+    },
+  ]);
+
+    if (!error) {
+      setConfirmed(true);
+    } else {
+      alert("Något gick fel. Försök igen!");
+      console.error("Supabase error:", JSON.stringify(error));
+    }
   };
 
   return (
@@ -314,7 +338,7 @@ export default function Home() {
           <div className="hero">
             <div className="hero-left">
               <div className="hero-logo">
-                <img src="/logotype.png" alt="Sanshō Ramen" />
+                <img src="/logotype.png" alt="Sanshō" />
               </div>
               <button className="hero-btn" onClick={() => nav("pop-ups")}>
                 Next pop-up.
