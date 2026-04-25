@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
 
 const PAGES = ["pop-ups", "om-oss", "kontakt", "blogg", "webbshop"] as const;
 type Page = (typeof PAGES)[number] | "home";
@@ -39,34 +38,10 @@ export default function Home() {
 
   const nav = (p: Page) => { setPage(p); setSelectedEvent(null); setConfirmed(false); };
 
-  const handleBook = async () => {
+  const handleBook = () => {
     const code = "RMN-" + Math.floor(1000 + Math.random() * 9000);
     setConfirmCode(code);
-
-    if (!selectedEvent) return;
-
-    // Spara bokningen till Supabase
-const { error } = await supabase.from("bookings").insert([
-    {
-      event_id: selectedEvent.id,
-      event_name: selectedEvent.title,
-      fname: booking.fname,
-      lname: booking.lname,
-      email: booking.email,
-      guests: Number(booking.guests),
-      note: booking.note,
-      total_price: Number(booking.guests) * selectedEvent.price,
-      status: "paid",
-      booking_code: code,
-    },
-  ]);
-
-    if (!error) {
-      setConfirmed(true);
-    } else {
-      alert("Något gick fel. Försök igen!");
-      console.error("Supabase error:", JSON.stringify(error));
-    }
+    setConfirmed(true);
   };
 
   return (
@@ -171,7 +146,7 @@ const { error } = await supabase.from("bookings").insert([
         /* PAGE */
         .page { padding: 120px 48px 80px; max-width: 900px; margin: 0 auto; width: 100%; }
         .page-title {
-          font-family: 'Freckle One', cursive;
+          font-family: 'Quicksand', sans-serif; font-weight: 700;          
           font-size: 52px;
           letter-spacing: 0.18em;
           margin-bottom: 48px;
@@ -338,7 +313,7 @@ const { error } = await supabase.from("bookings").insert([
           <div className="hero">
             <div className="hero-left">
               <div className="hero-logo">
-                <img src="/logotype.png" alt="Sanshō" />
+                <img src="/logotype.png" alt="Sanshō Ramen" />
               </div>
               <button className="hero-btn" onClick={() => nav("pop-ups")}>
                 Next pop-up.
