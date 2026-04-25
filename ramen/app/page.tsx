@@ -132,11 +132,12 @@ export default function Home() {
           justify-content: flex-end;
         }
         .hero-right img {
-          width: 100%;
-          max-width: 1500px;
-          object-fit: contain;
-          transform: translateX(60px);
-          animation: floatIn 1.2s ease forwards;
+           width: 120%;
+           max-width: 1500px;
+           object-fit: contain;
+           transform: translateX(0px);
+           animation: floatIn 1.2s ease forwards;
+        }
         }
         @keyframes floatIn {
           from { opacity: 0; transform: translateX(80px) translateY(20px); }
