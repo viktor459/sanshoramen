@@ -169,7 +169,7 @@ export default function Home() {
         .event-card:hover { background: var(--ink); color: var(--bg); transform: translateY(-2px); }
         .event-card:hover .event-meta { color: #ccc; }
         .event-card:hover .event-btn { background: var(--bg); color: var(--ink); }
-        .event-name { font-family: 'Freckle One', cursive; font-size: 28px; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .event-name { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; margin-bottom: 8px; }
         .event-meta { font-size: 14px; color: var(--ink-light); line-height: 1.8; transition: color 0.2s; }
         .event-btn {
           background: var(--ink);
@@ -192,7 +192,7 @@ export default function Home() {
         /* BOOKING FORM */
         .booking-back { background: none; border: none; cursor: pointer; font-family: 'Quicksand', sans-serif; font-size: 14px; color: var(--ink-light); margin-bottom: 32px; display: flex; align-items: center; gap: 6px; }
         .booking-back:hover { color: var(--ink); }
-        .booking-event-title { font-family: 'Freckle One', cursive; font-size: 36px; letter-spacing: 0.1em; margin-bottom: 6px; }
+        .booking-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 36px; letter-spacing: 0.1em; margin-bottom: 6px; }
         .booking-event-sub { font-size: 14px; color: var(--ink-light); margin-bottom: 40px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
@@ -232,7 +232,7 @@ export default function Home() {
         /* CONFIRM */
         .confirm { text-align: center; padding: 60px 0; }
         .confirm-circle { width: 72px; height: 72px; border: 2px solid var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }
-        .confirm-code { font-family: 'Freckle One', cursive; font-size: 36px; letter-spacing: 0.15em; margin: 12px 0; }
+        .confirm-code { font-family: 'Quicksand', cursive; font-size: 36px; letter-spacing: 0.15em; margin: 12px 0; }
         .confirm-sub { font-size: 15px; color: var(--ink-light); line-height: 1.7; }
 
         /* OM OSS */
@@ -253,7 +253,7 @@ export default function Home() {
         .blog-card:hover { background: var(--ink); color: var(--bg); }
         .blog-tag { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 10px; }
         .blog-card:hover .blog-tag { color: #aaa; }
-        .blog-title { font-family: 'Freckle One', cursive; font-size: 22px; letter-spacing: 0.06em; margin-bottom: 10px; }
+        .blog-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: 0.06em; margin-bottom: 10px; }
         .blog-excerpt { font-size: 14px; color: var(--ink-light); line-height: 1.7; }
         .blog-card:hover .blog-excerpt { color: #ccc; }
 
@@ -262,7 +262,7 @@ export default function Home() {
         .shop-card { border: 1.5px solid var(--ink); border-radius: 12px; overflow: hidden; }
         .shop-img { background: #E8E3D8; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 48px; }
         .shop-info { padding: 16px 20px; }
-        .shop-name { font-family: 'Freckle One', cursive; font-size: 18px; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .shop-name { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.06em; margin-bottom: 4px; }
         .shop-price { font-size: 14px; color: var(--ink-light); }
         .shop-btn { width: 100%; background: var(--ink); color: var(--bg); border: none; padding: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.2s; margin-top: 12px; border-radius: 6px; }
         .shop-btn:hover { opacity: 0.8; }
