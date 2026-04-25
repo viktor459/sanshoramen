@@ -133,7 +133,7 @@ export default function Home() {
         }
         .hero-right img {
           width: 100%;
-          max-width: 680px;
+          max-width: 1500px;
           object-fit: contain;
           transform: translateX(60px);
           animation: floatIn 1.2s ease forwards;
