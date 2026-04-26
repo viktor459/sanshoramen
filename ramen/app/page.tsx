@@ -37,8 +37,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => { fetchEvents(); }, []);
-
   const fetchEvents = async () => {
     const { data } = await supabase.from("events").select("*").eq("active", true).order("id");
     if (data) setEvents(data);
@@ -49,6 +47,9 @@ export default function Home() {
     if (data) setTimeslots(data);
   };
 
+  useEffect(() => { fetchEvents(); }, []);
+
+  const [menuOpen, setMenuOpen] = useState(false);
   const nav = (p: Page) => { setPage(p); setSelectedEvent(null); setConfirmed(false); setError(""); setTimeslots([]); setSelectedTimeslot(""); };
 
   const selectEvent = (event: Event) => {
@@ -108,7 +109,11 @@ export default function Home() {
         body { background: var(--bg); color: var(--ink); font-family: 'Quicksand', sans-serif; font-weight: 300; }
         .wrap { min-height: 100vh; display: flex; flex-direction: column; }
         nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 48px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--bg); }
-        .nav-logo { cursor: pointer; }
+        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+        .hamburger span { display: block; width: 24px; height: 2px; background: var(--ink); border-radius: 2px; transition: all 0.3s; }
+        .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; color: var(--ink); cursor: pointer; text-transform: uppercase; }        .nav-logo { cursor: pointer; }
         .nav-logo img { height: 32px; }
         .nav-links { display: flex; gap: 36px; list-style: none; }
         .nav-links a { font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 15px; color: var(--ink); text-decoration: none; letter-spacing: 0.02em; cursor: pointer; transition: opacity 0.2s; }
@@ -191,8 +196,8 @@ export default function Home() {
         .shop-btn:hover { opacity: 0.8; }
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
-          .nav-links { gap: 20px; }
-          .nav-links a { font-size: 13px; }
+          .nav-links { display: none; }
+          .hamburger { display: flex; }
           .hero { grid-template-columns: 1fr; }
           .hero-right { display: none; }
           .hero-left { padding: 0 24px 60px; }
@@ -207,7 +212,7 @@ export default function Home() {
 
       <div className="wrap">
         <nav>
-          <div className="nav-logo" onClick={() => nav("home")}>
+          <div className="nav-logo" onClick={() => { nav("home"); setMenuOpen(false); }}>
             <img src="/logotype.png" alt="Sanshō" />
           </div>
           <ul className="nav-links">
@@ -223,7 +228,25 @@ export default function Home() {
               </li>
             ))}
           </ul>
+          <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+            <span />
+            <span />
+            <span />
+          </button>
         </nav>
+
+        <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
+          <button onClick={() => setMenuOpen(false)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", fontSize: 28, cursor: "pointer" }}>×</button>
+          {[
+            { key: "pop-ups", label: "pop-ups." },
+            { key: "blogg", label: "blogg." },
+            { key: "om-oss", label: "om oss." },
+            { key: "kontakt", label: "kontakt." },
+            { key: "webbshop", label: "webbshop." },
+          ].map(({ key, label }) => (
+            <a key={key} onClick={() => { nav(key as Page); setMenuOpen(false); }}>{label}</a>
+          ))}
+        </div>
 
         {page === "home" && (
           <div className="hero">

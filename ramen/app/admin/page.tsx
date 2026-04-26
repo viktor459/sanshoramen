@@ -53,10 +53,6 @@ export default function Admin() {
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
   const [filterEvent, setFilterEvent] = useState<string>("all");
 
-  useEffect(() => {
-    if (authed) { fetchEvents(); fetchBookings(); }
-  }, [authed]);
-
   const fetchEvents = async () => {
     const { data } = await supabase.from("events").select("*").order("id");
     if (data) {
@@ -74,6 +70,10 @@ export default function Admin() {
     const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
     if (data) setBookings(data);
   };
+
+  useEffect(() => {
+    if (authed) { fetchEvents(); fetchBookings(); }
+  }, [authed]);
 
   const login = () => {
     if (pw === ADMIN_PASSWORD) { setAuthed(true); setPwError(false); }
