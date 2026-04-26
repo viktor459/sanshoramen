@@ -194,6 +194,26 @@ export default function Home() {
         .shop-price { font-size: 14px; color: var(--ink-light); }
         .shop-btn { width: 100%; background: var(--ink); color: var(--bg); border: none; padding: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.2s; margin-top: 12px; border-radius: 6px; }
         .shop-btn:hover { opacity: 0.8; }
+        .sections { display: flex; flex-direction: column; }
+        .section { padding: 100px 80px; }
+        .section-dark { background: #1D1D1D; color: #F5F1E8; }
+        .section-split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .section-split img { width: 100%; border-radius: 4px; }
+        .manifesto { text-align: center; max-width: 700px; margin: 0 auto; }
+        .manifesto-text { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 42px; letter-spacing: 0.05em; line-height: 1.3; margin-bottom: 32px; }
+        .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 64px; }
+        .three-col-item h3 { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
+        .three-col-item p { font-size: 15px; line-height: 1.8; color: var(--ink-light); }
+        .section-dark .three-col-item p { color: #aaa; }
+        .next-event { text-align: center; }
+        .next-event-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: #aaa; margin-bottom: 16px; }
+        .next-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.1em; margin-bottom: 12px; }
+        .next-event-meta { font-size: 16px; color: #aaa; margin-bottom: 40px; line-height: 1.8; }
+        .hero-btn-light { display: inline-flex; align-items: center; background: #F5F1E8; color: #1D1D1D; font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 16px; padding: 16px 36px; border-radius: var(--radius); border: none; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
+        .hero-btn-light:hover { transform: scale(1.03); opacity: 0.85; }
+        .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 48px; }
+        .insta-cell { aspect-ratio: 1; background: #E8E3D8; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
+        .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
           .nav-links { display: none; }
@@ -207,6 +227,12 @@ export default function Home() {
           .form-grid { grid-template-columns: 1fr; }
           .about-grid, .contact-layout { grid-template-columns: 1fr; }
           .blog-grid, .shop-grid { grid-template-columns: 1fr; }
+          .section { padding: 60px 24px; }
+          .section-split { grid-template-columns: 1fr; gap: 40px; }
+          .manifesto-text { font-size: 28px; }
+          .three-col { grid-template-columns: 1fr; gap: 32px; }
+          .next-event-title { font-size: 32px; }
+          .insta-grid { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
 
@@ -249,15 +275,88 @@ export default function Home() {
         </div>
 
         {page === "home" && (
-          <div className="hero">
-            <div className="hero-left">
-              <div className="hero-logo"><img src="/logotype.png" alt="Sanshō Ramen" /></div>
-              <button className="hero-btn" onClick={() => nav("pop-ups")}>Next pop-up.</button>
+          <>
+            <div className="hero">
+              <div className="hero-left">
+                <div className="hero-logo"><img src="/logotype.png" alt="Sanshō Ramen" /></div>
+                <button className="hero-btn" onClick={() => nav("pop-ups")}>Next pop-up.</button>
+              </div>
+              <div className="hero-right">
+                <img src="/illustration.png" alt="Ramen illustration" />
+              </div>
             </div>
-            <div className="hero-right">
-              <img src="/illustration.png" alt="Ramen illustration" />
+
+            <div className="sections">
+
+              {/* OM OSS */}
+              <div className="section">
+                <div className="section-split">
+                  <div>
+                    <p style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-light)", marginBottom: 20 }}>Om Sanshō</p>
+                    <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 38, letterSpacing: "0.05em", lineHeight: 1.2, marginBottom: 24 }}>Ramen är mer än mat. Det är en ritual.</h2>
+                    <div className="divider-line" />
+                    <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)", marginBottom: 20 }}>Vi kokar buljongen i 18 timmar. Vi drar nudlarna för hand. Vi väljer varje topping med omsorg. Det är inte för att vi måste — det är för att vi inte kan tänka oss att göra det på något annat sätt.</p>
+                    <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)" }}>Sanshō är ett ramen pop-up projekt grundat i Stockholm. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
+                  </div>
+                  <div>
+                    <img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", padding: "32px", borderRadius: 8 }} />
+                  </div>
+                </div>
+
+                <div className="three-col">
+                  <div className="three-col-item">
+                    <h3>Buljong</h3>
+                    <p>18 timmars kokning. Fläskben, kombu, katsuobushi. Vi stoppar inte förrän smaken är exakt som den ska vara.</p>
+                  </div>
+                  <div className="three-col-item">
+                    <h3>Nudlar</h3>
+                    <p>Handdragna samma dag som de serveras. Aldrig från förra veckan. Aldrig från en påse.</p>
+                  </div>
+                  <div className="three-col-item">
+                    <h3>Tare</h3>
+                    <p>Ramenens hemliga vapen. Vår shio tare är under ständig utveckling — alltid på jakt efter mer djup.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* MANIFESTO */}
+              <div className="section section-dark">
+                <div className="manifesto">
+                  <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 20 }}>Vår filosofi</p>
+                  <div className="manifesto-text">"Vi gör inte kompromisser med buljongen. Aldrig."</div>
+                  <p style={{ fontSize: 15, color: "#aaa", lineHeight: 1.8 }}>Varje pop-up är ett engångsevent. Samma lokal, samma kväll — aldrig igen. Det är det som gör det värt att vara där.</p>
+                  <button className="hero-btn-light" style={{ marginTop: 40 }} onClick={() => nav("pop-ups")}>Se kommande pop-ups</button>
+                </div>
+              </div>
+
+              {/* NÄSTA POP-UP */}
+              {events.length > 0 && (
+                <div className="section">
+                  <div className="next-event">
+                    <div className="next-event-label">Nästa pop-up</div>
+                    <div className="next-event-title">{events[0].title}</div>
+                    <div className="next-event-meta">
+                      {events[0].date} · {events[0].time}<br />
+                      {events[0].location} · {events[0].price} kr / pers
+                    </div>
+                    <button className="hero-btn" onClick={() => { nav("pop-ups"); }}>Boka din plats</button>
+                  </div>
+                </div>
+              )}
+
+              {/* INSTAGRAM */}
+              <div className="section section-dark">
+                <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>Instagram</p>
+                <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 4 }}>@sanshoramen</h2>
+                <div className="insta-grid">
+                  {["🍜", "🥢", "🔥", "🫙", "🍳", "🌿", "🫧", "🥩"].map((e, i) => (
+                    <div key={i} className="insta-cell" style={{ background: i % 2 === 0 ? "#2a2a2a" : "#333" }}>{e}</div>
+                  ))}
+                </div>
+              </div>
+
             </div>
-          </div>
+          </>
         )}
 
         {page === "pop-ups" && !selectedEvent && !confirmed && (
