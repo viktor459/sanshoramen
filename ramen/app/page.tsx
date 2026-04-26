@@ -17,42 +17,54 @@ type Event = {
   active: boolean;
 };
 
+type Timeslot = {
+  id: number;
+  event_id: number;
+  time: string;
+  spots: number;
+  spots_left: number;
+};
+
 export default function Home() {
   const [page, setPage] = useState<Page>("home");
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
+  const [selectedTimeslot, setSelectedTimeslot] = useState<string>("");
   const [booking, setBooking] = useState({ fname: "", lname: "", email: "", guests: "2", note: "" });
   const [confirmed, setConfirmed] = useState(false);
   const [confirmCode, setConfirmCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  useEffect(() => { fetchEvents(); }, []);
 
   const fetchEvents = async () => {
-    const { data } = await supabase
-      .from("events")
-      .select("*")
-      .eq("active", true)
-      .order("id");
+    const { data } = await supabase.from("events").select("*").eq("active", true).order("id");
     if (data) setEvents(data);
   };
 
-  const nav = (p: Page) => {
-    setPage(p);
-    setSelectedEvent(null);
-    setConfirmed(false);
-    setError("");
+  const fetchTimeslots = async (eventId: number) => {
+    const { data } = await supabase.from("timeslots").select("*").eq("event_id", eventId).order("time");
+    if (data) setTimeslots(data);
+  };
+
+  const nav = (p: Page) => { setPage(p); setSelectedEvent(null); setConfirmed(false); setError(""); setTimeslots([]); setSelectedTimeslot(""); };
+
+  const selectEvent = (event: Event) => {
+    setSelectedEvent(event);
+    setSelectedTimeslot("");
+    fetchTimeslots(event.id);
   };
 
   const handleBook = async () => {
     if (!selectedEvent) return;
+    if (timeslots.length > 0 && !selectedTimeslot) { setError("Välj en tid för att fortsätta."); return; }
     setLoading(true);
     setError("");
 
     const code = "RMN-" + Math.floor(1000 + Math.random() * 9000);
+    const slot = timeslots.find(t => t.id === Number(selectedTimeslot));
 
     const { error: dbError } = await supabase.from("bookings").insert([{
       event_id: selectedEvent.id,
@@ -65,6 +77,8 @@ export default function Home() {
       total_price: Number(booking.guests) * selectedEvent.price,
       status: "paid",
       booking_code: code,
+      timeslot_id: slot?.id || null,
+      timeslot_time: slot?.time || null,
     }]);
 
     setLoading(false);
@@ -75,14 +89,14 @@ export default function Home() {
       return;
     }
 
-    await supabase
-      .from("events")
-      .update({ spots_left: selectedEvent.spots_left - Number(booking.guests) })
-      .eq("id", selectedEvent.id);
+    if (slot) {
+      await supabase.from("timeslots").update({ spots_left: slot.spots_left - Number(booking.guests) }).eq("id", slot.id);
+    }
 
     setConfirmCode(code);
     setConfirmed(true);
     fetchEvents();
+    if (selectedEvent) fetchTimeslots(selectedEvent.id);
   };
 
   return (
@@ -123,10 +137,19 @@ export default function Home() {
         .spots-fill { height: 3px; background: var(--ink); border-radius: 2px; }
         .event-card:hover .spots-bar { background: #555; }
         .event-card:hover .spots-fill { background: var(--bg); }
+        .timeslots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 24px; }
+        .timeslot-btn { border: 1.5px solid var(--ink); border-radius: 10px; padding: 12px 16px; cursor: pointer; background: transparent; font-family: 'Quicksand', sans-serif; font-size: 14px; text-align: center; transition: all 0.15s; }
+        .timeslot-btn:hover { background: var(--ink); color: var(--bg); }
+        .timeslot-btn.selected { background: var(--ink); color: var(--bg); }
+        .timeslot-btn.full { opacity: 0.4; cursor: not-allowed; border-style: dashed; }
+        .timeslot-spots { font-size: 11px; color: var(--ink-light); margin-top: 3px; }
+        .timeslot-btn.selected .timeslot-spots { color: #ccc; }
+        .timeslot-btn:hover .timeslot-spots { color: #ccc; }
         .booking-back { background: none; border: none; cursor: pointer; font-family: 'Quicksand', sans-serif; font-size: 14px; color: var(--ink-light); margin-bottom: 32px; display: flex; align-items: center; gap: 6px; }
         .booking-back:hover { color: var(--ink); }
         .booking-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 36px; letter-spacing: 0.1em; margin-bottom: 6px; }
         .booking-event-sub { font-size: 14px; color: var(--ink-light); margin-bottom: 40px; }
+        .section-label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 12px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .form-field label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); }
@@ -225,7 +248,7 @@ export default function Home() {
                 const pct = ((event.spots - event.spots_left) / event.spots) * 100;
                 const full = event.spots_left <= 0;
                 return (
-                  <div key={event.id} className="event-card" style={full ? { opacity: 0.5, cursor: "default" } : {}} onClick={() => !full && setSelectedEvent(event)}>
+                  <div key={event.id} className="event-card" style={full ? { opacity: 0.5, cursor: "default" } : {}} onClick={() => !full && selectEvent(event)}>
                     <div>
                       <div className="event-name">{event.title}</div>
                       <div className="event-meta">{event.date} · {event.time}<br />{event.location}</div>
@@ -244,10 +267,33 @@ export default function Home() {
 
         {page === "pop-ups" && selectedEvent && !confirmed && (
           <div className="page" style={{ maxWidth: 600 }}>
-            <button className="booking-back" onClick={() => setSelectedEvent(null)}>← Tillbaka</button>
+            <button className="booking-back" onClick={() => { setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); }}>← Tillbaka</button>
             <div className="booking-event-title">{selectedEvent.title}</div>
             <div className="booking-event-sub">{selectedEvent.date} · {selectedEvent.location}</div>
             <p style={{ fontSize: 15, lineHeight: 1.8, marginBottom: 36, color: "var(--ink-light)" }}>{selectedEvent.description}</p>
+
+            {timeslots.length > 0 && (
+              <div style={{ marginBottom: 28 }}>
+                <div className="section-label">Välj tid</div>
+                <div className="timeslots-grid">
+                  {timeslots.map(slot => {
+                    const full = slot.spots_left <= 0;
+                    return (
+                      <button
+                        key={slot.id}
+                        className={`timeslot-btn${selectedTimeslot === String(slot.id) ? " selected" : ""}${full ? " full" : ""}`}
+                        onClick={() => !full && setSelectedTimeslot(String(slot.id))}
+                        disabled={full}
+                      >
+                        <div>{slot.time}</div>
+                        <div className="timeslot-spots">{full ? "Fullbokat" : `${slot.spots_left} platser`}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="form-grid">
               <div className="form-field">
                 <label>Förnamn</label>
@@ -274,13 +320,14 @@ export default function Home() {
             </div>
             <div className="price-summary">
               <div className="price-row"><span>{booking.guests} × {selectedEvent.price} kr</span><span>{Number(booking.guests) * selectedEvent.price} kr</span></div>
+              {selectedTimeslot && <div className="price-row"><span>Tid</span><span>{timeslots.find(t => t.id === Number(selectedTimeslot))?.time}</span></div>}
               <div className="price-row"><span>Bokningsavgift</span><span>0 kr</span></div>
               <div className="price-total"><span>Totalt</span><span>{Number(booking.guests) * selectedEvent.price} kr</span></div>
             </div>
             {error && <div className="error-msg">{error}</div>}
             <button
               className="pay-btn"
-              disabled={!booking.fname || !booking.lname || !booking.email.includes("@") || loading}
+              disabled={!booking.fname || !booking.lname || !booking.email.includes("@") || loading || (timeslots.length > 0 && !selectedTimeslot)}
               onClick={handleBook}
             >
               {loading ? "Sparar bokning..." : "Betala via Stripe"}
@@ -299,7 +346,7 @@ export default function Home() {
               <div style={{ fontFamily: "'Quicksand', sans-serif", fontSize: 18, fontWeight: 500 }}>Bokning bekräftad!</div>
               <div className="confirm-code">{confirmCode}</div>
               <div className="confirm-sub">Bekräftelse skickas till {booking.email}<br />Vi ses snart. 🍜</div>
-              <button className="hero-btn" style={{ margin: "40px auto 0" }} onClick={() => { setConfirmed(false); setSelectedEvent(null); setBooking({ fname: "", lname: "", email: "", guests: "2", note: "" }); }}>
+              <button className="hero-btn" style={{ margin: "40px auto 0" }} onClick={() => { setConfirmed(false); setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); setBooking({ fname: "", lname: "", email: "", guests: "2", note: "" }); }}>
                 Se fler pop-ups
               </button>
             </div>
