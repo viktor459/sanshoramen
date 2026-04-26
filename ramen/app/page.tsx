@@ -301,7 +301,7 @@ export default function Home() {
                     <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)" }}>Sanshō är ett ramen pop-up projekt grundat i Stockholm. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
                   </div>
                   <div>
-                    <img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", padding: "32px", borderRadius: 8 }} />
+                    <img src="/shoyu_ramen.jpg" alt="Sanshō Ramen" style={{ borderRadius: 8 }} />
                   </div>
                 </div>
 
