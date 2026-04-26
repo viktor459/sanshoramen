@@ -213,6 +213,8 @@ export default function Home() {
         .hero-btn-light:hover { transform: scale(1.03); opacity: 0.85; }
         .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 48px; }
         .insta-cell { aspect-ratio: 1; background: #E8E3D8; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
+        .insta-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .insta-cell:hover img { transform: scale(1.05); }
         .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
@@ -347,11 +349,22 @@ export default function Home() {
               {/* INSTAGRAM */}
               <div className="section section-dark">
                 <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>Instagram</p>
-                <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 4 }}>@sanshoramen</h2>
+                <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                  <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 4, color: '#F5F1E8', cursor: 'pointer' }}>@sanshoramen</h2>
+                </a>
                 <div className="insta-grid">
-                  {["🍜", "🥢", "🔥", "🫙", "🍳", "🌿", "🫧", "🥩"].map((e, i) => (
-                    <div key={i} className="insta-cell" style={{ background: i % 2 === 0 ? "#2a2a2a" : "#333" }}>{e}</div>
-                  ))}
+                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                    <img src="/shoyu_ramen.jpg" alt="Shoyu Ramen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </a>
+                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                    <img src="/tantanmen_ramen.jpg" alt="Tantanmen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </a>
+                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                    <img src="/vegan_ramen.jpg" alt="Vegan Ramen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </a>
+                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ background: '#2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <span style={{ fontSize: 48 }}>→</span>
+                  </a>
                 </div>
               </div>
 
