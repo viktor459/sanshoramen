@@ -104,6 +104,23 @@ export default function Home() {
     }
 
     setConfirmCode(code);
+
+    await fetch("/api/send-confirmation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fname: booking.fname,
+        email: booking.email,
+        event_name: selectedEvent.title,
+        date: selectedEvent.date,
+        location: selectedEvent.location,
+        time: slot?.time || selectedEvent.time,
+        guests: Number(booking.guests),
+        total_price: Number(booking.guests) * selectedEvent.price,
+        booking_code: code,
+      }),
+    });
+
     setConfirmed(true);
     fetchEvents();
   };
