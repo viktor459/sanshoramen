@@ -67,8 +67,36 @@ export default function Home() {
     fetchTimeslots(event.id);
   };
 
-  const handleBook = async () => {
-    if (!selectedEvent) return;
+const handleBook = async () => {
+  if (!selectedEvent) return;
+  if (timeslots.length > 0 && !selectedTimeslot) { setError("Välj en tid för att fortsätta."); return; }
+  if (!booking.fname || !booking.lname || !booking.email.includes("@")) return;
+  setLoading(true);
+  setError("");
+
+  const slot = timeslots.find(t => t.id === Number(selectedTimeslot));
+
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      event_name: selectedEvent.title,
+      price: selectedEvent.price,
+      guests: Number(booking.guests),
+      event_id: selectedEvent.id,
+      timeslot_id: slot?.id || null,
+      timeslot_time: slot?.time || null,
+      fname: booking.fname,
+      lname: booking.lname,
+      email: booking.email,
+      note: booking.note,
+    }),
+  });
+
+  const { url } = await res.json();
+  if (url) window.location.href = url;
+  else { setError("Något gick fel. Försök igen."); setLoading(false); }
+};    if (!selectedEvent) return;
     if (timeslots.length > 0 && !selectedTimeslot) { setError("Välj en tid för att fortsätta."); return; }
     setLoading(true);
     setError("");
