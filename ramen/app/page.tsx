@@ -108,6 +108,37 @@ export default function Home() {
         :root { --bg: #F5F1E8; --ink: #1D1D1D; --ink-light: #6B6560; --radius: 100px; }
         body { background: var(--bg); color: var(--ink); font-family: 'Quicksand', sans-serif; font-weight: 300; }
         .wrap { min-height: 100vh; display: flex; flex-direction: column; }
+        </div> {/* stänger .wrap */}
+        <footer>
+          <div className="footer-grid">
+            <div>
+              <div className="footer-logo">
+                <img src="/logotype.png" alt="Sanshō" />
+              </div>
+              <p className="footer-desc">Ramen pop-up i Stockholm. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
+            </div>
+            <div className="footer-col">
+              <h4>Navigation</h4>
+              <a onClick={() => nav("pop-ups")}>Pop-ups</a>
+              <a onClick={() => nav("om-oss")}>Om oss</a>
+              <a onClick={() => nav("blogg")}>Blogg</a>
+              <a onClick={() => nav("webbshop")}>Webbshop</a>
+              <a onClick={() => nav("kontakt")}>Kontakt</a>
+            </div>
+            <div className="footer-col">
+              <h4>Kontakt</h4>
+              <p>hej@sanshoramen.se</p>
+              <p style={{ marginTop: 16 }}>
+                <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">Instagram</a>
+                <a href="#" target="_blank" rel="noreferrer">TikTok</a>
+              </p>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} Sanshō Ramen. Alla rättigheter förbehållna.</span>
+            <span>Stockholm, Sverige</span>
+          </div>
+        </footer>
         nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 48px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--bg); }
         .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
         .hamburger span { display: block; width: 24px; height: 2px; background: var(--ink); border-radius: 2px; transition: all 0.3s; }
@@ -216,6 +247,15 @@ export default function Home() {
         .insta-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
         .insta-cell:hover img { transform: scale(1.05); }
         .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
+        footer { background: #1D1D1D; color: #F5F1E8; padding: 60px 80px 40px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
+        .footer-logo img { height: 28px; filter: invert(1); margin-bottom: 20px; }
+        .footer-desc { font-size: 14px; color: #aaa; line-height: 1.8; max-width: 280px; }
+        .footer-col h4 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; margin-bottom: 16px; }
+        .footer-col a { display: block; font-size: 14px; color: #F5F1E8; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: opacity 0.2s; }
+        .footer-col a:hover { opacity: 0.5; }
+        .footer-col p { font-size: 14px; color: #aaa; line-height: 1.8; }
+        .footer-bottom { border-top: 0.5px solid #333; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; } 
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
           .nav-links { display: none; }
@@ -235,6 +275,9 @@ export default function Home() {
           .three-col { grid-template-columns: 1fr; gap: 32px; }
           .next-event-title { font-size: 32px; }
           .insta-grid { grid-template-columns: repeat(2, 1fr); }
+          footer { padding: 48px 24px 32px; }
+          .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+          .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
         }
       `}</style>
 
