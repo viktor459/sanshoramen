@@ -67,90 +67,35 @@ export default function Home() {
     fetchTimeslots(event.id);
   };
 
-const handleBook = async () => {
-  if (!selectedEvent) return;
-  if (timeslots.length > 0 && !selectedTimeslot) { setError("Välj en tid för att fortsätta."); return; }
-  if (!booking.fname || !booking.lname || !booking.email.includes("@")) return;
-  setLoading(true);
-  setError("");
-
-  const slot = timeslots.find(t => t.id === Number(selectedTimeslot));
-
-  const res = await fetch("/api/checkout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      event_name: selectedEvent.title,
-      price: selectedEvent.price,
-      guests: Number(booking.guests),
-      event_id: selectedEvent.id,
-      timeslot_id: slot?.id || null,
-      timeslot_time: slot?.time || null,
-      fname: booking.fname,
-      lname: booking.lname,
-      email: booking.email,
-      note: booking.note,
-    }),
-  });
-
-  const { url } = await res.json();
-  if (url) window.location.href = url;
-  else { setError("Något gick fel. Försök igen."); setLoading(false); }
-};    if (!selectedEvent) return;
+  const handleBook = async () => {
+    if (!selectedEvent) return;
     if (timeslots.length > 0 && !selectedTimeslot) { setError("Välj en tid för att fortsätta."); return; }
+    if (!booking.fname || !booking.lname || !booking.email.includes("@")) return;
     setLoading(true);
     setError("");
 
-    const code = "RMN-" + Math.floor(1000 + Math.random() * 9000);
     const slot = timeslots.find(t => t.id === Number(selectedTimeslot));
 
-    const { error: dbError } = await supabase.from("bookings").insert([{
-      event_id: selectedEvent.id,
-      event_name: selectedEvent.title,
-      fname: booking.fname,
-      lname: booking.lname,
-      email: booking.email,
-      guests: Number(booking.guests),
-      note: booking.note,
-      total_price: Number(booking.guests) * selectedEvent.price,
-      status: "paid",
-      booking_code: code,
-      timeslot_id: slot?.id || null,
-      timeslot_time: slot?.time || null,
-    }]);
-
-    setLoading(false);
-
-    if (dbError) {
-      setError("Något gick fel. Försök igen eller kontakta oss.");
-      console.error("Supabase error:", JSON.stringify(dbError));
-      return;
-    }
-
-    if (slot) {
-      await supabase.from("timeslots").update({ spots_left: slot.spots_left - Number(booking.guests) }).eq("id", slot.id);
-    }
-
-    setConfirmCode(code);
-
-    await fetch("/api/send-confirmation", {
+    const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        fname: booking.fname,
-        email: booking.email,
         event_name: selectedEvent.title,
-        date: selectedEvent.date,
-        location: selectedEvent.location,
-        time: slot?.time || selectedEvent.time,
+        price: selectedEvent.price,
         guests: Number(booking.guests),
-        total_price: Number(booking.guests) * selectedEvent.price,
-        booking_code: code,
+        event_id: selectedEvent.id,
+        timeslot_id: slot?.id || null,
+        timeslot_time: slot?.time || null,
+        fname: booking.fname,
+        lname: booking.lname,
+        email: booking.email,
+        note: booking.note,
       }),
     });
 
-    setConfirmed(true);
-    fetchEvents();
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    else { setError("Något gick fel. Försök igen."); setLoading(false); }
   };
 
   return (
@@ -161,8 +106,6 @@ const handleBook = async () => {
         :root { --bg: #F5F1E8; --ink: #1D1D1D; --ink-light: #6B6560; --radius: 100px; }
         body { background: var(--bg); color: var(--ink); font-family: 'Quicksand', sans-serif; font-weight: 300; }
         .wrap { min-height: 100vh; display: flex; flex-direction: column; }
-
-        /* NAV */
         nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 48px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--bg); }
         .nav-logo { cursor: pointer; }
         .nav-logo img { height: 32px; }
@@ -175,8 +118,6 @@ const handleBook = async () => {
         .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
         .mobile-menu.open { display: flex; }
         .mobile-menu a { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; color: var(--ink); cursor: pointer; text-transform: uppercase; }
-
-        /* HERO */
         .hero { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; padding-top: 88px; overflow: hidden; }
         .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 0 48px 80px 48px; gap: 40px; }
         .hero-logo img { width: 320px; }
@@ -185,8 +126,6 @@ const handleBook = async () => {
         .hero-right { position: relative; overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; }
         .hero-right img { width: 120%; max-width: 900px; object-fit: contain; transform: translateX(20px); animation: floatIn 1.2s ease forwards; }
         @keyframes floatIn { from { opacity: 0; transform: translateX(60px) translateY(20px); } to { opacity: 1; transform: translateX(20px) translateY(0); } }
-
-        /* SECTIONS */
         .sections { display: flex; flex-direction: column; }
         .section { padding: 100px 80px; }
         .section-dark { background: #1D1D1D; color: #F5F1E8; }
@@ -206,8 +145,6 @@ const handleBook = async () => {
         .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 48px; }
         .insta-cell { aspect-ratio: 1; background: #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
         .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
-
-        /* FOOTER */
         footer { background: #1D1D1D; color: #F5F1E8; padding: 60px 80px 40px; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
         .footer-logo img { height: 28px; filter: invert(1); margin-bottom: 20px; }
@@ -217,8 +154,6 @@ const handleBook = async () => {
         .footer-col a:hover { opacity: 0.5; }
         .footer-col p { font-size: 14px; color: #aaa; line-height: 1.8; }
         .footer-bottom { border-top: 0.5px solid #333; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; }
-
-        /* PAGES */
         .page { padding: 120px 48px 80px; max-width: 900px; margin: 0 auto; width: 100%; }
         .page-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.18em; margin-bottom: 48px; text-transform: uppercase; }
         .events-grid { display: flex; flex-direction: column; gap: 20px; }
@@ -286,7 +221,6 @@ const handleBook = async () => {
         .shop-price { font-size: 14px; color: var(--ink-light); }
         .shop-btn { width: 100%; background: var(--ink); color: var(--bg); border: none; padding: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.2s; margin-top: 12px; border-radius: 6px; }
         .shop-btn:hover { opacity: 0.8; }
-
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
           .nav-links { display: none; }
@@ -348,7 +282,6 @@ const handleBook = async () => {
           ))}
         </div>
 
-        {/* HOME */}
         {page === "home" && (
           <>
             <div className="hero">
@@ -360,9 +293,7 @@ const handleBook = async () => {
                 <img src="/illustration.png" alt="Ramen illustration" />
               </div>
             </div>
-
             <div className="sections">
-              {/* OM OSS */}
               <div className="section">
                 <div className="section-split">
                   <div>
@@ -377,22 +308,11 @@ const handleBook = async () => {
                   </div>
                 </div>
                 <div className="three-col">
-                  <div className="three-col-item">
-                    <h3>Buljong</h3>
-                    <p>18 timmars kokning. Fläskben, kombu, katsuobushi. Vi stoppar inte förrän smaken är exakt som den ska vara.</p>
-                  </div>
-                  <div className="three-col-item">
-                    <h3>Nudlar</h3>
-                    <p>Handdragna samma dag som de serveras. Aldrig från förra veckan. Aldrig från en påse.</p>
-                  </div>
-                  <div className="three-col-item">
-                    <h3>Tare</h3>
-                    <p>Ramenens hemliga vapen. Vår shio tare är under ständig utveckling — alltid på jakt efter mer djup.</p>
-                  </div>
+                  <div className="three-col-item"><h3>Buljong</h3><p>18 timmars kokning. Fläskben, kombu, katsuobushi. Vi stoppar inte förrän smaken är exakt som den ska vara.</p></div>
+                  <div className="three-col-item"><h3>Nudlar</h3><p>Handdragna samma dag som de serveras. Aldrig från förra veckan. Aldrig från en påse.</p></div>
+                  <div className="three-col-item"><h3>Tare</h3><p>Ramenens hemliga vapen. Vår shio tare är under ständig utveckling — alltid på jakt efter mer djup.</p></div>
                 </div>
               </div>
-
-              {/* MANIFESTO */}
               <div className="section section-dark">
                 <div className="manifesto">
                   <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 20 }}>Vår filosofi</p>
@@ -401,23 +321,16 @@ const handleBook = async () => {
                   <button className="hero-btn-light" style={{ marginTop: 40 }} onClick={() => nav("pop-ups")}>Se kommande pop-ups</button>
                 </div>
               </div>
-
-              {/* NÄSTA POP-UP */}
               {events.length > 0 && (
                 <div className="section">
                   <div className="next-event">
                     <div className="next-event-label">Nästa pop-up</div>
                     <div className="next-event-title">{events[0].title}</div>
-                    <div className="next-event-meta">
-                      {events[0].date} · {events[0].time}<br />
-                      {events[0].location} · {events[0].price} kr / pers
-                    </div>
+                    <div className="next-event-meta">{events[0].date} · {events[0].time}<br />{events[0].location} · {events[0].price} kr / pers</div>
                     <button className="hero-btn" onClick={() => nav("pop-ups")}>Boka din plats</button>
                   </div>
                 </div>
               )}
-
-              {/* INSTAGRAM */}
               <div className="section section-dark">
                 <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>Instagram</p>
                 <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 24, color: "#F5F1E8" }}>@sanshoramen</h2>
@@ -431,7 +344,6 @@ const handleBook = async () => {
           </>
         )}
 
-        {/* POP-UPS */}
         {page === "pop-ups" && !selectedEvent && !confirmed && (
           <div className="page">
             <h1 className="page-title">Pop-ups.</h1>
@@ -458,7 +370,6 @@ const handleBook = async () => {
           </div>
         )}
 
-        {/* BOOKING FORM */}
         {page === "pop-ups" && selectedEvent && !confirmed && (
           <div className="page" style={{ maxWidth: 600 }}>
             <button className="booking-back" onClick={() => { setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); }}>← Tillbaka</button>
@@ -501,12 +412,11 @@ const handleBook = async () => {
             </div>
             {error && <div className="error-msg">{error}</div>}
             <button className="pay-btn" disabled={!booking.fname || !booking.lname || !booking.email.includes("@") || loading || (timeslots.length > 0 && !selectedTimeslot)} onClick={handleBook}>
-              {loading ? "Sparar bokning..." : "Betala via Stripe"}
+              {loading ? "Skickar till betalning..." : "Betala via Stripe"}
             </button>
           </div>
         )}
 
-        {/* CONFIRM */}
         {page === "pop-ups" && confirmed && (
           <div className="page">
             <div className="confirm">
@@ -525,7 +435,6 @@ const handleBook = async () => {
           </div>
         )}
 
-        {/* OM OSS */}
         {page === "om-oss" && (
           <div className="page">
             <h1 className="page-title">Om oss.</h1>
@@ -542,7 +451,6 @@ const handleBook = async () => {
           </div>
         )}
 
-        {/* KONTAKT */}
         {page === "kontakt" && (
           <div className="page">
             <h1 className="page-title">Kontakt.</h1>
@@ -566,7 +474,6 @@ const handleBook = async () => {
           </div>
         )}
 
-        {/* BLOGG */}
         {page === "blogg" && (
           <div className="page">
             <h1 className="page-title">Blogg.</h1>
@@ -587,7 +494,6 @@ const handleBook = async () => {
           </div>
         )}
 
-        {/* WEBBSHOP */}
         {page === "webbshop" && (
           <div className="page">
             <h1 className="page-title">Webbshop.</h1>
@@ -617,9 +523,7 @@ const handleBook = async () => {
       <footer>
         <div className="footer-grid">
           <div>
-            <div className="footer-logo">
-              <img src="/logotype.png" alt="Sanshō" />
-            </div>
+            <div className="footer-logo"><img src="/logotype.png" alt="Sanshō" /></div>
             <p className="footer-desc">Ramen pop-up i Skåne. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
           </div>
           <div className="footer-col">
