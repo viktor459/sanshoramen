@@ -465,7 +465,8 @@ export default function Home() {
                 </p>
               </div>
               <div>
-                <div className="form-field"><label>Namn</label><input placeholder="Ditt namn" /></div>
+                <div className="form-field"><label>Namn</label><input placeholder="Ditt cd ~/Desktop/sanshoramen/ramen
+npm run devnamn" /></div>
                 <div className="form-field"><label>E-post</label><input type="email" placeholder="din@email.se" /></div>
                 <div className="form-field"><label>Meddelande</label><textarea placeholder="Hej! Vi vill..." style={{ minHeight: 120 }} /></div>
                 <button className="pay-btn">Skicka</button>
