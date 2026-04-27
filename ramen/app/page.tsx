@@ -36,6 +36,7 @@ export default function Home() {
   const [confirmCode, setConfirmCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const fetchEvents = async () => {
     const { data } = await supabase.from("events").select("*").eq("active", true).order("id");
@@ -49,8 +50,16 @@ export default function Home() {
 
   useEffect(() => { fetchEvents(); }, []);
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const nav = (p: Page) => { setPage(p); setSelectedEvent(null); setConfirmed(false); setError(""); setTimeslots([]); setSelectedTimeslot(""); };
+  const nav = (p: Page) => {
+    setPage(p);
+    setSelectedEvent(null);
+    setConfirmed(false);
+    setError("");
+    setTimeslots([]);
+    setSelectedTimeslot("");
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+  };
 
   const selectEvent = (event: Event) => {
     setSelectedEvent(event);
@@ -97,7 +106,6 @@ export default function Home() {
     setConfirmCode(code);
     setConfirmed(true);
     fetchEvents();
-    if (selectedEvent) fetchTimeslots(selectedEvent.id);
   };
 
   return (
@@ -108,48 +116,22 @@ export default function Home() {
         :root { --bg: #F5F1E8; --ink: #1D1D1D; --ink-light: #6B6560; --radius: 100px; }
         body { background: var(--bg); color: var(--ink); font-family: 'Quicksand', sans-serif; font-weight: 300; }
         .wrap { min-height: 100vh; display: flex; flex-direction: column; }
-        </div> {/* stänger .wrap */}
-        <footer>
-          <div className="footer-grid">
-            <div>
-              <div className="footer-logo">
-                <img src="/logotype.png" alt="Sanshō" />
-              </div>
-              <p className="footer-desc">Ramen pop-up i Stockholm. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
-            </div>
-            <div className="footer-col">
-              <h4>Navigation</h4>
-              <a onClick={() => nav("pop-ups")}>Pop-ups</a>
-              <a onClick={() => nav("om-oss")}>Om oss</a>
-              <a onClick={() => nav("blogg")}>Blogg</a>
-              <a onClick={() => nav("webbshop")}>Webbshop</a>
-              <a onClick={() => nav("kontakt")}>Kontakt</a>
-            </div>
-            <div className="footer-col">
-              <h4>Kontakt</h4>
-              <p>hej@sanshoramen.se</p>
-              <p style={{ marginTop: 16 }}>
-                <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">Instagram</a>
-                <a href="#" target="_blank" rel="noreferrer">TikTok</a>
-              </p>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} Sanshō Ramen. Alla rättigheter förbehållna.</span>
-            <span>Stockholm, Sverige</span>
-          </div>
-        </footer>
+
+        /* NAV */
         nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 48px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--bg); }
-        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
-        .hamburger span { display: block; width: 24px; height: 2px; background: var(--ink); border-radius: 2px; transition: all 0.3s; }
-        .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
-        .mobile-menu.open { display: flex; }
-        .mobile-menu a { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; color: var(--ink); cursor: pointer; text-transform: uppercase; }        .nav-logo { cursor: pointer; }
+        .nav-logo { cursor: pointer; }
         .nav-logo img { height: 32px; }
         .nav-links { display: flex; gap: 36px; list-style: none; }
         .nav-links a { font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 15px; color: var(--ink); text-decoration: none; letter-spacing: 0.02em; cursor: pointer; transition: opacity 0.2s; }
         .nav-links a:hover { opacity: 0.5; }
         .nav-links a.active { border-bottom: 1.5px solid var(--ink); }
+        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+        .hamburger span { display: block; width: 24px; height: 2px; background: var(--ink); border-radius: 2px; }
+        .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; color: var(--ink); cursor: pointer; text-transform: uppercase; }
+
+        /* HERO */
         .hero { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; padding-top: 88px; overflow: hidden; }
         .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 0 48px 80px 48px; gap: 40px; }
         .hero-logo img { width: 320px; }
@@ -158,6 +140,40 @@ export default function Home() {
         .hero-right { position: relative; overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; }
         .hero-right img { width: 120%; max-width: 900px; object-fit: contain; transform: translateX(20px); animation: floatIn 1.2s ease forwards; }
         @keyframes floatIn { from { opacity: 0; transform: translateX(60px) translateY(20px); } to { opacity: 1; transform: translateX(20px) translateY(0); } }
+
+        /* SECTIONS */
+        .sections { display: flex; flex-direction: column; }
+        .section { padding: 100px 80px; }
+        .section-dark { background: #1D1D1D; color: #F5F1E8; }
+        .section-split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .section-split img { width: 100%; border-radius: 8px; }
+        .manifesto { text-align: center; max-width: 700px; margin: 0 auto; }
+        .manifesto-text { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 42px; letter-spacing: 0.05em; line-height: 1.3; margin-bottom: 32px; }
+        .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 64px; }
+        .three-col-item h3 { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
+        .three-col-item p { font-size: 15px; line-height: 1.8; color: var(--ink-light); }
+        .next-event { text-align: center; }
+        .next-event-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 16px; }
+        .next-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.1em; margin-bottom: 12px; }
+        .next-event-meta { font-size: 16px; color: var(--ink-light); margin-bottom: 40px; line-height: 1.8; }
+        .hero-btn-light { display: inline-flex; align-items: center; background: #F5F1E8; color: #1D1D1D; font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 16px; padding: 16px 36px; border-radius: var(--radius); border: none; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
+        .hero-btn-light:hover { transform: scale(1.03); opacity: 0.85; }
+        .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 48px; }
+        .insta-cell { aspect-ratio: 1; background: #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
+        .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
+
+        /* FOOTER */
+        footer { background: #1D1D1D; color: #F5F1E8; padding: 60px 80px 40px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
+        .footer-logo img { height: 28px; filter: invert(1); margin-bottom: 20px; }
+        .footer-desc { font-size: 14px; color: #aaa; line-height: 1.8; max-width: 280px; }
+        .footer-col h4 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; margin-bottom: 16px; }
+        .footer-col a { display: block; font-size: 14px; color: #F5F1E8; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: opacity 0.2s; }
+        .footer-col a:hover { opacity: 0.5; }
+        .footer-col p { font-size: 14px; color: #aaa; line-height: 1.8; }
+        .footer-bottom { border-top: 0.5px solid #333; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; }
+
+        /* PAGES */
         .page { padding: 120px 48px 80px; max-width: 900px; margin: 0 auto; width: 100%; }
         .page-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.18em; margin-bottom: 48px; text-transform: uppercase; }
         .events-grid { display: flex; flex-direction: column; gap: 20px; }
@@ -225,37 +241,7 @@ export default function Home() {
         .shop-price { font-size: 14px; color: var(--ink-light); }
         .shop-btn { width: 100%; background: var(--ink); color: var(--bg); border: none; padding: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.2s; margin-top: 12px; border-radius: 6px; }
         .shop-btn:hover { opacity: 0.8; }
-        .sections { display: flex; flex-direction: column; }
-        .section { padding: 100px 80px; }
-        .section-dark { background: #1D1D1D; color: #F5F1E8; }
-        .section-split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-        .section-split img { width: 100%; border-radius: 4px; }
-        .manifesto { text-align: center; max-width: 700px; margin: 0 auto; }
-        .manifesto-text { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 42px; letter-spacing: 0.05em; line-height: 1.3; margin-bottom: 32px; }
-        .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 64px; }
-        .three-col-item h3 { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
-        .three-col-item p { font-size: 15px; line-height: 1.8; color: var(--ink-light); }
-        .section-dark .three-col-item p { color: #aaa; }
-        .next-event { text-align: center; }
-        .next-event-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: #aaa; margin-bottom: 16px; }
-        .next-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.1em; margin-bottom: 12px; }
-        .next-event-meta { font-size: 16px; color: #aaa; margin-bottom: 40px; line-height: 1.8; }
-        .hero-btn-light { display: inline-flex; align-items: center; background: #F5F1E8; color: #1D1D1D; font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 16px; padding: 16px 36px; border-radius: var(--radius); border: none; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
-        .hero-btn-light:hover { transform: scale(1.03); opacity: 0.85; }
-        .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 48px; }
-        .insta-cell { aspect-ratio: 1; background: #E8E3D8; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
-        .insta-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-        .insta-cell:hover img { transform: scale(1.05); }
-        .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
-        footer { background: #1D1D1D; color: #F5F1E8; padding: 60px 80px 40px; }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
-        .footer-logo img { height: 28px; filter: invert(1); margin-bottom: 20px; }
-        .footer-desc { font-size: 14px; color: #aaa; line-height: 1.8; max-width: 280px; }
-        .footer-col h4 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; margin-bottom: 16px; }
-        .footer-col a { display: block; font-size: 14px; color: #F5F1E8; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: opacity 0.2s; }
-        .footer-col a:hover { opacity: 0.5; }
-        .footer-col p { font-size: 14px; color: #aaa; line-height: 1.8; }
-        .footer-bottom { border-top: 0.5px solid #333; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; } 
+
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
           .nav-links { display: none; }
@@ -283,7 +269,7 @@ export default function Home() {
 
       <div className="wrap">
         <nav>
-          <div className="nav-logo" onClick={() => { nav("home"); setMenuOpen(false); }}>
+          <div className="nav-logo" onClick={() => nav("home")}>
             <img src="/logotype.png" alt="Sanshō" />
           </div>
           <ul className="nav-links">
@@ -300,9 +286,7 @@ export default function Home() {
             ))}
           </ul>
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-            <span />
-            <span />
-            <span />
+            <span /><span /><span />
           </button>
         </nav>
 
@@ -315,10 +299,11 @@ export default function Home() {
             { key: "kontakt", label: "kontakt." },
             { key: "webbshop", label: "webbshop." },
           ].map(({ key, label }) => (
-            <a key={key} onClick={() => { nav(key as Page); setMenuOpen(false); }}>{label}</a>
+            <a key={key} onClick={() => nav(key as Page)}>{label}</a>
           ))}
         </div>
 
+        {/* HOME */}
         {page === "home" && (
           <>
             <div className="hero">
@@ -332,7 +317,6 @@ export default function Home() {
             </div>
 
             <div className="sections">
-
               {/* OM OSS */}
               <div className="section">
                 <div className="section-split">
@@ -344,10 +328,9 @@ export default function Home() {
                     <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)" }}>Sanshō är ett ramen pop-up projekt grundat i Stockholm. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
                   </div>
                   <div>
-                    <img src="/shoyu_ramen.jpg" alt="Sanshō Ramen" style={{ borderRadius: 8 }} />
+                    <img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", padding: "32px" }} />
                   </div>
                 </div>
-
                 <div className="three-col">
                   <div className="three-col-item">
                     <h3>Buljong</h3>
@@ -384,7 +367,7 @@ export default function Home() {
                       {events[0].date} · {events[0].time}<br />
                       {events[0].location} · {events[0].price} kr / pers
                     </div>
-                    <button className="hero-btn" onClick={() => { nav("pop-ups"); }}>Boka din plats</button>
+                    <button className="hero-btn" onClick={() => nav("pop-ups")}>Boka din plats</button>
                   </div>
                 </div>
               )}
@@ -392,36 +375,23 @@ export default function Home() {
               {/* INSTAGRAM */}
               <div className="section section-dark">
                 <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>Instagram</p>
-                <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                  <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 4, color: '#F5F1E8', cursor: 'pointer' }}>@sanshoramen</h2>
-                </a>
+                <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 24, color: "#F5F1E8" }}>@sanshoramen</h2>
                 <div className="insta-grid">
-                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
-                    <img src="/shoyu_ramen.jpg" alt="Shoyu Ramen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </a>
-                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
-                    <img src="/tantanmen_ramen.jpg" alt="Tantanmen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </a>
-                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
-                    <img src="/vegan_ramen.jpg" alt="Vegan Ramen" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </a>
-                  <a href="https://www.instagram.com/sanshoramen/" target="_blank" rel="noopener noreferrer" style={{ background: '#2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    <span style={{ fontSize: 48 }}>→</span>
-                  </a>
+                  {["🍜", "🥢", "🔥", "🫙", "🍳", "🌿", "🫧", "🥩"].map((e, i) => (
+                    <div key={i} className="insta-cell">{e}</div>
+                  ))}
                 </div>
               </div>
-
             </div>
           </>
         )}
 
+        {/* POP-UPS */}
         {page === "pop-ups" && !selectedEvent && !confirmed && (
           <div className="page">
             <h1 className="page-title">Pop-ups.</h1>
             <div className="events-grid">
-              {events.length === 0 && (
-                <p style={{ color: "var(--ink-light)", fontSize: 15 }}>Inga kommande pop-ups just nu. Följ oss på Instagram för uppdateringar!</p>
-              )}
+              {events.length === 0 && <p style={{ color: "var(--ink-light)", fontSize: 15 }}>Inga kommande pop-ups just nu. Följ oss på Instagram!</p>}
               {events.map((event) => {
                 const pct = ((event.spots - event.spots_left) / event.spots) * 100;
                 const full = event.spots_left <= 0;
@@ -443,13 +413,13 @@ export default function Home() {
           </div>
         )}
 
+        {/* BOOKING FORM */}
         {page === "pop-ups" && selectedEvent && !confirmed && (
           <div className="page" style={{ maxWidth: 600 }}>
             <button className="booking-back" onClick={() => { setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); }}>← Tillbaka</button>
             <div className="booking-event-title">{selectedEvent.title}</div>
             <div className="booking-event-sub">{selectedEvent.date} · {selectedEvent.location}</div>
             <p style={{ fontSize: 15, lineHeight: 1.8, marginBottom: 36, color: "var(--ink-light)" }}>{selectedEvent.description}</p>
-
             {timeslots.length > 0 && (
               <div style={{ marginBottom: 28 }}>
                 <div className="section-label">Välj tid</div>
@@ -457,12 +427,7 @@ export default function Home() {
                   {timeslots.map(slot => {
                     const full = slot.spots_left <= 0;
                     return (
-                      <button
-                        key={slot.id}
-                        className={`timeslot-btn${selectedTimeslot === String(slot.id) ? " selected" : ""}${full ? " full" : ""}`}
-                        onClick={() => !full && setSelectedTimeslot(String(slot.id))}
-                        disabled={full}
-                      >
+                      <button key={slot.id} className={`timeslot-btn${selectedTimeslot === String(slot.id) ? " selected" : ""}${full ? " full" : ""}`} onClick={() => !full && setSelectedTimeslot(String(slot.id))} disabled={full}>
                         <div>{slot.time}</div>
                         <div className="timeslot-spots">{full ? "Fullbokat" : `${slot.spots_left} platser`}</div>
                       </button>
@@ -471,31 +436,18 @@ export default function Home() {
                 </div>
               </div>
             )}
-
             <div className="form-grid">
-              <div className="form-field">
-                <label>Förnamn</label>
-                <input value={booking.fname} onChange={e => setBooking({ ...booking, fname: e.target.value })} placeholder="Johan" />
-              </div>
-              <div className="form-field">
-                <label>Efternamn</label>
-                <input value={booking.lname} onChange={e => setBooking({ ...booking, lname: e.target.value })} placeholder="Svensson" />
-              </div>
+              <div className="form-field"><label>Förnamn</label><input value={booking.fname} onChange={e => setBooking({ ...booking, fname: e.target.value })} placeholder="Johan" /></div>
+              <div className="form-field"><label>Efternamn</label><input value={booking.lname} onChange={e => setBooking({ ...booking, lname: e.target.value })} placeholder="Svensson" /></div>
             </div>
-            <div className="form-field">
-              <label>E-post</label>
-              <input type="email" value={booking.email} onChange={e => setBooking({ ...booking, email: e.target.value })} placeholder="johan@exempel.se" />
-            </div>
+            <div className="form-field"><label>E-post</label><input type="email" value={booking.email} onChange={e => setBooking({ ...booking, email: e.target.value })} placeholder="johan@exempel.se" /></div>
             <div className="form-field">
               <label>Antal gäster</label>
               <select value={booking.guests} onChange={e => setBooking({ ...booking, guests: e.target.value })}>
                 {[1, 2, 3, 4].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "personer"}</option>)}
               </select>
             </div>
-            <div className="form-field">
-              <label>Allergier / önskemål</label>
-              <textarea value={booking.note} onChange={e => setBooking({ ...booking, note: e.target.value })} placeholder="Glutenfri, laktosintolerant..." />
-            </div>
+            <div className="form-field"><label>Allergier / önskemål</label><textarea value={booking.note} onChange={e => setBooking({ ...booking, note: e.target.value })} placeholder="Glutenfri, laktosintolerant..." /></div>
             <div className="price-summary">
               <div className="price-row"><span>{booking.guests} × {selectedEvent.price} kr</span><span>{Number(booking.guests) * selectedEvent.price} kr</span></div>
               {selectedTimeslot && <div className="price-row"><span>Tid</span><span>{timeslots.find(t => t.id === Number(selectedTimeslot))?.time}</span></div>}
@@ -503,16 +455,13 @@ export default function Home() {
               <div className="price-total"><span>Totalt</span><span>{Number(booking.guests) * selectedEvent.price} kr</span></div>
             </div>
             {error && <div className="error-msg">{error}</div>}
-            <button
-              className="pay-btn"
-              disabled={!booking.fname || !booking.lname || !booking.email.includes("@") || loading || (timeslots.length > 0 && !selectedTimeslot)}
-              onClick={handleBook}
-            >
+            <button className="pay-btn" disabled={!booking.fname || !booking.lname || !booking.email.includes("@") || loading || (timeslots.length > 0 && !selectedTimeslot)} onClick={handleBook}>
               {loading ? "Sparar bokning..." : "Betala via Stripe"}
             </button>
           </div>
         )}
 
+        {/* CONFIRM */}
         {page === "pop-ups" && confirmed && (
           <div className="page">
             <div className="confirm">
@@ -521,7 +470,7 @@ export default function Home() {
                   <path d="M6 14.5L11 19.5L22 8.5" stroke="#1D1D1D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <div style={{ fontFamily: "'Quicksand', sans-serif", fontSize: 18, fontWeight: 500 }}>Bokning bekräftad!</div>
+              <div style={{ fontSize: 18, fontWeight: 500 }}>Bokning bekräftad!</div>
               <div className="confirm-code">{confirmCode}</div>
               <div className="confirm-sub">Bekräftelse skickas till {booking.email}<br />Vi ses snart. 🍜</div>
               <button className="hero-btn" style={{ margin: "40px auto 0" }} onClick={() => { setConfirmed(false); setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); setBooking({ fname: "", lname: "", email: "", guests: "2", note: "" }); }}>
@@ -531,6 +480,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* OM OSS */}
         {page === "om-oss" && (
           <div className="page">
             <h1 className="page-title">Om oss.</h1>
@@ -547,17 +497,18 @@ export default function Home() {
           </div>
         )}
 
+        {/* KONTAKT */}
         {page === "kontakt" && (
           <div className="page">
             <h1 className="page-title">Kontakt.</h1>
             <div className="contact-layout">
               <div className="contact-info">
                 <p style={{ marginBottom: 32, fontSize: 16, lineHeight: 1.9 }}>Frågor om bokningar, samarbeten eller press? Hör av er.</p>
-                <p>✉ <a href="mailto:contact@sanshoramen.se">contact@sanshoramen.se</a></p>
+                <p>✉ <a href="mailto:hej@sanshoramen.se">hej@sanshoramen.se</a></p>
                 <p>📍 Stockholm, Sverige</p>
                 <p style={{ marginTop: 32 }}>
                   <a href="https://instagram.com/sanshoramen" style={{ marginRight: 20 }}>Instagram</a>
-                  <a href="https://tiktok.com/@sanshoramen">TikTok</a>
+                  <a href="#">TikTok</a>
                 </p>
               </div>
               <div>
@@ -570,6 +521,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* BLOGG */}
         {page === "blogg" && (
           <div className="page">
             <h1 className="page-title">Blogg.</h1>
@@ -590,6 +542,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* WEBBSHOP */}
         {page === "webbshop" && (
           <div className="page">
             <h1 className="page-title">Webbshop.</h1>
@@ -615,6 +568,37 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      <footer>
+        <div className="footer-grid">
+          <div>
+            <div className="footer-logo">
+              <img src="/logotype.png" alt="Sanshō" />
+            </div>
+            <p className="footer-desc">Ramen pop-up i Stockholm. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
+          </div>
+          <div className="footer-col">
+            <h4>Navigation</h4>
+            <a onClick={() => nav("pop-ups")}>Pop-ups</a>
+            <a onClick={() => nav("om-oss")}>Om oss</a>
+            <a onClick={() => nav("blogg")}>Blogg</a>
+            <a onClick={() => nav("webbshop")}>Webbshop</a>
+            <a onClick={() => nav("kontakt")}>Kontakt</a>
+          </div>
+          <div className="footer-col">
+            <h4>Kontakt</h4>
+            <p>hej@sanshoramen.se</p>
+            <p style={{ marginTop: 16 }}>
+              <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">Instagram</a>
+              <a href="#" target="_blank" rel="noreferrer">TikTok</a>
+            </p>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Sanshō Ramen. Alla rättigheter förbehållna.</span>
+          <span>Stockholm, Sverige</span>
+        </div>
+      </footer>
     </>
   );
 }
