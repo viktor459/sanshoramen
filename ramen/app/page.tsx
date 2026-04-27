@@ -510,11 +510,11 @@ export default function Home() {
             <div className="contact-layout">
               <div className="contact-info">
                 <p style={{ marginBottom: 32, fontSize: 16, lineHeight: 1.9 }}>Frågor om bokningar, samarbeten eller press? Hör av er.</p>
-                <p>✉ <a href="mailto:hej@sanshoramen.se">hej@sanshoramen.se</a></p>
+                <p>✉ <a href="mailto:contact@sanshoramen.se">contact@sanshoramen.se</a></p>
                 <p>📍 Stockholm, Sverige</p>
                 <p style={{ marginTop: 32 }}>
                   <a href="https://instagram.com/sanshoramen" style={{ marginRight: 20 }}>Instagram</a>
-                  <a href="#">TikTok</a>
+                  <a href="https://tiktok.com/@sanshoramen">TikTok</a>
                 </p>
               </div>
               <div>
