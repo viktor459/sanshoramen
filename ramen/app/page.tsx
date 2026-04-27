@@ -325,7 +325,7 @@ export default function Home() {
                     <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 38, letterSpacing: "0.05em", lineHeight: 1.2, marginBottom: 24 }}>Ramen är mer än mat. Det är en ritual.</h2>
                     <div className="divider-line" />
                     <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)", marginBottom: 20 }}>Vi kokar buljongen i 18 timmar. Vi drar nudlarna för hand. Vi väljer varje topping med omsorg. Det är inte för att vi måste — det är för att vi inte kan tänka oss att göra det på något annat sätt.</p>
-                    <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)" }}>Sanshō är ett ramen pop-up projekt grundat i Stockholm. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
+                    <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)" }}>Sanshō är ett ramen pop-up projekt grundat i Skåne. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
                   </div>
                   <div>
                     <img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", padding: "32px" }} />
@@ -486,8 +486,8 @@ export default function Home() {
             <h1 className="page-title">Om oss.</h1>
             <div className="about-grid">
               <div className="about-text">
-                <p>Sanshō är ett ramen pop-up projekt grundat av Viktor och [kompanjon] i Stockholm. Vi tror att ramen är mer än mat — det är en ritual. 18 timmars buljong, handdragna nudlar, och omgivningar som känns som något annat.</p>
-                <p>Vi tar med oss köket till utvalda restauranger runt om i Stockholm och skapar tillfälliga upplevelser som inte går att återuppleva. Varje pop-up är ett engångsevent.</p>
+                <p>Sanshō är ett ramen pop-up projekt grundat av Viktor och [kompanjon] i Skåne. Vi tror att ramen är mer än mat — det är en ritual. 18 timmars buljong, handdragna nudlar, och omgivningar som känns som något annat.</p>
+                <p>Vi tar med oss köket till utvalda restauranger runt om i Skåne och skapar tillfälliga upplevelser som inte går att återuppleva. Varje pop-up är ett engångsevent.</p>
                 <p>Sanshō är japonska för pepparträdet vars bär ger en unik, elektriserande hetta. Precis som vi vill att vår mat ska kännas.</p>
               </div>
               <div>
@@ -505,7 +505,7 @@ export default function Home() {
               <div className="contact-info">
                 <p style={{ marginBottom: 32, fontSize: 16, lineHeight: 1.9 }}>Frågor om bokningar, samarbeten eller press? Hör av er.</p>
                 <p>✉ <a href="mailto:hej@sanshoramen.se">hej@sanshoramen.se</a></p>
-                <p>📍 Stockholm, Sverige</p>
+                <p>📍 Skåne, Sverige</p>
                 <p style={{ marginTop: 32 }}>
                   <a href="https://instagram.com/sanshoramen" style={{ marginRight: 20 }}>Instagram</a>
                   <a href="#">TikTok</a>
@@ -530,7 +530,7 @@ export default function Home() {
                 { tag: "Teknik", title: "Tonkotsu på 18 timmar", excerpt: "Varför vi kokar buljongen i nästan ett dygn och vad som händer i kastrullen under natten." },
                 { tag: "Ingredienser", title: "Vad är egentligen tare?", excerpt: "Tare är ramenens hemliga vapen — den smaksättning som definierar om det är shio, shoyu eller miso." },
                 { tag: "Bakom kulisserna", title: "Vår första pop-up", excerpt: "Allt som gick fel, allt som gick rätt och varför vi redan planerade nästa dagen efter." },
-                { tag: "Guide", title: "Stockholms bästa ramen", excerpt: "Vi har ätit oss igenom stan. Här är vår ärliga lista — inklusive platser som förtjänar mer kärlek." },
+                { tag: "Guide", title: "Skånes bästa ramen", excerpt: "Vi har ätit oss igenom stan. Här är vår ärliga lista — inklusive platser som förtjänar mer kärlek." },
               ].map((post) => (
                 <div key={post.title} className="blog-card">
                   <div className="blog-tag">{post.tag}</div>
@@ -575,7 +575,7 @@ export default function Home() {
             <div className="footer-logo">
               <img src="/logotype.png" alt="Sanshō" />
             </div>
-            <p className="footer-desc">Ramen pop-up i Stockholm. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
+            <p className="footer-desc">Ramen pop-up i Skåne. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
           </div>
           <div className="footer-col">
             <h4>Navigation</h4>
@@ -596,7 +596,7 @@ export default function Home() {
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Sanshō Ramen. Alla rättigheter förbehållna.</span>
-          <span>Stockholm, Sverige</span>
+          <span>Skåne, Sverige</span>
         </div>
       </footer>
     </>
