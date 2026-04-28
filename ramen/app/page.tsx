@@ -332,7 +332,7 @@ export default function Home() {
                     src="https://luma.com/embed/event/evt-R8lgBg0tdEvbmku/simple"
                     width="600"
                     height="450"
-                    frameborder="0"
+                    frameBorder="0"
                     style={{ border: "1px solid #bfcbda88", borderRadius: "4px" }}  
                     allow="fullscreen; payment"
                     aria-hidden="false"
