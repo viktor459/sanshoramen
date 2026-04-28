@@ -328,6 +328,16 @@ export default function Home() {
                     <div className="next-event-title">{events[0].title}</div>
                     <div className="next-event-meta">{events[0].date} · {events[0].time}<br />{events[0].location} · {events[0].price} kr / pers</div>
                     <button className="hero-btn" onClick={() => nav("pop-ups")}>Boka din plats</button>
+                    <iframe
+                    src="https://luma.com/embed/event/evt-R8lgBg0tdEvbmku/simple"
+                    width="600"
+                    height="450"
+                    frameborder="0"
+                    style="border: 1px solid #bfcbda88; border-radius: 4px;"
+                    allow="fullscreen; payment"
+                    aria-hidden="false"
+                    tabindex="0"
+                  ></iframe>
                   </div>
                 </div>
               )}
@@ -448,7 +458,7 @@ export default function Home() {
                 <img src="/illustration.png" alt="Sanshō" style={{ width: "100%", filter: "invert(1)", background: "#1D1D1D", padding: "20px", borderRadius: 12 }} />
               </div>
             </div>
-          </div>
+          </div> 
         )}
 
         {page === "kontakt" && (
