@@ -106,54 +106,220 @@ export default function Home() {
         :root { --bg: #F5F1E8; --ink: #1D1D1D; --ink-light: #6B6560; --radius: 100px; }
         body { background: var(--bg); color: var(--ink); font-family: 'Quicksand', sans-serif; font-weight: 300; }
         .wrap { min-height: 100vh; display: flex; flex-direction: column; }
+
         nav { display: flex; align-items: center; justify-content: space-between; padding: 28px 48px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--bg); }
         .nav-logo { cursor: pointer; }
         .nav-logo img { height: 32px; }
         .nav-links { display: flex; gap: 36px; list-style: none; }
         .nav-links a { font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 15px; color: var(--ink); text-decoration: none; letter-spacing: 0.02em; cursor: pointer; transition: opacity 0.2s; }
         .nav-links a:hover { opacity: 0.5; }
-        .nav-links a.active { border-bottom: 1.5px solid var(--ink); }
         .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
         .hamburger span { display: block; width: 24px; height: 2px; background: var(--ink); border-radius: 2px; }
         .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
         .mobile-menu.open { display: flex; }
         .mobile-menu a { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; color: var(--ink); cursor: pointer; text-transform: uppercase; }
-        .hero { flex: 1; display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; padding-top: 88px; overflow: hidden; }
-        .hero-left { display: flex; flex-direction: column; justify-content: center; padding: 0 48px 80px 48px; gap: 40px; }
-        .hero-logo img { width: 320px; }
-        .hero-btn { display: inline-flex; align-items: center; background: var(--ink); color: var(--bg); font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 16px; padding: 16px 36px; border-radius: var(--radius); border: none; cursor: pointer; width: fit-content; transition: transform 0.2s, opacity 0.2s; }
-        .hero-btn:hover { transform: scale(1.03); opacity: 0.85; }
-        .hero-right { position: relative; overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; }
-        .hero-right img { width: 120%; max-width: 900px; object-fit: contain; transform: translateX(20px); animation: floatIn 1.2s ease forwards; }
-        @keyframes floatIn { from { opacity: 0; transform: translateX(60px) translateY(20px); } to { opacity: 1; transform: translateX(20px) translateY(0); } }
-        .sections { display: flex; flex-direction: column; }
-        .section { padding: 100px 80px; }
-        .section-dark { background: #1D1D1D; color: #F5F1E8; }
-        .section-split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-        .section-split img { width: 100%; border-radius: 8px; }
-        .manifesto { text-align: center; max-width: 700px; margin: 0 auto; }
-        .manifesto-text { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 42px; letter-spacing: 0.05em; line-height: 1.3; margin-bottom: 32px; }
-        .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: 64px; }
-        .three-col-item h3 { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px; }
-        .three-col-item p { font-size: 15px; line-height: 1.8; color: var(--ink-light); }
-        .next-event { text-align: center; }
-        .next-event-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 16px; }
-        .next-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.1em; margin-bottom: 12px; }
-        .next-event-meta { font-size: 16px; color: var(--ink-light); margin-bottom: 40px; line-height: 1.8; }
-        .hero-btn-light { display: inline-flex; align-items: center; background: #F5F1E8; color: #1D1D1D; font-family: 'Quicksand', sans-serif; font-weight: 400; font-size: 16px; padding: 16px 36px; border-radius: var(--radius); border: none; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
-        .hero-btn-light:hover { transform: scale(1.03); opacity: 0.85; }
-        .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 48px; }
+
+        /* HERO */
+        .hero {
+          min-height: 100vh;
+          padding-top: 88px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          align-items: center;
+          overflow: hidden;
+        }
+        .hero-left {
+          padding: 60px 64px 60px 80px;
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+        }
+        .hero-tag {
+          font-size: 11px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--ink-light);
+        }
+        .hero-headline {
+          font-family: 'Quicksand', sans-serif;
+          font-weight: 700;
+          font-size: clamp(36px, 4vw, 56px);
+          line-height: 1.15;
+          letter-spacing: -0.01em;
+        }
+        .hero-sub {
+          font-size: 17px;
+          color: var(--ink-light);
+          line-height: 1.7;
+          max-width: 420px;
+        }
+        .hero-cta {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+        .btn-dark {
+          background: var(--ink);
+          color: var(--bg);
+          border: none;
+          padding: 16px 32px;
+          border-radius: var(--radius);
+          font-family: 'Quicksand', sans-serif;
+          font-size: 15px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: opacity 0.2s, transform 0.2s;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+        }
+        .btn-dark:hover { opacity: 0.8; transform: translateY(-1px); }
+        .btn-ghost {
+          background: transparent;
+          color: var(--ink);
+          border: 1.5px solid var(--ink);
+          padding: 15px 32px;
+          border-radius: var(--radius);
+          font-family: 'Quicksand', sans-serif;
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+        }
+        .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+        .hero-right {
+          height: 100vh;
+          overflow: hidden;
+          display: flex;
+          align-items: flex-end;
+          justify-content: flex-end;
+        }
+        .hero-right img {
+          width: 110%;
+          max-width: 820px;
+          object-fit: contain;
+          transform: translateX(40px) translateY(20px);
+          animation: floatIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes floatIn {
+          from { opacity: 0; transform: translateX(80px) translateY(40px); }
+          to { opacity: 1; transform: translateX(40px) translateY(20px); }
+        }
+
+        /* BOOKING SECTION */
+        .booking-section {
+          background: var(--ink);
+          color: var(--bg);
+          padding: 100px 80px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 80px;
+          align-items: start;
+        }
+        .booking-left h2 {
+          font-family: 'Quicksand', sans-serif;
+          font-weight: 700;
+          font-size: 42px;
+          letter-spacing: 0.05em;
+          margin-bottom: 20px;
+          line-height: 1.2;
+        }
+        .booking-left p {
+          font-size: 16px;
+          color: #aaa;
+          line-height: 1.8;
+          margin-bottom: 32px;
+        }
+        .booking-details {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .booking-detail-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          font-size: 14px;
+          color: #ccc;
+        }
+        .booking-detail-row span:first-child {
+          font-size: 11px;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #666;
+          min-width: 80px;
+        }
+        .luma-wrapper {
+          background: #F5F1E8;
+          border-radius: 12px;
+          overflow: hidden;
+          width: 100%;
+        }
+
+        /* ABOUT SECTION */
+        .about-section {
+          padding: 100px 80px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 80px;
+          align-items: center;
+        }
+        .about-text h2 {
+          font-family: 'Quicksand', sans-serif;
+          font-weight: 700;
+          font-size: 38px;
+          letter-spacing: 0.03em;
+          line-height: 1.2;
+          margin-bottom: 24px;
+        }
+        .about-text p {
+          font-size: 16px;
+          color: var(--ink-light);
+          line-height: 1.9;
+          margin-bottom: 20px;
+        }
+        .three-col {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 40px;
+          margin-top: 80px;
+          padding: 0 80px;
+        }
+        .three-col-item h3 {
+          font-family: 'Quicksand', sans-serif;
+          font-weight: 700;
+          font-size: 14px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          margin-bottom: 12px;
+        }
+        .three-col-item p {
+          font-size: 15px;
+          line-height: 1.8;
+          color: var(--ink-light);
+        }
+        .divider-line { width: 40px; height: 2px; background: var(--ink); margin: 20px 0; opacity: 0.2; }
+
+        /* INSTAGRAM */
+        .insta-section { padding: 80px 80px; background: var(--ink); color: var(--bg); }
+        .insta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 32px; }
         .insta-cell { aspect-ratio: 1; background: #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; }
-        .divider-line { width: 40px; height: 2px; background: currentColor; margin: 24px 0; opacity: 0.3; }
-        footer { background: #1D1D1D; color: #F5F1E8; padding: 60px 80px 40px; }
+
+        /* FOOTER */
+        footer { background: #111; color: #F5F1E8; padding: 60px 80px 40px; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
         .footer-logo img { height: 28px; filter: invert(1); margin-bottom: 20px; }
-        .footer-desc { font-size: 14px; color: #aaa; line-height: 1.8; max-width: 280px; }
-        .footer-col h4 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; margin-bottom: 16px; }
-        .footer-col a { display: block; font-size: 14px; color: #F5F1E8; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: opacity 0.2s; }
-        .footer-col a:hover { opacity: 0.5; }
-        .footer-col p { font-size: 14px; color: #aaa; line-height: 1.8; }
-        .footer-bottom { border-top: 0.5px solid #333; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; }
+        .footer-desc { font-size: 14px; color: #666; line-height: 1.8; max-width: 280px; }
+        .footer-col h4 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #555; margin-bottom: 16px; }
+        .footer-col a { display: block; font-size: 14px; color: #aaa; text-decoration: none; margin-bottom: 10px; cursor: pointer; transition: color 0.2s; }
+        .footer-col a:hover { color: #F5F1E8; }
+        .footer-col p { font-size: 14px; color: #666; line-height: 1.8; }
+        .footer-bottom { border-top: 0.5px solid #222; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #444; }
+
+        /* HIDDEN PAGES */
         .page { padding: 120px 48px 80px; max-width: 900px; margin: 0 auto; width: 100%; }
         .page-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 52px; letter-spacing: 0.18em; margin-bottom: 48px; text-transform: uppercase; }
         .events-grid { display: flex; flex-direction: column; gap: 20px; }
@@ -163,30 +329,24 @@ export default function Home() {
         .event-card:hover .event-btn { background: var(--bg); color: var(--ink); }
         .event-name { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.1em; margin-bottom: 8px; }
         .event-meta { font-size: 14px; color: var(--ink-light); line-height: 1.8; transition: color 0.2s; }
-        .event-btn { background: var(--ink); color: var(--bg); border: none; padding: 14px 28px; border-radius: var(--radius); font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; white-space: nowrap; transition: background 0.2s, color 0.2s; }
+        .event-btn { background: var(--ink); color: var(--bg); border: none; padding: 14px 28px; border-radius: var(--radius); font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; white-space: nowrap; }
         .spots-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
         .spots-bar { flex: 1; max-width: 160px; height: 3px; background: #ccc; border-radius: 2px; }
         .spots-fill { height: 3px; background: var(--ink); border-radius: 2px; }
-        .event-card:hover .spots-bar { background: #555; }
-        .event-card:hover .spots-fill { background: var(--bg); }
         .timeslots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 24px; }
         .timeslot-btn { border: 1.5px solid var(--ink); border-radius: 10px; padding: 12px 16px; cursor: pointer; background: transparent; font-family: 'Quicksand', sans-serif; font-size: 14px; text-align: center; transition: all 0.15s; }
-        .timeslot-btn:hover { background: var(--ink); color: var(--bg); }
-        .timeslot-btn.selected { background: var(--ink); color: var(--bg); }
+        .timeslot-btn:hover, .timeslot-btn.selected { background: var(--ink); color: var(--bg); }
         .timeslot-btn.full { opacity: 0.4; cursor: not-allowed; border-style: dashed; }
         .timeslot-spots { font-size: 11px; color: var(--ink-light); margin-top: 3px; }
-        .timeslot-btn.selected .timeslot-spots { color: #ccc; }
-        .timeslot-btn:hover .timeslot-spots { color: #ccc; }
+        .timeslot-btn.selected .timeslot-spots, .timeslot-btn:hover .timeslot-spots { color: #ccc; }
         .booking-back { background: none; border: none; cursor: pointer; font-family: 'Quicksand', sans-serif; font-size: 14px; color: var(--ink-light); margin-bottom: 32px; display: flex; align-items: center; gap: 6px; }
-        .booking-back:hover { color: var(--ink); }
         .booking-event-title { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 36px; letter-spacing: 0.1em; margin-bottom: 6px; }
         .booking-event-sub { font-size: 14px; color: var(--ink-light); margin-bottom: 40px; }
         .section-label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 12px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .form-field label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); }
-        .form-field input, .form-field select, .form-field textarea { background: transparent; border: 1.5px solid var(--ink); border-radius: 8px; padding: 12px 16px; font-family: 'Quicksand', sans-serif; font-size: 15px; color: var(--ink); outline: none; transition: border-color 0.2s; }
-        .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: #888; }
+        .form-field input, .form-field select, .form-field textarea { background: transparent; border: 1.5px solid var(--ink); border-radius: 8px; padding: 12px 16px; font-family: 'Quicksand', sans-serif; font-size: 15px; color: var(--ink); outline: none; }
         .form-field textarea { resize: vertical; min-height: 80px; }
         .price-summary { border-top: 1.5px solid var(--ink); padding-top: 20px; margin: 24px 0; }
         .price-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-light); margin-bottom: 8px; }
@@ -200,8 +360,8 @@ export default function Home() {
         .confirm-code { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 36px; letter-spacing: 0.15em; margin: 12px 0; }
         .confirm-sub { font-size: 15px; color: var(--ink-light); line-height: 1.7; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
-        .about-text { font-size: 16px; line-height: 1.9; }
-        .about-text p { margin-bottom: 20px; }
+        .about-text-page { font-size: 16px; line-height: 1.9; }
+        .about-text-page p { margin-bottom: 20px; }
         .contact-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
         .contact-info { font-size: 15px; line-height: 2; }
         .contact-info a { color: var(--ink); }
@@ -220,29 +380,29 @@ export default function Home() {
         .shop-name { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.06em; margin-bottom: 4px; }
         .shop-price { font-size: 14px; color: var(--ink-light); }
         .shop-btn { width: 100%; background: var(--ink); color: var(--bg); border: none; padding: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; transition: opacity 0.2s; margin-top: 12px; border-radius: 6px; }
-        .shop-btn:hover { opacity: 0.8; }
+
         @media (max-width: 768px) {
           nav { padding: 20px 24px; }
           .nav-links { display: none; }
           .hamburger { display: flex; }
-          .hero { grid-template-columns: 1fr; }
-          .hero-right { display: none; }
-          .hero-left { padding: 0 24px 60px; }
-          .hero-logo img { width: 220px; }
+          .hero { grid-template-columns: 1fr; min-height: auto; padding-bottom: 0; }
+          .hero-left { padding: 40px 24px; gap: 24px; }
+          .hero-headline { font-size: 36px; }
+          .hero-right { height: 320px; }
+          .hero-right img { width: 100%; transform: translateX(20px) translateY(10px); }
+          .booking-section { grid-template-columns: 1fr; gap: 40px; padding: 60px 24px; }
+          .about-section { grid-template-columns: 1fr; gap: 40px; padding: 60px 24px; }
+          .three-col { grid-template-columns: 1fr; gap: 32px; padding: 0 24px; margin-top: 40px; }
+          .insta-section { padding: 60px 24px; }
+          .insta-grid { grid-template-columns: repeat(2, 1fr); }
+          footer { padding: 48px 24px 32px; }
+          .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+          .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
           .page { padding: 100px 24px 60px; }
           .page-title { font-size: 36px; }
           .form-grid { grid-template-columns: 1fr; }
           .about-grid, .contact-layout { grid-template-columns: 1fr; }
           .blog-grid, .shop-grid { grid-template-columns: 1fr; }
-          .section { padding: 60px 24px; }
-          .section-split { grid-template-columns: 1fr; gap: 40px; }
-          .manifesto-text { font-size: 28px; }
-          .three-col { grid-template-columns: 1fr; gap: 32px; }
-          .next-event-title { font-size: 32px; }
-          .insta-grid { grid-template-columns: repeat(2, 1fr); }
-          footer { padding: 48px 24px 32px; }
-          .footer-grid { grid-template-columns: 1fr; gap: 40px; }
-          .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
         }
       `}</style>
 
@@ -252,17 +412,9 @@ export default function Home() {
             <img src="/logotype.png" alt="Sanshō" />
           </div>
           <ul className="nav-links">
-            {[
-              { key: "pop-ups", label: "pop-ups." },
-              { key: "blogg", label: "blogg." },
-              { key: "om-oss", label: "om oss." },
-              { key: "kontakt", label: "kontakt." },
-              { key: "webbshop", label: "webbshop." },
-            ].map(({ key, label }) => (
-              <li key={key}>
-                <a className={page === key ? "active" : ""} onClick={() => nav(key as Page)}>{label}</a>
-              </li>
-            ))}
+            <li><a href="#boka">boka.</a></li>
+            <li><a href="#om">om oss.</a></li>
+            <li><a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">instagram.</a></li>
           </ul>
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
             <span /><span /><span />
@@ -271,84 +423,127 @@ export default function Home() {
 
         <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
           <button onClick={() => setMenuOpen(false)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", fontSize: 28, cursor: "pointer" }}>×</button>
-          {[
-            { key: "pop-ups", label: "pop-ups." },
-            { key: "blogg", label: "blogg." },
-            { key: "om-oss", label: "om oss." },
-            { key: "kontakt", label: "kontakt." },
-            { key: "webbshop", label: "webbshop." },
-          ].map(({ key, label }) => (
-            <a key={key} onClick={() => nav(key as Page)}>{label}</a>
-          ))}
+          <a onClick={() => { setMenuOpen(false); document.getElementById("boka")?.scrollIntoView({ behavior: "smooth" }); }}>Boka</a>
+          <a onClick={() => { setMenuOpen(false); document.getElementById("om")?.scrollIntoView({ behavior: "smooth" }); }}>Om oss</a>
+          <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">Instagram</a>
         </div>
 
+        {/* HERO */}
         {page === "home" && (
           <>
             <div className="hero">
               <div className="hero-left">
-                <div className="hero-logo"><img src="/logotype.png" alt="Sanshō Ramen" /></div>
-                <button className="hero-btn" onClick={() => nav("pop-ups")}>Next pop-up.</button>
+                <p className="hero-tag">Ramen pop-up · Sverige</p>
+                <h1 className="hero-headline">High quality<br />ramen pop-ups<br />in Sweden.</h1>
+                <p className="hero-sub">We cook the broth for 18 hours, pull the noodles by hand, and create experiences you can't repeat.</p>
+                <div className="hero-cta">
+                  <a href="#boka" className="btn-dark">See upcoming pop-ups →</a>
+                  <a href="#om" className="btn-ghost">About us</a>
+                </div>
               </div>
               <div className="hero-right">
-                <img src="/illustration.png" alt="Ramen illustration" />
+                <img src="/illustration.png" alt="Sanshō Ramen" />
               </div>
             </div>
-            <div className="sections">
-              <div className="section">
-                <div className="section-split">
-                  <div>
-                    <p style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-light)", marginBottom: 20 }}>Om Sanshō</p>
-                    <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 38, letterSpacing: "0.05em", lineHeight: 1.2, marginBottom: 24 }}>Ramen är mer än mat. Det är en ritual.</h2>
-                    <div className="divider-line" />
-                    <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)", marginBottom: 20 }}>Vi kokar buljongen i 18 timmar. Vi drar nudlarna för hand. Vi väljer varje topping med omsorg. Det är inte för att vi måste — det är för att vi inte kan tänka oss att göra det på något annat sätt.</p>
-                    <p style={{ fontSize: 16, lineHeight: 1.9, color: "var(--ink-light)" }}>Sanshō är ett ramen pop-up projekt grundat i Skåne. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
+
+            {/* BOOKING */}
+            <div className="booking-section" id="boka">
+              <div className="booking-left">
+                <h2>Next<br />pop-up.</h2>
+                {events.length > 0 && (
+                  <div className="booking-details">
+                    <div className="booking-detail-row">
+                      <span>Event</span>
+                      <span>{events[0].title}</span>
+                    </div>
+                    <div className="booking-detail-row">
+                      <span>Datum</span>
+                      <span>{events[0].date}</span>
+                    </div>
+                    <div className="booking-detail-row">
+                      <span>Tid</span>
+                      <span>{events[0].time}</span>
+                    </div>
+                    <div className="booking-detail-row">
+                      <span>Plats</span>
+                      <span>{events[0].location}</span>
+                    </div>
+                    <div className="booking-detail-row">
+                      <span>Pris</span>
+                      <span>{events[0].price} kr / pers</span>
+                    </div>
                   </div>
-                  <div>
-                    <img src="/illustration.png" alt="Sanshō" style={{ filter: "invert(1)", background: "#1D1D1D", padding: "32px" }} />
-                  </div>
-                </div>
-                <div className="three-col">
-                  <div className="three-col-item"><h3>Buljong</h3><p>18 timmars kokning. Fläskben, kombu, katsuobushi. Vi stoppar inte förrän smaken är exakt som den ska vara.</p></div>
-                  <div className="three-col-item"><h3>Nudlar</h3><p>Handdragna samma dag som de serveras. Aldrig från förra veckan. Aldrig från en påse.</p></div>
-                  <div className="three-col-item"><h3>Tare</h3><p>Ramenens hemliga vapen. Vår shio tare är under ständig utveckling — alltid på jakt efter mer djup.</p></div>
+                )}
+                <p style={{ marginTop: 32, fontSize: 13, color: "#555", lineHeight: 1.7 }}>
+                  Bokning sker via Luma. Spots are limited — book early.
+                </p>
+              </div>
+              <div>
+                <div className="luma-wrapper">
+                  <iframe
+                    src="https://luma.com/embed/event/evt-77dZtaAzbhCrGtf/simple"
+                    width="100%"
+                    height="450"
+                    frameBorder="0"
+                    style={{ border: "none", display: "block" }}
+                    allow="fullscreen; payment"
+                    aria-hidden="false"
+                    tabIndex={0}
+                  />
                 </div>
               </div>
-              <div className="section section-dark">
-                <div className="manifesto">
-                  <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 20 }}>Vår filosofi</p>
-                  <div className="manifesto-text">"Vi gör inte kompromisser med buljongen. Aldrig."</div>
-                  <p style={{ fontSize: 15, color: "#aaa", lineHeight: 1.8 }}>Varje pop-up är ett engångsevent. Samma lokal, samma kväll — aldrig igen. Det är det som gör det värt att vara där.</p>
-                  <button className="hero-btn-light" style={{ marginTop: 40 }} onClick={() => nav("pop-ups")}>Se kommande pop-ups</button>
-                </div>
+            </div>
+
+            {/* ABOUT */}
+            <div className="about-section" id="om">
+              <div className="about-text">
+                <p style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--ink-light)", marginBottom: 16 }}>Om Sanshō</p>
+                <h2>Ramen är mer än mat.<br />Det är en ritual.</h2>
+                <div className="divider-line" />
+                <p>Vi kokar buljongen i 18 timmar. Vi drar nudlarna för hand. Vi väljer varje topping med omsorg — inte för att vi måste, utan för att vi inte kan tänka oss att göra det på något annat sätt.</p>
+                <p>Sanshō är ett pop-up projekt grundat i Skåne. Vi tar med oss köket till utvalda restauranger och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
               </div>
-              {events.length > 0 && (
-                <div className="section">
-                  <div className="next-event">
-                    <div className="next-event-label">Nästa pop-up</div>
-                    <div className="next-event-title">{events[0].title}</div>
-                    <div className="next-event-meta">{events[0].date} · {events[0].time}<br />{events[0].location} · {events[0].price} kr / pers</div>
-                    <button className="hero-btn" onClick={() => nav("pop-ups")}>Boka din plats</button>
-                  </div>
-                </div>
-              )}
-              <div className="section section-dark">
-                <p style={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>Instagram</p>
-                <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", marginBottom: 24, color: "#F5F1E8" }}>@sanshoramen</h2>
-                <div className="insta-grid">
-                  {["🍜", "🥢", "🔥", "🫙", "🍳", "🌿", "🫧", "🥩"].map((e, i) => (
-                    <div key={i} className="insta-cell">{e}</div>
-                  ))}
-                </div>
+              <div>
+                <img src="/illustration.png" alt="Sanshō" style={{ width: "100%", filter: "invert(1)", background: "#1D1D1D", padding: "40px", borderRadius: 8 }} />
+              </div>
+            </div>
+
+            <div className="three-col">
+              <div className="three-col-item">
+                <h3>Buljong</h3>
+                <p>18 timmars kokning. Fläskben, kombu, katsuobushi. Vi stoppar inte förrän smaken är exakt rätt.</p>
+              </div>
+              <div className="three-col-item">
+                <h3>Nudlar</h3>
+                <p>Handdragna samma dag som de serveras. Aldrig från förra veckan. Aldrig från en påse.</p>
+              </div>
+              <div className="three-col-item">
+                <h3>Tare</h3>
+                <p>Ramenens hemliga vapen. Vår shio tare är under ständig utveckling — alltid på jakt efter mer djup.</p>
+              </div>
+            </div>
+
+            {/* INSTAGRAM */}
+            <div className="insta-section" style={{ marginTop: 80 }}>
+              <p style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#555", marginBottom: 8 }}>Följ oss</p>
+              <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+                <h2 style={{ fontFamily: "'Quicksand', sans-serif", fontWeight: 700, fontSize: 28, letterSpacing: "0.06em", color: "#F5F1E8" }}>@sanshoramen ↗</h2>
+              </a>
+              <div className="insta-grid">
+                {["🍜", "🥢", "🔥", "🫙", "🍳", "🌿", "🫧", "🥩"].map((e, i) => (
+                  <div key={i} className="insta-cell">{e}</div>
+                ))}
               </div>
             </div>
           </>
         )}
 
+        {/* HIDDEN PAGES — under konstruktion */}
         {page === "pop-ups" && !selectedEvent && !confirmed && (
           <div className="page">
             <h1 className="page-title">Pop-ups.</h1>
             <div className="events-grid">
-              {events.length === 0 && <p style={{ color: "var(--ink-light)", fontSize: 15 }}>Inga kommande pop-ups just nu. Följ oss på Instagram!</p>}
+              {events.length === 0 && <p style={{ color: "var(--ink-light)", fontSize: 15 }}>Inga kommande pop-ups just nu.</p>}
               {events.map((event) => {
                 const pct = ((event.spots - event.spots_left) / event.spots) * 100;
                 const full = event.spots_left <= 0;
@@ -428,7 +623,7 @@ export default function Home() {
               <div style={{ fontSize: 18, fontWeight: 500 }}>Bokning bekräftad!</div>
               <div className="confirm-code">{confirmCode}</div>
               <div className="confirm-sub">Bekräftelse skickas till {booking.email}<br />Vi ses snart. 🍜</div>
-              <button className="hero-btn" style={{ margin: "40px auto 0" }} onClick={() => { setConfirmed(false); setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); setBooking({ fname: "", lname: "", email: "", guests: "2", note: "" }); }}>
+              <button className="btn-dark" style={{ margin: "40px auto 0" }} onClick={() => { setConfirmed(false); setSelectedEvent(null); setTimeslots([]); setSelectedTimeslot(""); setBooking({ fname: "", lname: "", email: "", guests: "2", note: "" }); }}>
                 Se fler pop-ups
               </button>
             </div>
@@ -439,16 +634,16 @@ export default function Home() {
           <div className="page">
             <h1 className="page-title">Om oss.</h1>
             <div className="about-grid">
-              <div className="about-text">
-                <p>Sanshō är ett ramen pop-up projekt grundat av Viktor och [kompanjon] i Skåne. Vi tror att ramen är mer än mat — det är en ritual. 18 timmars buljong, handdragna nudlar, och omgivningar som känns som något annat.</p>
-                <p>Vi tar med oss köket till utvalda restauranger runt om i Skåne och skapar tillfälliga upplevelser som inte går att återuppleva. Varje pop-up är ett engångsevent.</p>
-                <p>Sanshō är japonska för pepparträdet vars bär ger en unik, elektriserande hetta. Precis som vi vill att vår mat ska kännas.</p>
+              <div className="about-text-page">
+                <p>Sanshō är ett ramen pop-up projekt grundat av Viktor och [kompanjon] i Skåne.</p>
+                <p>Vi tar med oss köket till utvalda restauranger runt om i Skåne och skapar tillfälliga upplevelser som inte går att återuppleva.</p>
+                <p>Sanshō är japonska för pepparträdet vars bär ger en unik, elektriserande hetta.</p>
               </div>
               <div>
-                <img src="/about.jpg" alt="Sanshō" style={{ width: "100%", background: "#1D1D1D", padding: "20px", borderRadius: 12 }} />
+                <img src="/illustration.png" alt="Sanshō" style={{ width: "100%", filter: "invert(1)", background: "#1D1D1D", padding: "20px", borderRadius: 12 }} />
               </div>
             </div>
-          </div> 
+          </div>
         )}
 
         {page === "kontakt" && (
@@ -456,19 +651,14 @@ export default function Home() {
             <h1 className="page-title">Kontakt.</h1>
             <div className="contact-layout">
               <div className="contact-info">
-                <p style={{ marginBottom: 32, fontSize: 16, lineHeight: 1.9 }}>Frågor om bokningar, samarbeten eller press? Hör av er.</p>
+                <p style={{ marginBottom: 32, fontSize: 16, lineHeight: 1.9 }}>Frågor om bokningar, samarbeten eller press?</p>
                 <p>✉ <a href="mailto:hej@sanshoramen.se">hej@sanshoramen.se</a></p>
                 <p>📍 Skåne, Sverige</p>
-                <p style={{ marginTop: 32 }}>
-                  <a href="https://instagram.com/sanshoramen" style={{ marginRight: 20 }}>Instagram</a>
-                  <a href="#">TikTok</a>
-                </p>
               </div>
               <div>
-                <div className="form-field"><label>Namn</label><input placeholder="Ditt cd ~/Desktop/sanshoramen/ramen
-npm run devnamn" /></div>
+                <div className="form-field"><label>Namn</label><input placeholder="Ditt namn" /></div>
                 <div className="form-field"><label>E-post</label><input type="email" placeholder="din@email.se" /></div>
-                <div className="form-field"><label>Meddelande</label><textarea placeholder="Hej! Vi vill..." style={{ minHeight: 120 }} /></div>
+                <div className="form-field"><label>Meddelande</label><textarea placeholder="Hej!" style={{ minHeight: 120 }} /></div>
                 <button className="pay-btn">Skicka</button>
               </div>
             </div>
@@ -480,10 +670,10 @@ npm run devnamn" /></div>
             <h1 className="page-title">Blogg.</h1>
             <div className="blog-grid">
               {[
-                { tag: "Teknik", title: "Tonkotsu på 18 timmar", excerpt: "Varför vi kokar buljongen i nästan ett dygn och vad som händer i kastrullen under natten." },
-                { tag: "Ingredienser", title: "Vad är egentligen tare?", excerpt: "Tare är ramenens hemliga vapen — den smaksättning som definierar om det är shio, shoyu eller miso." },
-                { tag: "Bakom kulisserna", title: "Vår första pop-up", excerpt: "Allt som gick fel, allt som gick rätt och varför vi redan planerade nästa dagen efter." },
-                { tag: "Guide", title: "Skånes bästa ramen", excerpt: "Vi har ätit oss igenom stan. Här är vår ärliga lista — inklusive platser som förtjänar mer kärlek." },
+                { tag: "Teknik", title: "Tonkotsu på 18 timmar", excerpt: "Varför vi kokar buljongen i nästan ett dygn." },
+                { tag: "Ingredienser", title: "Vad är egentligen tare?", excerpt: "Tare är ramenens hemliga vapen." },
+                { tag: "Bakom kulisserna", title: "Vår första pop-up", excerpt: "Allt som gick fel, allt som gick rätt." },
+                { tag: "Guide", title: "Skånes bästa ramen", excerpt: "Vår ärliga lista." },
               ].map((post) => (
                 <div key={post.title} className="blog-card">
                   <div className="blog-tag">{post.tag}</div>
@@ -503,9 +693,6 @@ npm run devnamn" /></div>
                 { name: "Sanshō Tote", price: "249 kr", emoji: "🛍️" },
                 { name: "Logo T-shirt", price: "399 kr", emoji: "👕" },
                 { name: "Tonkotsu Kit", price: "299 kr", emoji: "🍜" },
-                { name: "Tare Set", price: "199 kr", emoji: "🫙" },
-                { name: "Kepsar", price: "349 kr", emoji: "🧢" },
-                { name: "Presentkort", price: "från 390 kr", emoji: "🎁" },
               ].map((item) => (
                 <div key={item.name} className="shop-card">
                   <div className="shop-img">{item.emoji}</div>
@@ -525,28 +712,23 @@ npm run devnamn" /></div>
         <div className="footer-grid">
           <div>
             <div className="footer-logo"><img src="/logotype.png" alt="Sanshō" /></div>
-            <p className="footer-desc">Ramen pop-up i Skåne. Vi kokar buljongen i 18 timmar, drar nudlarna för hand och skapar upplevelser som inte går att återuppleva.</p>
+            <p className="footer-desc">High quality ramen pop-ups in Sweden. We cook the broth for 18 hours.</p>
           </div>
           <div className="footer-col">
-            <h4>Navigation</h4>
-            <a onClick={() => nav("pop-ups")}>Pop-ups</a>
-            <a onClick={() => nav("om-oss")}>Om oss</a>
-            <a onClick={() => nav("blogg")}>Blogg</a>
-            <a onClick={() => nav("webbshop")}>Webbshop</a>
-            <a onClick={() => nav("kontakt")}>Kontakt</a>
+            <h4>Links</h4>
+            <a href="#boka">Boka</a>
+            <a href="#om">Om oss</a>
+            <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">Instagram</a>
           </div>
           <div className="footer-col">
             <h4>Kontakt</h4>
             <p>hej@sanshoramen.se</p>
-            <p style={{ marginTop: 16 }}>
-              <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer">Instagram</a>
-              <a href="#" target="_blank" rel="noreferrer">TikTok</a>
-            </p>
+            <p style={{ marginTop: 8 }}>Skåne, Sverige</p>
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} Sanshō Ramen. Alla rättigheter förbehållna.</span>
-          <span>Skåne, Sverige</span>
+          <span>© {new Date().getFullYear()} Sanshō Ramen.</span>
+          <span>Sweden</span>
         </div>
       </footer>
     </>
