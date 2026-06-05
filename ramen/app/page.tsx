@@ -303,15 +303,15 @@ export default function Home() {
               <div>
                 <div className="luma-wrapper">
                   <iframe
-                    src="https://luma.com/sanshoramen"
-                    width="100%"
+                    src="https://luma.com/embed/calendar/cal-S5nOlEyL95gYAMY/events?compact=true"
+                    width="600"
                     height="450"
                     frameBorder="0"
-                    style={{ border: "none", display: "block" }}
-                    allow="fullscreen; payment"
+                    style={{ border: '1px solid #bfcbda88', borderRadius: '4px' }}
+                    allowFullScreen
                     aria-hidden="false"
                     tabIndex={0}
-                  />
+                  ></iframe>
                 </div>
               </div>
             </div>
