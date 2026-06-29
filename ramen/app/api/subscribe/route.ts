@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   }
 
   await resend.emails.send({
-    from: "Sanshō Ramen <hej@sanshoramen.se>",
+    from: "Sanshō Ramen <contact@sanshoramen.se>",
     to: email,
     subject: "Välkommen till Sanshō Ramen",
     html: `
