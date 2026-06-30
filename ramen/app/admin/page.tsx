@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 
 type Event = {
@@ -10,7 +10,7 @@ type Event = {
   location: string;
   spots: number;
   spots_left: number;
-  price: number;
+  price: number | null;
   description: string;
   active: boolean;
 };
@@ -49,6 +49,16 @@ type Post = {
   published: boolean;
 };
 
+type Product = { id: number; name: string; description: string; price: number; image_url: string; category: string; active: boolean };
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return new Date(dateStr + "T12:00:00").toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long" });
+  }
+  return dateStr;
+};
+
 export default function Admin() {
   const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products">("events");
 
@@ -56,16 +66,22 @@ export default function Admin() {
   const [events, setEvents] = useState<Event[]>([]);
   const [timeslots, setTimeslots] = useState<Record<number, Timeslot[]>>({});
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", time: "", location: "", spots: "", price: "", description: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "" });
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [eventsView, setEventsView] = useState<"add" | "edit">("add");
 
   // Bookings
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
 
   // Products
-  const [products, setProducts] = useState<{id:number;name:string;description:string;price:number;image_url:string;category:string;active:boolean}[]>([]);
-  const [newProduct, setNewProduct] = useState({ name:"", description:"", price:"", image_url:"", category:"" });
+  const [products, setProducts] = useState<Product[]>([]);
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", price: "", image_url: "", category: "" });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   // Blog
   const [posts, setPosts] = useState<Post[]>([]);
@@ -97,14 +113,35 @@ export default function Admin() {
     if (data) setProducts(data);
   };
 
+  const uploadImage = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(filename, file, { upsert: true });
+    if (error) throw error;
+    const { data } = supabase.storage.from("product-images").getPublicUrl(filename);
+    return data.publicUrl;
+  };
+
   const addProduct = async () => {
     if (!newProduct.name || !newProduct.price) return;
     await supabase.from("products").insert([{ ...newProduct, price: Number(newProduct.price), active: true }]);
-    setNewProduct({ name:"", description:"", price:"", image_url:"", category:"" });
+    setNewProduct({ name: "", description: "", price: "", image_url: "", category: "" });
+    if (fileInputRef.current) fileInputRef.current.value = "";
     fetchProducts();
   };
 
-  const toggleProductActive = async (p: {id:number;active:boolean}) => {
+  const saveEditProduct = async () => {
+    if (!editingProduct) return;
+    await supabase.from("products").update({
+      name: editingProduct.name, description: editingProduct.description,
+      price: editingProduct.price, image_url: editingProduct.image_url,
+      category: editingProduct.category, active: editingProduct.active,
+    }).eq("id", editingProduct.id);
+    setEditingProduct(null);
+    fetchProducts();
+  };
+
+  const toggleProductActive = async (p: Product) => {
     await supabase.from("products").update({ active: !p.active }).eq("id", p.id);
     fetchProducts();
   };
@@ -121,14 +158,28 @@ export default function Admin() {
   };
 
   const addEvent = async () => {
-    if (!newEvent.title || !newEvent.date || !newEvent.price) return;
+    if (!newEvent.title || !newEvent.date) return;
+    const time = [newEvent.timeStart, newEvent.timeEnd].filter(Boolean).join(" – ");
     await supabase.from("events").insert([{
-      title: newEvent.title, date: newEvent.date, time: newEvent.time,
+      title: newEvent.title, date: newEvent.date, time,
       location: newEvent.location, spots: Number(newEvent.spots),
-      spots_left: Number(newEvent.spots), price: Number(newEvent.price),
+      spots_left: Number(newEvent.spots),
+      price: newEvent.price ? Number(newEvent.price) : null,
       description: newEvent.description, active: true,
     }]);
-    setNewEvent({ title: "", date: "", time: "", location: "", spots: "", price: "", description: "" });
+    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "" });
+    fetchEvents();
+  };
+
+  const saveEditEvent = async () => {
+    if (!editingEvent) return;
+    await supabase.from("events").update({
+      title: editingEvent.title, date: editingEvent.date, time: editingEvent.time,
+      location: editingEvent.location, spots: editingEvent.spots, spots_left: editingEvent.spots_left,
+      price: editingEvent.price || null, description: editingEvent.description, active: editingEvent.active,
+    }).eq("id", editingEvent.id);
+    setEditingEvent(null);
+    setEventsView("add");
     fetchEvents();
   };
 
@@ -159,8 +210,21 @@ export default function Admin() {
     fetchTimeslots(eventId);
   };
 
+  const deleteBooking = async (id: string) => {
+    if (!confirm("Ta bort bokningen?")) return;
+    await supabase.from("bookings").delete().eq("id", id);
+    fetchBookings();
+  };
+
+  const deleteAllVisible = async () => {
+    const filtered = filteredBookings;
+    if (!confirm(`Ta bort ${filtered.length} bokningar permanent?`)) return;
+    await supabase.from("bookings").delete().in("id", filtered.map(b => b.id));
+    fetchBookings();
+  };
+
   const exportCSV = () => {
-    const filtered = filterEvent === "all" ? bookings : bookings.filter(b => b.event_name === filterEvent);
+    const filtered = filteredBookings;
     const rows = [["Bokningskod", "Namn", "E-post", "Event", "Tid", "Gäster", "Totalt", "Status", "Datum"]];
     filtered.forEach(b => rows.push([b.booking_code, `${b.fname} ${b.lname}`, b.email, b.event_name, b.timeslot_time || "-", String(b.guests), `${b.total_price} kr`, b.status, new Date(b.created_at).toLocaleDateString("sv-SE")]));
     const csv = rows.map(r => r.join(";")).join("\n");
@@ -204,6 +268,9 @@ export default function Admin() {
 
   const filteredBookings = filterEvent === "all" ? bookings : bookings.filter(b => b.event_name === filterEvent);
 
+  const mapsEmbedUrl = (location: string) =>
+    location ? `https://maps.google.com/maps?q=${encodeURIComponent(location)}&output=embed` : null;
+
   const S = {
     page: { minHeight: "100vh", background: "#F5F1E8", fontFamily: "'Quicksand', sans-serif", padding: "40px 48px" } as React.CSSProperties,
     input: { background: "transparent", border: "1.5px solid #1D1D1D", borderRadius: 8, padding: "10px 14px", fontFamily: "'Quicksand', sans-serif", fontSize: 14, color: "#1D1D1D", outline: "none", width: "100%" } as React.CSSProperties,
@@ -215,9 +282,61 @@ export default function Admin() {
     label: { fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#6B6560", marginBottom: 6, display: "block" } as React.CSSProperties,
   };
 
+  const ImageUploadField = ({
+    value, onChange, inputRef,
+  }: {
+    value: string;
+    onChange: (url: string) => void;
+    inputRef: React.RefObject<HTMLInputElement | null>;
+  }) => (
+    <div>
+      <label style={S.label}>Produktbild</label>
+      <div
+        style={{ border: "1.5px dashed #1D1D1D", borderRadius: 8, padding: "16px", textAlign: "center", cursor: "pointer", background: "transparent" }}
+        onClick={() => inputRef.current?.click()}
+      >
+        {value ? (
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <img src={value} alt="" style={{ maxHeight: 120, maxWidth: "100%", borderRadius: 6, objectFit: "cover" }} />
+            <button
+              style={{ position: "absolute", top: -8, right: -8, background: "#c0392b", color: "#fff", border: "none", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 14, lineHeight: "1" }}
+              onClick={e => { e.stopPropagation(); onChange(""); if (inputRef.current) inputRef.current.value = ""; }}
+            >×</button>
+          </div>
+        ) : (
+          <div style={{ color: "#6B6560", fontSize: 13 }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>↑</div>
+            <div>Klicka för att ladda upp bild</div>
+            <div style={{ fontSize: 11, marginTop: 4 }}>JPG, PNG, WebP</div>
+          </div>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={async e => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          setUploadingImage(true);
+          try {
+            const url = await uploadImage(file);
+            onChange(url);
+          } catch {
+            alert("Uppladdning misslyckades");
+          } finally {
+            setUploadingImage(false);
+          }
+        }}
+      />
+      {uploadingImage && <div style={{ fontSize: 12, color: "#6B6560", marginTop: 6 }}>Laddar upp...</div>}
+    </div>
+  );
+
   return (
     <div style={S.page}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap'); * { box-sizing: border-box; } table { width: 100%; border-collapse: collapse; } th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B6560; padding: 8px 12px; text-align: left; border-bottom: 1.5px solid #1D1D1D; } td { font-size: 14px; padding: 12px 12px; border-bottom: 0.5px solid #ccc; vertical-align: top; } tr:last-child td { border-bottom: none; }`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap'); * { box-sizing: border-box; } table { width: 100%; border-collapse: collapse; } th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B6560; padding: 8px 12px; text-align: left; border-bottom: 1.5px solid #1D1D1D; } td { font-size: 14px; padding: 12px 12px; border-bottom: 0.5px solid #ccc; vertical-align: top; } tr:last-child td { border-bottom: none; } input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }`}</style>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
         <div style={{ fontWeight: 700, fontSize: 28, letterSpacing: "0.1em" }}>SANSHŌ ADMIN</div>
@@ -236,19 +355,100 @@ export default function Admin() {
       {tab === "events" && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Lägg till event</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input style={S.input} placeholder="Titel *" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} />
-              <input style={S.input} placeholder="Datum (t.ex. Lördag 14 juni) *" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
-              <input style={S.input} placeholder="Tid (t.ex. 18:00 – 22:00)" value={newEvent.time} onChange={e => setNewEvent({ ...newEvent, time: e.target.value })} />
-              <input style={S.input} placeholder="Plats" value={newEvent.location} onChange={e => setNewEvent({ ...newEvent, location: e.target.value })} />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <input style={S.input} placeholder="Antal platser *" type="number" value={newEvent.spots} onChange={e => setNewEvent({ ...newEvent, spots: e.target.value })} />
-                <input style={S.input} placeholder="Pris (kr) *" type="number" value={newEvent.price} onChange={e => setNewEvent({ ...newEvent, price: e.target.value })} />
-              </div>
-              <textarea style={S.textarea} placeholder="Beskrivning" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} />
-              <button style={S.btn} onClick={addEvent}>Lägg till event</button>
-            </div>
+            {eventsView === "add" ? (
+              <>
+                <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Lägg till event</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div>
+                    <label style={S.label}>Titel *</label>
+                    <input style={S.input} placeholder="Pop-up middag" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Datum *</label>
+                    <input style={S.input} type="date" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={S.label}>Starttid</label>
+                      <input style={S.input} type="time" value={newEvent.timeStart} onChange={e => setNewEvent({ ...newEvent, timeStart: e.target.value })} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Sluttid</label>
+                      <input style={S.input} type="time" value={newEvent.timeEnd} onChange={e => setNewEvent({ ...newEvent, timeEnd: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={S.label}>Plats</label>
+                    <input style={S.input} placeholder="Adress eller platsnamn" value={newEvent.location} onChange={e => setNewEvent({ ...newEvent, location: e.target.value })} />
+                    {newEvent.location && (
+                      <a href={`https://maps.google.com/maps?q=${encodeURIComponent(newEvent.location)}`} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#6B6560", textDecoration: "underline", marginTop: 4, display: "block" }}>
+                        Visa på Google Maps ↗
+                      </a>
+                    )}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={S.label}>Antal platser *</label>
+                      <input style={S.input} placeholder="20" type="number" value={newEvent.spots} onChange={e => setNewEvent({ ...newEvent, spots: e.target.value })} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Pris (kr) — valfritt</label>
+                      <input style={S.input} placeholder="695" type="number" value={newEvent.price} onChange={e => setNewEvent({ ...newEvent, price: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={S.label}>Beskrivning</label>
+                    <textarea style={S.textarea} placeholder="Beskriv eventet..." value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} />
+                  </div>
+                  <button style={S.btn} onClick={addEvent}>Lägg till event</button>
+                </div>
+              </>
+            ) : editingEvent ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                  <button style={S.btnOutline} onClick={() => { setEventsView("add"); setEditingEvent(null); }}>← Avbryt</button>
+                  <div style={{ fontWeight: 700, fontSize: 18 }}>Redigera event</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div>
+                    <label style={S.label}>Titel *</label>
+                    <input style={S.input} value={editingEvent.title} onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Datum *</label>
+                    <input style={S.input} type="date" value={editingEvent.date} onChange={e => setEditingEvent({ ...editingEvent, date: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Tid (t.ex. 18:00 – 22:00)</label>
+                    <input style={S.input} value={editingEvent.time} onChange={e => setEditingEvent({ ...editingEvent, time: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={S.label}>Plats</label>
+                    <input style={S.input} value={editingEvent.location} onChange={e => setEditingEvent({ ...editingEvent, location: e.target.value })} />
+                    {editingEvent.location && (
+                      <a href={`https://maps.google.com/maps?q=${encodeURIComponent(editingEvent.location)}`} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#6B6560", textDecoration: "underline", marginTop: 4, display: "block" }}>
+                        Visa på Google Maps ↗
+                      </a>
+                    )}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={S.label}>Platser kvar</label>
+                      <input style={S.input} type="number" value={editingEvent.spots_left} onChange={e => setEditingEvent({ ...editingEvent, spots_left: Number(e.target.value) })} />
+                    </div>
+                    <div>
+                      <label style={S.label}>Pris (kr) — valfritt</label>
+                      <input style={S.input} type="number" value={editingEvent.price ?? ""} onChange={e => setEditingEvent({ ...editingEvent, price: e.target.value ? Number(e.target.value) : null })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={S.label}>Beskrivning</label>
+                    <textarea style={S.textarea} value={editingEvent.description} onChange={e => setEditingEvent({ ...editingEvent, description: e.target.value })} />
+                  </div>
+                  <button style={S.btn} onClick={saveEditEvent}>Spara ändringar</button>
+                </div>
+              </>
+            ) : null}
           </div>
 
           <div>
@@ -259,15 +459,31 @@ export default function Admin() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 16 }}>{event.title}</div>
-                      <div style={{ fontSize: 13, color: "#6B6560" }}>{event.date} · {event.location}</div>
-                      <div style={{ fontSize: 13, color: "#6B6560" }}>{event.spots_left}/{event.spots} platser · {event.price} kr</div>
+                      <div style={{ fontSize: 13, color: "#6B6560" }}>{formatDate(event.date)}{event.location ? ` · ${event.location}` : ""}</div>
+                      <div style={{ fontSize: 13, color: "#6B6560" }}>
+                        {event.spots_left}/{event.spots} platser
+                        {event.price != null ? ` · ${event.price} kr` : " · Gratis/inget pris"}
+                      </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      <button style={S.btnOutline} onClick={() => { setEditingEvent(event); setEventsView("edit"); }}>Redigera</button>
                       <button style={S.btnOutline} onClick={() => toggleActive(event)}>{event.active ? "Dölj" : "Visa"}</button>
                       <button style={S.btnDanger} onClick={() => deleteEvent(event.id)}>Ta bort</button>
                     </div>
                   </div>
-                  <div style={{ marginTop: 12, borderTop: "0.5px solid #ccc", paddingTop: 12 }}>
+                  {event.location && mapsEmbedUrl(event.location) && (
+                    <div style={{ marginBottom: 12 }}>
+                      <iframe
+                        src={mapsEmbedUrl(event.location)!}
+                        width="100%"
+                        height="160"
+                        style={{ border: 0, borderRadius: 8 }}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </div>
+                  )}
+                  <div style={{ marginTop: 4, borderTop: "0.5px solid #ccc", paddingTop: 12 }}>
                     <div style={S.label}>Tider</div>
                     {(timeslots[event.id] || []).map(slot => (
                       <div key={slot.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, marginBottom: 6 }}>
@@ -276,8 +492,21 @@ export default function Admin() {
                       </div>
                     ))}
                     <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                      <input style={{ ...S.input, flex: 1 }} placeholder="Tid (18:00)" value={selectedEventId === event.id ? newSlot.time : ""} onFocus={() => setSelectedEventId(event.id)} onChange={e => setNewSlot({ ...newSlot, time: e.target.value })} />
-                      <input style={{ ...S.input, flex: 1 }} placeholder="Platser" type="number" value={selectedEventId === event.id ? newSlot.spots : ""} onFocus={() => setSelectedEventId(event.id)} onChange={e => setNewSlot({ ...newSlot, spots: e.target.value })} />
+                      <input
+                        style={{ ...S.input, flex: 1 }}
+                        type="time"
+                        value={selectedEventId === event.id ? newSlot.time : ""}
+                        onFocus={() => setSelectedEventId(event.id)}
+                        onChange={e => setNewSlot({ ...newSlot, time: e.target.value })}
+                      />
+                      <input
+                        style={{ ...S.input, flex: 1 }}
+                        placeholder="Platser"
+                        type="number"
+                        value={selectedEventId === event.id ? newSlot.spots : ""}
+                        onFocus={() => setSelectedEventId(event.id)}
+                        onChange={e => setNewSlot({ ...newSlot, spots: e.target.value })}
+                      />
                       <button style={S.btn} onClick={() => { setSelectedEventId(event.id); addSlot(); }}>+</button>
                     </div>
                   </div>
@@ -291,7 +520,7 @@ export default function Admin() {
       {/* BOOKINGS TAB */}
       {tab === "bookings" && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ fontWeight: 700, fontSize: 18 }}>Bokningar ({filteredBookings.length})</div>
               <select value={filterEvent} onChange={e => setFilterEvent(e.target.value)} style={{ ...S.input, width: "auto" }}>
@@ -301,13 +530,18 @@ export default function Admin() {
                 ))}
               </select>
             </div>
-            <button style={S.btn} onClick={exportCSV}>Exportera CSV</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button style={S.btn} onClick={exportCSV}>Exportera CSV</button>
+              {filteredBookings.length > 0 && (
+                <button style={S.btnDanger} onClick={deleteAllVisible}>Ta bort alla ({filteredBookings.length})</button>
+              )}
+            </div>
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Totalt</th><th>Datum</th></tr></thead>
+              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {filteredBookings.length === 0 && <tr><td colSpan={8} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
+                {filteredBookings.length === 0 && <tr><td colSpan={9} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
                 {filteredBookings.map(b => (
                   <tr key={b.id}>
                     <td style={{ fontWeight: 500 }}>{b.booking_code}</td>
@@ -318,6 +552,7 @@ export default function Admin() {
                     <td>{b.guests} pers</td>
                     <td>{b.total_price} kr</td>
                     <td style={{ color: "#6B6560" }}>{new Date(b.created_at).toLocaleDateString("sv-SE")}</td>
+                    <td><button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -410,43 +645,6 @@ export default function Admin() {
         </div>
       )}
 
-      {/* PRODUCTS TAB */}
-      {tab === "products" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Lägg till produkt</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input style={S.input} placeholder="Namn *" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
-              <textarea style={S.textarea} placeholder="Beskrivning" value={newProduct.description} onChange={e => setNewProduct({ ...newProduct, description: e.target.value })} />
-              <input style={S.input} placeholder="Pris (kr) *" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
-              <input style={S.input} placeholder="Kategori (t.ex. Headwear, Kläder)" value={newProduct.category} onChange={e => setNewProduct({ ...newProduct, category: e.target.value })} />
-              <input style={S.input} placeholder="Bild-URL (valfritt)" value={newProduct.image_url} onChange={e => setNewProduct({ ...newProduct, image_url: e.target.value })} />
-              <button style={S.btn} onClick={addProduct}>Lägg till produkt</button>
-            </div>
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Produkter ({products.length})</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {products.map(p => (
-                <div key={p.id} style={{ ...S.card, opacity: p.active ? 1 : 0.5 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div>
-                      <div style={{ fontSize: 13, color: "#6B6560" }}>{p.category} · {p.price} kr</div>
-                      {p.description && <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>{p.description.substring(0, 80)}...</div>}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                      <button style={S.btnOutline} onClick={() => toggleProductActive(p)}>{p.active ? "Dölj" : "Visa"}</button>
-                      <button style={S.btnDanger} onClick={() => deleteProduct(p.id)}>Ta bort</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {tab === "blogg" && blogView === "edit" && editingPost && (
         <div style={{ maxWidth: 800 }}>
           <button style={{ ...S.btnOutline, marginBottom: 24 }} onClick={() => { setBlogView("list"); setEditingPost(null); }}>← Tillbaka</button>
@@ -480,6 +678,106 @@ export default function Admin() {
                 {editingPost.published ? "Avpublicera" : "Publicera"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCTS TAB */}
+      {tab === "products" && !editingProduct && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Lägg till produkt</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <label style={S.label}>Namn *</label>
+                <input style={S.input} placeholder="Sanshō Cap" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
+              </div>
+              <div>
+                <label style={S.label}>Beskrivning</label>
+                <textarea style={{ ...S.textarea, minHeight: 80 }} placeholder="Beskrivning av produkten..." value={newProduct.description} onChange={e => setNewProduct({ ...newProduct, description: e.target.value })} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={S.label}>Pris (kr) *</label>
+                  <input style={S.input} placeholder="299" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
+                </div>
+                <div>
+                  <label style={S.label}>Kategori</label>
+                  <input style={S.input} placeholder="Headwear, Kläder..." value={newProduct.category} onChange={e => setNewProduct({ ...newProduct, category: e.target.value })} />
+                </div>
+              </div>
+              <ImageUploadField
+                value={newProduct.image_url}
+                onChange={url => setNewProduct({ ...newProduct, image_url: url })}
+                inputRef={fileInputRef}
+              />
+              <button style={S.btn} onClick={addProduct} disabled={uploadingImage}>
+                {uploadingImage ? "Laddar upp..." : "Lägg till produkt"}
+              </button>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Produkter ({products.length})</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {products.map(p => (
+                <div key={p.id} style={{ ...S.card, opacity: p.active ? 1 : 0.5 }}>
+                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 64, height: 64, background: "#E8E3D8", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>🍜</div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div>
+                      <div style={{ fontSize: 13, color: "#6B6560" }}>{p.category} · {p.price} kr</div>
+                      {p.description && <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>{p.description.substring(0, 80)}{p.description.length > 80 ? "..." : ""}</div>}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                      <button style={S.btnOutline} onClick={() => setEditingProduct(p)}>Redigera</button>
+                      <button style={S.btnOutline} onClick={() => toggleProductActive(p)}>{p.active ? "Dölj" : "Visa"}</button>
+                      <button style={S.btnDanger} onClick={() => deleteProduct(p.id)}>Ta bort</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === "products" && editingProduct && (
+        <div style={{ maxWidth: 600 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+            <button style={S.btnOutline} onClick={() => setEditingProduct(null)}>← Avbryt</button>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>Redigera produkt</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div>
+              <label style={S.label}>Namn *</label>
+              <input style={S.input} value={editingProduct.name} onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })} />
+            </div>
+            <div>
+              <label style={S.label}>Beskrivning</label>
+              <textarea style={{ ...S.textarea, minHeight: 80 }} value={editingProduct.description} onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={S.label}>Pris (kr) *</label>
+                <input style={S.input} type="number" value={editingProduct.price} onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })} />
+              </div>
+              <div>
+                <label style={S.label}>Kategori</label>
+                <input style={S.input} value={editingProduct.category} onChange={e => setEditingProduct({ ...editingProduct, category: e.target.value })} />
+              </div>
+            </div>
+            <ImageUploadField
+              value={editingProduct.image_url}
+              onChange={url => setEditingProduct({ ...editingProduct, image_url: url })}
+              inputRef={editFileInputRef}
+            />
+            <button style={S.btn} onClick={saveEditProduct} disabled={uploadingImage}>
+              {uploadingImage ? "Laddar upp..." : "Spara ändringar"}
+            </button>
           </div>
         </div>
       )}

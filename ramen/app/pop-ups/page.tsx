@@ -133,11 +133,19 @@ export default function PopUps() {
     else { setError(err || "Något gick fel. Försök igen."); setLoading(false); }
   };
 
-  // Parse date string to get day/month
   const parseDateParts = (dateStr: string) => {
+    if (!dateStr) return { day: "—", month: "", full: "" };
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const d = new Date(dateStr + "T12:00:00");
+      return {
+        day: String(d.getDate()),
+        month: d.toLocaleDateString("en-SE", { month: "short" }).toLowerCase(),
+        full: d.toLocaleDateString("en-SE", { weekday: "long", day: "numeric", month: "long" }),
+      };
+    }
     const parts = dateStr.split(" ");
-    if (parts.length >= 3) return { day: parts[1]?.replace(/\D/g, ""), month: parts[2]?.substring(0, 3) };
-    return { day: "—", month: "" };
+    if (parts.length >= 3) return { day: parts[1]?.replace(/\D/g, ""), month: parts[2]?.substring(0, 3), full: dateStr };
+    return { day: "—", month: "", full: dateStr };
   };
 
   return (
@@ -159,7 +167,7 @@ export default function PopUps() {
               {events.map(ev => {
                 const full = ev.spots_left <= 0;
                 const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
-                const { day, month } = parseDateParts(ev.date);
+                const { day, month, full: fullDate } = parseDateParts(ev.date);
                 return (
                   <div key={ev.id} className="event-row" style={full ? { opacity: 0.55, cursor: "default" } : {}} onClick={() => !full && pickEvent(ev)}>
                     <div className="er-date">
@@ -169,11 +177,17 @@ export default function PopUps() {
                     <div>
                       <div className="er-tag">{ev.location}</div>
                       <div className="er-title">{ev.title}</div>
-                      <div className="er-sub">{ev.date}{ev.time ? ` · ${ev.time}` : ""}</div>
+                      <div className="er-sub">{fullDate || ev.date}{ev.time ? ` · ${ev.time}` : ""}</div>
                     </div>
                     <div className="er-right">
-                      <div className="er-price">{ev.price} kr</div>
-                      <div className="er-right-sub">per person</div>
+                      {ev.price != null ? (
+                        <>
+                          <div className="er-price">{ev.price} kr</div>
+                          <div className="er-right-sub">per person</div>
+                        </>
+                      ) : (
+                        <div className="er-price" style={{ fontSize: 14 }}>Free</div>
+                      )}
                       <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%` }} /></div>
                       <div className="er-right-sub" style={{ marginTop: 4 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</div>
                       {!full && <button className="boka-btn">Book →</button>}
@@ -226,11 +240,13 @@ export default function PopUps() {
             </div>
             <div className="f-field"><label>Allergies / requests</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
 
-            <div className="price-sum">
-              <div className="price-row"><span>{form.guests} × {selected.price} SEK</span><span>{Number(form.guests) * selected.price} SEK</span></div>
-              <div className="price-row"><span>Booking fee</span><span>0 SEK</span></div>
-              <div className="price-total"><span>Due today</span><span>0 SEK</span></div>
-            </div>
+            {selected.price != null && (
+              <div className="price-sum">
+                <div className="price-row"><span>{form.guests} × {selected.price} SEK</span><span>{Number(form.guests) * selected.price} SEK</span></div>
+                <div className="price-row"><span>Booking fee</span><span>0 SEK</span></div>
+                <div className="price-total"><span>Due today</span><span>0 SEK</span></div>
+              </div>
+            )}
 
             {error && <p className="err">{error}</p>}
             <button className="submit-btn"
