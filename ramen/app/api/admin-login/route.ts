@@ -61,7 +61,6 @@ export async function POST(req: NextRequest) {
 
     const validPassword = password === process.env.ADMIN_PASSWORD;
     const validTOTP = await verifyTOTP(process.env.ADMIN_TOTP_SECRET, totp);
-    console.log("admin-login:", { validPassword, validTOTP });
 
     if (!validPassword || !validTOTP) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });

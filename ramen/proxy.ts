@@ -21,7 +21,7 @@ async function isValidSession(token: string): Promise<boolean> {
   return Date.now() - parseInt(ts, 10) < 8 * 60 * 60 * 1000;
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const token = req.cookies.get("admin_session")?.value ?? "";
