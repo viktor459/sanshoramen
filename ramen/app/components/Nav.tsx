@@ -35,7 +35,7 @@ export default function Nav() {
           <li><a href="/pop-ups" className={path === "/pop-ups" ? "active" : ""}>Pop-ups</a></li>
           <li><a href="/blogg" className={path.startsWith("/blogg") ? "active" : ""}>Blogg</a></li>
           <li><a href="/shop" className={path === "/shop" ? "active" : ""}>Shop</a></li>
-          <li><a href="/pop-ups" className="cta">Boka plats</a></li>
+          <li><a href="/pop-ups" className="cta">Book a spot</a></li>
         </ul>
         <button className="hamburger" onClick={() => setOpen(true)} aria-label="Öppna meny">
           <span /><span /><span />

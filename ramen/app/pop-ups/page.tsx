@@ -108,7 +108,7 @@ export default function PopUps() {
   const handleBook = async () => {
     if (!selected) return;
     if (timeslots.length > 0 && !selectedSlot) { setError("Välj en tid för att fortsätta."); return; }
-    if (!form.fname || !form.lname || !form.email.includes("@")) { setError("Fyll i alla obligatoriska fält."); return; }
+    if (!form.fname || !form.lname || !form.email.includes("@")) { setError("Please fill in all required fields."); return; }
     setLoading(true);
     setError("");
     const slot = timeslots.find(t => t.id === Number(selectedSlot));
@@ -146,14 +146,14 @@ export default function PopUps() {
       <div className="page-wrap">
         {!selected ? (
           <>
-            <p className="page-tag">Evenemang</p>
+            <p className="page-tag">Events</p>
             <h1 className="page-title">Pop-ups.</h1>
-            <p className="page-sub">Exklusiva ramenkväller i Skåne. Varje event är unikt — ny meny, ny plats. Platserna är begränsade.</p>
+            <p className="page-sub">Exclusive ramen evenings in Skåne. Every event is unique — new menu, new venue. Spots are limited.</p>
             <div className="events-list">
               {events.length === 0 && (
                 <div className="empty-state">
                   <h3>Inga kommande pop-ups just nu.</h3>
-                  <p>Anmäl dig till <a href="/#nyhetsbrev" style={{ color: "var(--ink)" }}>nyhetsbrevet</a> så får du veta när nästa event släpps.</p>
+                  <p>Sign up for the <a href="/" style={{ color: "var(--ink)" }}>newsletter</a> to be the first to know when the next event drops.</p>
                 </div>
               )}
               {events.map(ev => {
@@ -175,8 +175,8 @@ export default function PopUps() {
                       <div className="er-price">{ev.price} kr</div>
                       <div className="er-right-sub">per person</div>
                       <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%` }} /></div>
-                      <div className="er-right-sub" style={{ marginTop: 4 }}>{full ? "Fullbokat" : `${ev.spots_left} platser kvar`}</div>
-                      {!full && <button className="boka-btn">Boka →</button>}
+                      <div className="er-right-sub" style={{ marginTop: 4 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</div>
+                      {!full && <button className="boka-btn">Book →</button>}
                     </div>
                   </div>
                 );
@@ -185,18 +185,18 @@ export default function PopUps() {
           </>
         ) : (
           <div className="booking-panel">
-            <button className="back-btn" onClick={back}>← Tillbaka till pop-ups</button>
+            <button className="back-btn" onClick={back}>← Back to pop-ups</button>
             <h1 className="bk-title">{selected.title}</h1>
             <p className="bk-meta">{selected.date}{selected.time ? ` · ${selected.time}` : ""} · {selected.location}</p>
             {selected.description && <p className="bk-desc">{selected.description}</p>}
 
             <div className="notice">
-              <strong>Gratis att boka — kortverifiering krävs.</strong> Vi sparar dina kortuppgifter och debiterar <strong>250 kr</strong> vid no-show om du inte avbokar senast 48 timmar innan eventet.
+              <strong>Free to book — card verification required.</strong> We save your card details and charge <strong>250 SEK</strong> for no-shows if you don't cancel at least 48 hours before the event.
             </div>
 
             {timeslots.length > 0 && (
               <div style={{ marginBottom: 24 }}>
-                <p className="sec-label">Välj tid</p>
+                <p className="sec-label">Select time</p>
                 <div className="timeslots-grid">
                   {timeslots.map(slot => {
                     const full = slot.spots_left <= 0;
@@ -204,7 +204,7 @@ export default function PopUps() {
                       <button key={slot.id} className={`ts-btn${selectedSlot === String(slot.id) ? " sel" : ""}${full ? " full" : ""}`}
                         onClick={() => !full && setSelectedSlot(String(slot.id))} disabled={full}>
                         <div>{slot.time}</div>
-                        <div className="ts-sub">{full ? "Fullbokat" : `${slot.spots_left} platser`}</div>
+                        <div className="ts-sub">{full ? "Sold out" : `${slot.spots_left} spots`}</div>
                       </button>
                     );
                   })}
@@ -212,31 +212,31 @@ export default function PopUps() {
               </div>
             )}
 
-            <p className="sec-label">Dina uppgifter</p>
+            <p className="sec-label">Your details</p>
             <div className="form-grid">
-              <div className="f-field"><label>Förnamn *</label><input value={form.fname} onChange={e => setForm({ ...form, fname: e.target.value })} placeholder="Johan" /></div>
-              <div className="f-field"><label>Efternamn *</label><input value={form.lname} onChange={e => setForm({ ...form, lname: e.target.value })} placeholder="Svensson" /></div>
+              <div className="f-field"><label>First name *</label><input value={form.fname} onChange={e => setForm({ ...form, fname: e.target.value })} placeholder="Johan" /></div>
+              <div className="f-field"><label>Last name *</label><input value={form.lname} onChange={e => setForm({ ...form, lname: e.target.value })} placeholder="Svensson" /></div>
             </div>
-            <div className="f-field"><label>E-post *</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="johan@exempel.se" /></div>
+            <div className="f-field"><label>Email *</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="your@email.com" /></div>
             <div className="f-field">
-              <label>Antal gäster</label>
+              <label>Number of guests</label>
               <select value={form.guests} onChange={e => setForm({ ...form, guests: e.target.value })}>
-                {[1,2,3,4].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "personer"}</option>)}
+                {[1,2,3,4].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
               </select>
             </div>
-            <div className="f-field"><label>Allergier / önskemål</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Glutenfri, laktosintolerant..." /></div>
+            <div className="f-field"><label>Allergies / requests</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
 
             <div className="price-sum">
-              <div className="price-row"><span>{form.guests} × {selected.price} kr</span><span>{Number(form.guests) * selected.price} kr</span></div>
-              <div className="price-row"><span>Bokningsavgift</span><span>0 kr</span></div>
-              <div className="price-total"><span>Att betala idag</span><span>0 kr</span></div>
+              <div className="price-row"><span>{form.guests} × {selected.price} SEK</span><span>{Number(form.guests) * selected.price} SEK</span></div>
+              <div className="price-row"><span>Booking fee</span><span>0 SEK</span></div>
+              <div className="price-total"><span>Due today</span><span>0 SEK</span></div>
             </div>
 
             {error && <p className="err">{error}</p>}
             <button className="submit-btn"
               disabled={!form.fname || !form.lname || !form.email.includes("@") || loading || (timeslots.length > 0 && !selectedSlot)}
               onClick={handleBook}>
-              {loading ? "Skickar..." : "Verifiera kort & bekräfta bokning →"}
+              {loading ? "Sending..." : "Verify card & confirm booking →"}
             </button>
           </div>
         )}

@@ -34,7 +34,7 @@ export default function Tack() {
     <div style={{ minHeight: "100vh", background: "#F5F1E8", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Quicksand', sans-serif", padding: "120px 24px 60px" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap');`}</style>
       {loading ? (
-        <p style={{ color: "#6B6560" }}>Bekräftar din bokning...</p>
+        <p style={{ color: "#6B6560" }}>Confirming your booking...</p>
       ) : (
         <div style={{ textAlign: "center", maxWidth: 480 }}>
           <div style={{ width: 72, height: 72, border: "2px solid #1D1D1D", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px" }}>
@@ -45,40 +45,40 @@ export default function Tack() {
 
           {type === "booking" && booking ? (
             <>
-              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Bokning bekräftad!</h1>
+              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Booking confirmed!</h1>
               <p style={{ fontSize: 15, color: "#6B6560", marginBottom: 28, lineHeight: 1.7 }}>
-                Välkommen, {booking.fname}! Vi ses snart på {booking.event_name}.
+                Welcome, {booking.fname}! See you soon at {booking.event_name}.
               </p>
               {booking.booking_code && (
                 <div style={{ background: "#1D1D1D", color: "#F5F1E8", borderRadius: 12, padding: "24px 32px", marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "#888", marginBottom: 8 }}>Bokningskod</div>
+                  <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "#888", marginBottom: 8 }}>Booking code</div>
                   <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "0.1em" }}>{booking.booking_code}</div>
                 </div>
               )}
               <p style={{ fontSize: 13, color: "#6B6560", lineHeight: 1.7, marginBottom: 36 }}>
-                Bekräftelse har skickats till din e-post. 🍜
+                A confirmation has been sent to your email. 🍜
               </p>
             </>
           ) : type === "shop" ? (
             <>
-              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Tack för din beställning!</h1>
+              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Thanks for your order!</h1>
               <p style={{ fontSize: 15, color: "#6B6560", marginBottom: 36, lineHeight: 1.7 }}>
-                {product && <><strong>{product}</strong> är på väg. </>}Kvitto skickas till din e-post.
+                {product && <><strong>{product}</strong> is on its way. </>}A receipt has been sent to your email.
               </p>
             </>
           ) : (
             <>
-              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Tack!</h1>
-              <p style={{ fontSize: 15, color: "#6B6560", marginBottom: 36 }}>Bekräftelse skickas till din e-post.</p>
+              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Thank you!</h1>
+              <p style={{ fontSize: 15, color: "#6B6560", marginBottom: 36 }}>A confirmation will be sent to your email.</p>
             </>
           )}
 
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <a href="/" style={{ background: "#1D1D1D", color: "#F5F1E8", padding: "14px 28px", borderRadius: "100px", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>
-              Till startsidan
+              Back to home
             </a>
             <a href="/pop-ups" style={{ background: "transparent", color: "#1D1D1D", border: "1.5px solid #ccc", padding: "13px 28px", borderRadius: "100px", textDecoration: "none", fontSize: 14 }}>
-              Fler pop-ups
+              More pop-ups
             </a>
           </div>
         </div>

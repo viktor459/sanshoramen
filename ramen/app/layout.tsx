@@ -6,8 +6,8 @@ import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
-  title: "Sanshō Ramen – Pop-ups i Skåne",
-  description: "Exklusiva ramen pop-ups i Skåne. Boka din plats och upplev högkvalitativ ramen i unika miljöer.",
+  title: "Sanshō Ramen – Pop-ups in Skåne",
+  description: "Exclusive ramen pop-ups in Skåne. Book your spot and experience high quality ramen in unique venues.",
   icons: {
     icon: "/logotype.png",
     apple: "/logotype.png",

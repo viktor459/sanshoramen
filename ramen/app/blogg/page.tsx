@@ -44,10 +44,10 @@ export default function Blogg() {
     <>
       <style>{S}</style>
       <div className="page-wrap">
-        <p className="page-tag">Kunskap & Kultur</p>
-        <h1 className="page-title">Blogg.</h1>
+        <p className="page-tag">Knowledge & Culture</p>
+        <h1 className="page-title">Blog.</h1>
         {posts.length === 0 ? (
-          <p className="empty-state">Inga inlägg publicerade än.</p>
+          <p className="empty-state">No posts published yet.</p>
         ) : (
           <div className="posts-grid">
             {posts.map((post, i) => {
@@ -63,7 +63,7 @@ export default function Blogg() {
                       <h2 className="pc-title">{post.title}</h2>
                       {post.excerpt && <p className="pc-excerpt">{post.excerpt}</p>}
                       <p className="pc-date">{dateStr}</p>
-                      <p className="read-more">Läs mer →</p>
+                      <p className="read-more">Read more →</p>
                     </div>
                   </a>
                 );
@@ -74,7 +74,7 @@ export default function Blogg() {
                   <h2 className="pc-title">{post.title}</h2>
                   {post.excerpt && <p className="pc-excerpt">{post.excerpt}</p>}
                   <p className="pc-date">{dateStr}</p>
-                  <p className="read-more">Läs mer →</p>
+                  <p className="read-more">Read more →</p>
                 </a>
               );
             })}

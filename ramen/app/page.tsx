@@ -122,12 +122,12 @@ export default function Home() {
       {/* HERO */}
       <section className="hero">
         <div className="hero-left">
-          <p className="hero-tag">Ramen pop-ups i Skåne</p>
-          <h1 className="hero-h1">Högkvalitativ ramen. Exklusiva kvällar.</h1>
-          <p className="hero-sub">Vi tar över restauranger och barer för en kväll och serverar ramen på hög nivå. Varje event är unikt — meny och plats förändras varje gång.</p>
+          <p className="hero-tag">Ramen pop-ups in Skåne</p>
+          <h1 className="hero-h1">High quality ramen. Exclusive evenings.</h1>
+          <p className="hero-sub">We take over restaurants and bars for a night and serve ramen at a high level. Every event is unique — the menu and venue change every time.</p>
           <div className="hero-cta">
-            <a href="/pop-ups" className="btn-dark">Se kommande pop-ups →</a>
-            <a href="#om" className="btn-ghost">Om oss</a>
+            <a href="/pop-ups" className="btn-dark">See upcoming pop-ups →</a>
+            <a href="#om" className="btn-ghost">About us</a>
           </div>
         </div>
         <div className="hero-right">
@@ -138,11 +138,11 @@ export default function Home() {
       {/* EVENTS TEASER */}
       <section className="events-section">
         <div className="section-header">
-          <h2 className="section-title">Kommande pop-ups.</h2>
-          <a href="/pop-ups" className="see-all">Se alla event →</a>
+          <h2 className="section-title">Upcoming pop-ups.</h2>
+          <a href="/pop-ups" className="see-all">See all events →</a>
         </div>
         {events.length === 0 ? (
-          <p className="no-events">Inga kommande pop-ups just nu — anmäl dig till nyhetsbrevet så får du veta först.</p>
+          <p className="no-events">No upcoming pop-ups right now — sign up for the newsletter to be the first to know.</p>
         ) : (
           <div className="events-grid">
             {events.map(ev => {
@@ -156,7 +156,7 @@ export default function Home() {
                   <div className="ec-price">{ev.price} kr / person</div>
                   <div className="ec-spots">
                     <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%` }} /></div>
-                    <span style={{ fontSize: 12 }}>{full ? "Fullbokat" : `${ev.spots_left} platser kvar`}</span>
+                    <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</span>
                   </div>
                 </a>
               );
@@ -168,20 +168,20 @@ export default function Home() {
       {/* NEWSLETTER */}
       <section className="newsletter-section">
         <div className="nl-inner">
-          <p className="nl-tag">Nyhetsbrev</p>
-          <h2 className="nl-title">Få veta först.</h2>
-          <p className="nl-sub">Prenumeranter får tillgång till bokningar och nyheter innan vi annonserar på sociala medier.</p>
+          <p className="nl-tag">Newsletter</p>
+          <h2 className="nl-title">Know first.</h2>
+          <p className="nl-sub">Subscribers get access to bookings and news before we announce on social media.</p>
           {nlStatus === "done" ? (
-            <p className="nl-success">✓ Du är nu anmäld — välkommen!</p>
+            <p className="nl-success">✓ You're in — welcome!</p>
           ) : (
             <>
               <div className="nl-form">
-                <input className="nl-input" type="email" placeholder="din@email.se" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && subscribe()} />
+                <input className="nl-input" type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && subscribe()} />
                 <button className="nl-btn" onClick={subscribe} disabled={nlStatus === "loading"}>
-                  {nlStatus === "loading" ? "..." : "Anmäl mig"}
+                  {nlStatus === "loading" ? "..." : "Sign me up"}
                 </button>
               </div>
-              {nlStatus === "error" && <p className="nl-success" style={{ color: "#c0392b" }}>Något gick fel. Försök igen.</p>}
+              {nlStatus === "error" && <p className="nl-success" style={{ color: "#c0392b" }}>Something went wrong. Try again.</p>}
             </>
           )}
         </div>
@@ -190,11 +190,11 @@ export default function Home() {
       {/* ABOUT */}
       <section className="about-section" id="om">
         <div className="about-text">
-          <h2 className="section-title">Vilka är vi?</h2>
-          <p>Vi är två ramennördar som bor i Skåne. Vårt koncept är att ta över restauranger, kaféer eller barer för en kväll och försöka servera ramen på riktigt hög nivå.</p>
-          <p>Varje event är exklusivt med plats för 50–100 gäster och menyn varierar varje gång.</p>
-          <p>Vill du boka oss för en kväll? Hör gärna av dig.</p>
-          <a href="mailto:contact@sanshoramen.se" className="btn-dark" style={{ marginTop: 24, display: "inline-flex" }}>Kontakta oss →</a>
+          <h2 className="section-title">Who are we?</h2>
+          <p>We are two ramen nerds living in Skåne. Our concept is to take over restaurants, cafés or bars for a night and serve ramen at a seriously high level.</p>
+          <p>Every event is exclusive with 50–100 seats and the menu changes every time.</p>
+          <p>Want to book us for an evening? Don't hesitate to reach out.</p>
+          <a href="mailto:contact@sanshoramen.se" className="btn-dark" style={{ marginTop: 24, display: "inline-flex" }}>Get in touch →</a>
         </div>
         <div className="about-img">
           <img src="/team.jpg" alt="Sanshō Ramen team" />
@@ -204,7 +204,7 @@ export default function Home() {
       {/* SOCIAL */}
       <section className="social-section">
         <h2>@sanshoramen</h2>
-        <p>Följ vår resa.</p>
+        <p>Follow our journey.</p>
         <div className="social-icons">
           <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer" className="social-link">
             <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>

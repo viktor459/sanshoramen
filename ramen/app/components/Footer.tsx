@@ -11,23 +11,23 @@ export default function Footer() {
           <div>
             <img src="/logotype.png" alt="Sanshō" style={{ height: 26, filter: "invert(1)", marginBottom: 20 }} />
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.8, maxWidth: 260 }}>
-              Ramen pop-ups i Skåne. Vi tar över restauranger och barer för en kväll och serverar högkvalitativ ramen.
+              Ramen pop-ups in Skåne. We take over restaurants and bars for a night and serve high quality ramen.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Utforska</h4>
+            <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Explore</h4>
             <a href="/pop-ups" className="footer-link">Pop-ups</a>
             <a href="/blogg" className="footer-link">Blogg</a>
             <a href="/shop" className="footer-link">Shop</a>
           </div>
           <div>
-            <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Socialt</h4>
+            <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Social</h4>
             <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer" className="footer-link">Instagram</a>
             <a href="https://www.tiktok.com/@sansho.ramen" target="_blank" rel="noreferrer" className="footer-link">TikTok</a>
             <a href="https://youtube.com/@sanshoramen" target="_blank" rel="noreferrer" className="footer-link">YouTube</a>
           </div>
           <div>
-            <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Kontakt</h4>
+            <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Contact</h4>
             <a href="mailto:contact@sanshoramen.se" className="footer-link">contact@sanshoramen.se</a>
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.8 }}>Skåne, Sverige</p>
           </div>

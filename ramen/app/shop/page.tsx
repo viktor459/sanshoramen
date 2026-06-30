@@ -63,10 +63,10 @@ export default function Shop() {
       <div className="page-wrap">
         <p className="page-tag">Merch</p>
         <h1 className="page-title">Shop.</h1>
-        <p className="page-sub">Kepsar, stickers och kläder från Sanshō Ramen. Bär märket med stolthet.</p>
+        <p className="page-sub">Caps, stickers and clothes from Sanshō Ramen. Wear the brand with pride.</p>
         {products.length === 0 ? (
           <div className="empty-state">
-            <p>Inga produkter just nu — kom tillbaka snart.</p>
+            <p>No products right now — check back soon.</p>
           </div>
         ) : (
           <div className="products-grid">
@@ -85,7 +85,7 @@ export default function Shop() {
                   <div className="product-footer">
                     <span className="product-price">{p.price} kr</span>
                     <button className="buy-btn" onClick={() => buy(p)} disabled={loading === p.id}>
-                      {loading === p.id ? "..." : "Köp →"}
+                      {loading === p.id ? "..." : "Buy →"}
                     </button>
                   </div>
                 </div>
