@@ -2,8 +2,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 
-const ADMIN_PASSWORD = "sansho2024";
-
 type Event = {
   id: number;
   title: string;
@@ -52,9 +50,6 @@ type Post = {
 };
 
 export default function Admin() {
-  const [authed, setAuthed] = useState(false);
-  const [pw, setPw] = useState("");
-  const [pwError, setPwError] = useState(false);
   const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products">("events");
 
   // Events
@@ -79,8 +74,8 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    if (authed) { fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); }
-  }, [authed]);
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts();
+  }, []);
 
   const fetchEvents = async () => {
     const { data } = await supabase.from("events").select("*").order("id");
@@ -123,11 +118,6 @@ export default function Admin() {
   const fetchPosts = async () => {
     const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
     if (data) setPosts(data);
-  };
-
-  const login = () => {
-    if (pw === ADMIN_PASSWORD) { setAuthed(true); setPwError(false); }
-    else setPwError(true);
   };
 
   const addEvent = async () => {
@@ -225,27 +215,13 @@ export default function Admin() {
     label: { fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: "#6B6560", marginBottom: 6, display: "block" } as React.CSSProperties,
   };
 
-  if (!authed) return (
-    <div style={{ minHeight: "100vh", background: "#F5F1E8", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Quicksand', sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap');`}</style>
-      <div style={{ width: 360, padding: 40, border: "1.5px solid #1D1D1D", borderRadius: 16 }}>
-        <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: "0.1em", marginBottom: 32 }}>ADMIN</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input type="password" placeholder="Lösenord" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === "Enter" && login()} style={S.input} />
-          {pwError && <div style={{ color: "#c0392b", fontSize: 13 }}>Fel lösenord</div>}
-          <button onClick={login} style={{ ...S.btn, padding: 14 }}>Logga in</button>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div style={S.page}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap'); * { box-sizing: border-box; } table { width: 100%; border-collapse: collapse; } th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B6560; padding: 8px 12px; text-align: left; border-bottom: 1.5px solid #1D1D1D; } td { font-size: 14px; padding: 12px 12px; border-bottom: 0.5px solid #ccc; vertical-align: top; } tr:last-child td { border-bottom: none; }`}</style>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
         <div style={{ fontWeight: 700, fontSize: 28, letterSpacing: "0.1em" }}>SANSHŌ ADMIN</div>
-        <button style={S.btnOutline} onClick={() => setAuthed(false)}>Logga ut</button>
+        <button style={S.btnOutline} onClick={async () => { await fetch("/api/admin-logout", { method: "POST" }); window.location.href = "/admin/login"; }}>Log out</button>
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
