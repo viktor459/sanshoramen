@@ -12,15 +12,20 @@ export default function AdminLogin() {
   const login = async () => {
     setLoading(true);
     setError("");
-    const res = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: pw, totp }),
-    });
-    if (res.ok) {
-      router.push("/admin");
-    } else {
-      setError("Wrong password or code.");
+    try {
+      const res = await fetch("/api/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pw, totp }),
+      });
+      if (res.ok) {
+        router.push("/admin");
+      } else {
+        setError("Wrong password or code.");
+        setLoading(false);
+      }
+    } catch {
+      setError("Connection error. Try again.");
       setLoading(false);
     }
   };

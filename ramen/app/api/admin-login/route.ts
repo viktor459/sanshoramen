@@ -39,10 +39,14 @@ function makeSessionToken(): string {
 }
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ADMIN_PASSWORD || !process.env.ADMIN_TOTP_SECRET || !process.env.ADMIN_SESSION_SECRET) {
+    return NextResponse.json({ error: "Server not configured" }, { status: 500 });
+  }
+
   const { password, totp } = await req.json();
 
   const validPassword = password === process.env.ADMIN_PASSWORD;
-  const validTOTP = verifyTOTP(process.env.ADMIN_TOTP_SECRET!, totp);
+  const validTOTP = verifyTOTP(process.env.ADMIN_TOTP_SECRET, totp);
 
   if (!validPassword || !validTOTP) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
