@@ -51,14 +51,35 @@ async function makeSessionToken(): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.ADMIN_PASSWORD || !process.env.ADMIN_TOTP_SECRET || !process.env.ADMIN_SESSION_SECRET) {
+  const hasPassword = !!process.env.ADMIN_PASSWORD;
+  const hasTotp = !!process.env.ADMIN_TOTP_SECRET;
+  const hasSession = !!process.env.ADMIN_SESSION_SECRET;
+  console.log("admin-login env check:", { hasPassword, hasTotp, hasSession });
+
+  if (!hasPassword || !hasTotp || !hasSession) {
+    console.error("Missing env vars");
     return NextResponse.json({ error: "Server not configured" }, { status: 500 });
   }
 
-  const { password, totp } = await req.json();
+  let password: string, totp: string;
+  try {
+    const body = await req.json();
+    password = body.password;
+    totp = body.totp;
+    console.log("admin-login attempt, totp length:", totp?.length);
+  } catch (e) {
+    console.error("Failed to parse body:", e);
+    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+  }
 
   const validPassword = password === process.env.ADMIN_PASSWORD;
-  const validTOTP = await verifyTOTP(process.env.ADMIN_TOTP_SECRET, totp);
+  let validTOTP = false;
+  try {
+    validTOTP = await verifyTOTP(process.env.ADMIN_TOTP_SECRET, totp);
+  } catch (e) {
+    console.error("TOTP verify error:", e);
+  }
+  console.log("admin-login result:", { validPassword, validTOTP });
 
   if (!validPassword || !validTOTP) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
