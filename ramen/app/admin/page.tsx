@@ -55,7 +55,7 @@ export default function Admin() {
   const [authed, setAuthed] = useState(false);
   const [pw, setPw] = useState("");
   const [pwError, setPwError] = useState(false);
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -68,6 +68,10 @@ export default function Admin() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
 
+  // Products
+  const [products, setProducts] = useState<{id:number;name:string;description:string;price:number;image_url:string;category:string;active:boolean}[]>([]);
+  const [newProduct, setNewProduct] = useState({ name:"", description:"", price:"", image_url:"", category:"" });
+
   // Blog
   const [posts, setPosts] = useState<Post[]>([]);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -75,7 +79,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    if (authed) { fetchEvents(); fetchBookings(); fetchPosts(); }
+    if (authed) { fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); }
   }, [authed]);
 
   const fetchEvents = async () => {
@@ -91,6 +95,29 @@ export default function Admin() {
   const fetchBookings = async () => {
     const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
     if (data) setBookings(data);
+  };
+
+  const fetchProducts = async () => {
+    const { data } = await supabase.from("products").select("*").order("id");
+    if (data) setProducts(data);
+  };
+
+  const addProduct = async () => {
+    if (!newProduct.name || !newProduct.price) return;
+    await supabase.from("products").insert([{ ...newProduct, price: Number(newProduct.price), active: true }]);
+    setNewProduct({ name:"", description:"", price:"", image_url:"", category:"" });
+    fetchProducts();
+  };
+
+  const toggleProductActive = async (p: {id:number;active:boolean}) => {
+    await supabase.from("products").update({ active: !p.active }).eq("id", p.id);
+    fetchProducts();
+  };
+
+  const deleteProduct = async (id: number) => {
+    if (!confirm("Ta bort produkten?")) return;
+    await supabase.from("products").delete().eq("id", id);
+    fetchProducts();
   };
 
   const fetchPosts = async () => {
@@ -222,9 +249,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "blogg"] as const).map(t => (
+        {(["events", "bookings", "blogg", "products"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : "Blogg"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "blogg" ? "Blogg" : "Shop"}
           </button>
         ))}
       </div>
@@ -402,6 +429,43 @@ export default function Admin() {
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <button style={S.btn} onClick={saveNewPost}>Spara som utkast</button>
               <button style={{ ...S.btn, background: "#2E7D32" }} onClick={() => { setNewPost(p => ({ ...p, published: true })); setTimeout(saveNewPost, 100); }}>Publicera direkt</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCTS TAB */}
+      {tab === "products" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Lägg till produkt</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input style={S.input} placeholder="Namn *" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
+              <textarea style={S.textarea} placeholder="Beskrivning" value={newProduct.description} onChange={e => setNewProduct({ ...newProduct, description: e.target.value })} />
+              <input style={S.input} placeholder="Pris (kr) *" type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
+              <input style={S.input} placeholder="Kategori (t.ex. Headwear, Kläder)" value={newProduct.category} onChange={e => setNewProduct({ ...newProduct, category: e.target.value })} />
+              <input style={S.input} placeholder="Bild-URL (valfritt)" value={newProduct.image_url} onChange={e => setNewProduct({ ...newProduct, image_url: e.target.value })} />
+              <button style={S.btn} onClick={addProduct}>Lägg till produkt</button>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Produkter ({products.length})</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {products.map(p => (
+                <div key={p.id} style={{ ...S.card, opacity: p.active ? 1 : 0.5 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div>
+                      <div style={{ fontSize: 13, color: "#6B6560" }}>{p.category} · {p.price} kr</div>
+                      {p.description && <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>{p.description.substring(0, 80)}...</div>}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                      <button style={S.btnOutline} onClick={() => toggleProductActive(p)}>{p.active ? "Dölj" : "Visa"}</button>
+                      <button style={S.btnDanger} onClick={() => deleteProduct(p.id)}>Ta bort</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

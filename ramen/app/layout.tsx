@@ -1,36 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import GoogleAnalytics from "./GoogleAnalytics";
 import CookieConsent from "./CookieConsent";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Nav from "./components/Nav";
+import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
-  title: 'Sansho Ramen',
-  description: 'Swedens next ramen',
+  title: "Sanshō Ramen – Pop-ups i Skåne",
+  description: "Exklusiva ramen pop-ups i Skåne. Boka din plats och upplev högkvalitativ ramen i unika miljöer.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        {children}
+    <html lang="sv" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className="min-h-full flex flex-col" style={{ background: "#F5F1E8", fontFamily: "'Quicksand', sans-serif" }}>
+        <Nav />
+        <main style={{ flex: 1 }}>{children}</main>
+        <Footer />
         <GoogleAnalytics />
         <CookieConsent />
       </body>
