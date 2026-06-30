@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as crypto from "crypto";
 
-function verifyTOTP(secret: string, token: string): boolean {
+async function verifyTOTP(secret: string, token: string): Promise<boolean> {
   const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   let bits = "";
-  for (const c of secret.toUpperCase().replace(/=+$/, "")) {
+  for (const c of secret.toUpperCase().replace(/=+$/g, "")) {
     const val = base32Chars.indexOf(c);
     if (val < 0) continue;
     bits += val.toString(2).padStart(5, "0");
@@ -13,28 +12,41 @@ function verifyTOTP(secret: string, token: string): boolean {
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(bits.slice(i * 8, i * 8 + 8), 2);
   }
-  const key = Buffer.from(bytes);
+
+  const key = await crypto.subtle.importKey(
+    "raw", bytes,
+    { name: "HMAC", hash: "SHA-1" },
+    false, ["sign"]
+  );
 
   for (const drift of [-1, 0, 1]) {
     const counter = Math.floor(Date.now() / 1000 / 30) + drift;
-    const buf = Buffer.alloc(8);
-    buf.writeBigInt64BE(BigInt(counter));
-    const hmac = crypto.createHmac("sha1", key).update(buf).digest();
+    const buf = new ArrayBuffer(8);
+    const view = new DataView(buf);
+    view.setUint32(4, counter, false);
+    const hmac = new Uint8Array(await crypto.subtle.sign("HMAC", key, buf));
     const offset = hmac[hmac.length - 1] & 0x0f;
-    const code = ((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000)
-      .toString()
-      .padStart(6, "0");
-    if (code === token.trim()) return true;
+    const code = (
+      ((hmac[offset] & 0x7f) << 24) |
+      (hmac[offset + 1] << 16) |
+      (hmac[offset + 2] << 8) |
+      hmac[offset + 3]
+    ) % 1_000_000;
+    if (code.toString().padStart(6, "0") === token.trim()) return true;
   }
   return false;
 }
 
-function makeSessionToken(): string {
+async function makeSessionToken(): Promise<string> {
   const ts = Date.now().toString();
-  const sig = crypto
-    .createHmac("sha256", process.env.ADMIN_SESSION_SECRET!)
-    .update(ts)
-    .digest("hex");
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(process.env.ADMIN_SESSION_SECRET!),
+    { name: "HMAC", hash: "SHA-256" },
+    false, ["sign"]
+  );
+  const sigBuf = await crypto.subtle.sign("HMAC", key, enc.encode(ts));
+  const sig = Array.from(new Uint8Array(sigBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
   return `${ts}.${sig}`;
 }
 
@@ -46,20 +58,20 @@ export async function POST(req: NextRequest) {
   const { password, totp } = await req.json();
 
   const validPassword = password === process.env.ADMIN_PASSWORD;
-  const validTOTP = verifyTOTP(process.env.ADMIN_TOTP_SECRET, totp);
+  const validTOTP = await verifyTOTP(process.env.ADMIN_TOTP_SECRET, totp);
 
   if (!validPassword || !validTOTP) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const token = makeSessionToken();
+  const token = await makeSessionToken();
   const res = NextResponse.json({ ok: true });
   res.cookies.set("admin_session", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 8, // 8 hours
+    maxAge: 60 * 60 * 8,
   });
   return res;
 }
