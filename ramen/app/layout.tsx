@@ -8,6 +8,10 @@ import Footer from "./components/Footer";
 export const metadata: Metadata = {
   title: "Sanshō Ramen – Pop-ups i Skåne",
   description: "Exklusiva ramen pop-ups i Skåne. Boka din plats och upplev högkvalitativ ramen i unika miljöer.",
+  icons: {
+    icon: "/logotype.png",
+    apple: "/logotype.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
