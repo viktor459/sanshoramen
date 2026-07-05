@@ -5,6 +5,28 @@ import { NextResponse } from "next/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return dateStr;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return new Date(dateStr + "T12:00:00").toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
+  return dateStr;
+};
+
+const calendarUrl = (event_name: string, date: string, location: string, event_time: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const d = date.replace(/-/g, "");
+  const start = event_time ? `${d}T${event_time.replace(":", "")}00` : `${d}`;
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `Sanshō Ramen — ${event_name}`,
+    dates: `${start}/${start}`,
+    location,
+    details: "Din bokning hos Sanshō Ramen. Se bokningsbekräftelsen för mer info.",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+};
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const session_id = searchParams.get("session_id");
@@ -14,18 +36,19 @@ export async function GET(req: Request) {
   if (session.status !== "complete") return NextResponse.json({ error: "Ej slutförd" }, { status: 400 });
 
   const m = session.metadata!;
-  const { booking_id, booking_code, event_name, fname, email, guests, total_price, timeslot_time } = m;
+  const { booking_id, booking_code, event_name, fname, email, guests, total_price, timeslot_time, date, location, event_time, vegetarian_count } = m;
 
-  // Update booking status to confirmed
   await supabase.from("bookings").update({
     status: "confirmed",
     stripe_setup_intent_id: String(session.setup_intent || ""),
   }).eq("id", booking_id);
 
-  // Add to subscribers
   await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" });
 
-  // Send confirmation email
+  const formattedDate = formatDate(date);
+  const gcalLink = calendarUrl(event_name, date, location, event_time);
+  const vegCount = Number(vegetarian_count ?? 0);
+
   try {
     await resend.emails.send({
       from: "Sanshō Ramen <contact@sanshoramen.se>",
@@ -34,22 +57,31 @@ export async function GET(req: Request) {
       html: `
         <div style="font-family:'Helvetica Neue',sans-serif;max-width:560px;margin:0 auto;background:#F5F1E8;padding:48px 40px;">
           <img src="https://sanshoramen.se/logotype.png" style="height:26px;margin-bottom:40px;" />
-          <h1 style="font-size:26px;font-weight:700;margin-bottom:8px;">Bokning bekräftad.</h1>
+          <h1 style="font-size:26px;font-weight:700;margin-bottom:8px;letter-spacing:0.04em;">Bokning bekräftad.</h1>
           <p style="font-size:15px;color:#6B6560;margin-bottom:32px;">Vi ses snart, ${fname}!</p>
+
           <div style="background:#1D1D1D;color:#F5F1E8;border-radius:12px;padding:28px;margin-bottom:28px;">
             <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:8px;">Bokningskod</div>
             <div style="font-size:30px;font-weight:700;letter-spacing:0.1em;">${booking_code}</div>
           </div>
+
           <table style="width:100%;font-size:14px;border-collapse:collapse;">
-            <tr><td style="padding:12px 0;border-bottom:0.5px solid #ccc;color:#6B6560;">Event</td><td style="padding:12px 0;border-bottom:0.5px solid #ccc;font-weight:500;">${event_name}</td></tr>
-            ${timeslot_time ? `<tr><td style="padding:12px 0;border-bottom:0.5px solid #ccc;color:#6B6560;">Tid</td><td style="padding:12px 0;border-bottom:0.5px solid #ccc;">${timeslot_time}</td></tr>` : ""}
-            <tr><td style="padding:12px 0;border-bottom:0.5px solid #ccc;color:#6B6560;">Gäster</td><td style="padding:12px 0;border-bottom:0.5px solid #ccc;">${guests} person${Number(guests) > 1 ? "er" : ""}</td></tr>
-            <tr><td style="padding:12px 0;color:#6B6560;">Totalt</td><td style="padding:12px 0;font-weight:700;">${total_price} kr</td></tr>
+            <tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;width:40%;">Event</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;font-weight:600;">${event_name}</td></tr>
+            <tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Datum</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;">${formattedDate || date}</td></tr>
+            ${event_time ? `<tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Tid</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;">${timeslot_time || event_time}</td></tr>` : ""}
+            ${location ? `<tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Adress</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;"><a href="https://maps.google.com/maps?q=${encodeURIComponent(location)}" style="color:#1D1D1D;">${location}</a></td></tr>` : ""}
+            <tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Gäster</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;">${guests} person${Number(guests) > 1 ? "er" : ""}${vegCount > 0 ? ` (${vegCount} vegetarisk)` : ""}</td></tr>
+            <tr><td style="padding:12px 0;color:#6B6560;">Totalt</td><td style="padding:12px 0;font-weight:700;">${Number(total_price) > 0 ? `${total_price} kr` : "Gratis"}</td></tr>
           </table>
+
+          ${gcalLink ? `<a href="${gcalLink}" style="display:inline-block;margin-top:24px;padding:12px 22px;background:#F5F1E8;border:1.5px solid #1D1D1D;border-radius:100px;text-decoration:none;color:#1D1D1D;font-size:13px;font-weight:500;">+ Lägg till i Google Kalender</a>` : ""}
+
           <div style="background:#FFF8E7;border-radius:8px;padding:16px 20px;margin-top:28px;">
-            <p style="font-size:13px;color:#856F30;line-height:1.6;">⚠️ <strong>Avbokningspolicy:</strong> Vi sparar dina kortuppgifter. Om du inte avbokar senast 48 timmar innan eventet drar vi en no-show-avgift på <strong>250 kr</strong>.</p>
+            <p style="font-size:13px;color:#856F30;line-height:1.6;">⚠️ <strong>Avbokningspolicy:</strong> Vi sparar dina kortuppgifter. Om du inte avbokar senast 48 timmar innan eventet drar vi en no-show-avgift på <strong>250 kr</strong>. Avboka via <a href="mailto:contact@sanshoramen.se" style="color:#856F30;">contact@sanshoramen.se</a>.</p>
           </div>
+
           <p style="font-size:13px;color:#6B6560;margin-top:28px;line-height:1.7;">Frågor? Hör av dig på <a href="mailto:contact@sanshoramen.se" style="color:#1D1D1D;">contact@sanshoramen.se</a></p>
+          <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne</p>
         </div>
       `,
     });

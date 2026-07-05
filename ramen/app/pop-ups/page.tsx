@@ -5,41 +5,46 @@ import { supabase } from "../../lib/supabase";
 const S = `
   @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap');
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-  :root { --bg:#F5F1E8; --ink:#1D1D1D; --muted:#6B6560; --r:100px; }
+  :root { --bg:#F5F1E8; --ink:#1D1D1D; --muted:#6B6560; --red:#C0392B; --r:100px; }
   body { background:var(--bg); color:var(--ink); font-family:'Quicksand',sans-serif; font-weight:300; }
 
   .page-wrap { padding: 120px 80px 80px; max-width: 1000px; margin: 0 auto; width: 100%; }
-  .page-tag { font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+  .page-tag { font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--red); margin-bottom:12px; }
   .page-title { font-weight:700; font-size:52px; letter-spacing:0.06em; margin-bottom:16px; }
   .page-sub { font-size:15px; color:var(--muted); line-height:1.8; margin-bottom:56px; max-width:480px; }
 
-  /* EVENT LIST */
-  .events-list { display:flex; flex-direction:column; gap:16px; }
-  .event-row { display:grid; grid-template-columns:80px 1fr auto; gap:24px; align-items:center; border:1.5px solid #DDD8CE; border-radius:16px; padding:28px 32px; cursor:pointer; transition:background 0.2s, border-color 0.2s, transform 0.15s; }
-  .event-row:hover { background:var(--ink); color:var(--bg); border-color:var(--ink); transform:translateY(-2px); }
-  .event-row:hover .er-sub, .event-row:hover .er-tag, .event-row:hover .er-right-sub { color:#aaa; }
-  .er-date { text-align:center; }
-  .er-day { font-size:32px; font-weight:700; line-height:1; }
-  .er-month { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-top:4px; transition:color 0.2s; }
-  .er-tag { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; transition:color 0.2s; }
-  .er-title { font-weight:700; font-size:20px; letter-spacing:0.04em; margin-bottom:6px; }
-  .er-sub { font-size:14px; color:var(--muted); line-height:1.7; transition:color 0.2s; }
-  .er-right { text-align:right; flex-shrink:0; }
-  .er-price { font-size:16px; font-weight:700; margin-bottom:6px; }
-  .er-right-sub { font-size:12px; color:var(--muted); transition:color 0.2s; }
-  .spots-bar { width:100%; height:2px; background:#E0DBD0; border-radius:2px; margin-top:8px; }
-  .spots-fill { height:2px; background:var(--ink); border-radius:2px; transition:background 0.2s; }
-  .event-row:hover .spots-bar { background:#444; }
-  .event-row:hover .spots-fill { background:#F5F1E8; }
-  .boka-btn { background:var(--ink); color:var(--bg); border:none; padding:12px 24px; border-radius:var(--r); font-family:'Quicksand',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:opacity 0.15s; white-space:nowrap; margin-top:12px; }
-  .event-row:hover .boka-btn { background:var(--bg); color:var(--ink); }
+  /* CALENDAR LIST */
+  .month-group { margin-bottom: 48px; }
+  .month-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding-bottom: 12px; border-bottom: 1.5px solid #DDD8CE; margin-bottom: 16px; }
+  .events-list { display: flex; flex-direction: column; gap: 16px; }
+  .event-card { display: grid; grid-template-columns: 180px 1fr auto; gap: 0; border: 1.5px solid #DDD8CE; border-radius: 16px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+  .event-card:hover { border-color: var(--ink); transform: translateY(-2px); }
+  .ec-image { width: 180px; min-height: 160px; background: #E8E3D8; overflow: hidden; flex-shrink: 0; position: relative; }
+  .ec-image img { width: 100%; height: 100%; object-fit: cover; }
+  .ec-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .ec-date-badge { position: absolute; top: 12px; left: 12px; background: var(--ink); color: #F5F1E8; border-radius: 8px; padding: 8px 12px; text-align: center; }
+  .ec-badge-day { font-size: 20px; font-weight: 700; line-height: 1; }
+  .ec-badge-month { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; color: #aaa; }
+  .ec-body { padding: 28px 32px; display: flex; flex-direction: column; justify-content: center; }
+  .ec-location { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .ec-title { font-weight: 700; font-size: 22px; letter-spacing: 0.03em; margin-bottom: 8px; }
+  .ec-meta { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .ec-right { padding: 28px 28px 28px 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; flex-shrink: 0; }
+  .ec-price { font-size: 18px; font-weight: 700; }
+  .ec-price-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .spots-wrap { text-align: right; }
+  .spots-bar { width: 80px; height: 2px; background: #E0DBD0; border-radius: 2px; margin-bottom: 6px; margin-left: auto; }
+  .spots-fill { height: 2px; background: var(--ink); border-radius: 2px; }
+  .spots-text { font-size: 12px; color: var(--muted); }
+  .boka-btn { background: var(--ink); color: var(--bg); border: none; padding: 12px 22px; border-radius: var(--r); font-family: 'Quicksand', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
   .empty-state { text-align:center; padding:80px 0; color:var(--muted); }
   .empty-state h3 { font-size:20px; font-weight:500; margin-bottom:12px; }
 
   /* BOOKING PANEL */
-  .booking-panel { max-width:600px; }
+  .booking-panel { max-width: 600px; }
   .back-btn { background:none; border:none; cursor:pointer; font-family:'Quicksand',sans-serif; font-size:14px; color:var(--muted); display:flex; align-items:center; gap:6px; margin-bottom:32px; padding:0; transition:color 0.2s; }
   .back-btn:hover { color:var(--ink); }
+  .bk-event-img { width: 100%; aspect-ratio: 16/6; object-fit: cover; border-radius: 12px; margin-bottom: 24px; }
   .bk-title { font-weight:700; font-size:36px; letter-spacing:0.05em; margin-bottom:6px; }
   .bk-meta { font-size:14px; color:var(--muted); margin-bottom:8px; }
   .bk-desc { font-size:15px; color:var(--muted); line-height:1.8; margin-bottom:36px; }
@@ -57,25 +62,30 @@ const S = `
   .f-field input, .f-field select, .f-field textarea { background:transparent; border:1.5px solid #DDD8CE; border-radius:8px; padding:12px 16px; font-family:'Quicksand',sans-serif; font-size:14px; color:var(--ink); outline:none; transition:border-color 0.2s; }
   .f-field input:focus, .f-field select:focus, .f-field textarea:focus { border-color:var(--ink); }
   .f-field textarea { resize:vertical; min-height:80px; }
+  .veg-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .veg-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .veg-toggle { display: flex; gap: 0; border: 1.5px solid #DDD8CE; border-radius: 8px; overflow: hidden; }
+  .veg-opt { padding: 10px 16px; font-family: 'Quicksand', sans-serif; font-size: 13px; cursor: pointer; background: transparent; border: none; transition: background 0.15s, color 0.15s; color: var(--ink); }
+  .veg-opt.active { background: var(--ink); color: var(--bg); }
   .price-sum { border-top:1.5px solid #DDD8CE; padding-top:20px; margin:24px 0; }
   .price-row { display:flex; justify-content:space-between; font-size:14px; color:var(--muted); margin-bottom:8px; }
   .price-total { display:flex; justify-content:space-between; font-size:16px; font-weight:600; margin-top:12px; }
   .submit-btn { width:100%; background:var(--ink); color:var(--bg); border:none; padding:18px; border-radius:var(--r); font-family:'Quicksand',sans-serif; font-size:15px; font-weight:500; cursor:pointer; transition:opacity 0.2s; margin-top:8px; }
   .submit-btn:hover { opacity:0.82; }
   .submit-btn:disabled { opacity:0.3; cursor:not-allowed; }
-  .err { color:#c0392b; font-size:14px; margin-top:12px; text-align:center; }
+  .err { color:var(--red); font-size:14px; margin-top:12px; text-align:center; }
 
   @media(max-width:768px){
     .page-wrap{padding:100px 24px 60px;}
     .page-title{font-size:36px;}
-    .event-row{grid-template-columns:1fr; gap:12px; padding:20px 24px;}
-    .er-date{display:none;}
-    .er-right{text-align:left;}
+    .event-card{grid-template-columns:1fr; grid-template-rows:auto 1fr auto;}
+    .ec-image{width:100%; min-height:180px;}
+    .ec-right{flex-direction:row; padding:0 20px 20px; align-items:center;}
     .form-grid{grid-template-columns:1fr;}
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number; description: string; active: boolean; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; };
 type Timeslot = { id: number; event_id: number; time: string; spots: number; spots_left: number; };
 
 export default function PopUps() {
@@ -84,11 +94,12 @@ export default function PopUps() {
   const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [form, setForm] = useState({ fname: "", lname: "", email: "", guests: "2", note: "" });
+  const [vegetarianCount, setVegetarianCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    supabase.from("events").select("*").eq("active", true).order("id").then(({ data }) => {
+    supabase.from("events").select("*").eq("active", true).order("date").then(({ data }) => {
       if (data) setEvents(data);
     });
   }, []);
@@ -97,6 +108,7 @@ export default function PopUps() {
     setSelected(ev);
     setSelectedSlot("");
     setError("");
+    setVegetarianCount(0);
     window.scrollTo(0, 0);
     supabase.from("timeslots").select("*").eq("event_id", ev.id).order("time").then(({ data }) => {
       if (data) setTimeslots(data);
@@ -119,6 +131,7 @@ export default function PopUps() {
         event_name: selected.title,
         price: selected.price,
         guests: Number(form.guests),
+        vegetarian_count: vegetarianCount,
         event_id: selected.id,
         timeslot_id: slot?.id || null,
         timeslot_time: slot?.time || null,
@@ -126,6 +139,9 @@ export default function PopUps() {
         lname: form.lname,
         email: form.email,
         note: form.note,
+        date: selected.date,
+        location: selected.location,
+        time: selected.time,
       }),
     });
     const { url, error: err } = await res.json();
@@ -148,6 +164,20 @@ export default function PopUps() {
     return { day: "—", month: "", full: dateStr };
   };
 
+  const getMonthYear = (dateStr: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return new Date(dateStr + "T12:00:00").toLocaleDateString("en-SE", { month: "long", year: "numeric" });
+    }
+    return "";
+  };
+
+  const grouped = events.reduce<Record<string, Event[]>>((acc, ev) => {
+    const key = getMonthYear(ev.date) || "Upcoming";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(ev);
+    return acc;
+  }, {});
+
   return (
     <>
       <style>{S}</style>
@@ -157,51 +187,75 @@ export default function PopUps() {
             <p className="page-tag">Events</p>
             <h1 className="page-title">Pop-ups.</h1>
             <p className="page-sub">Exclusive ramen evenings in Skåne. Every event is unique — new menu, new venue. Spots are limited.</p>
-            <div className="events-list">
-              {events.length === 0 && (
-                <div className="empty-state">
-                  <h3>Inga kommande pop-ups just nu.</h3>
-                  <p>Sign up for the <a href="/" style={{ color: "var(--ink)" }}>newsletter</a> to be the first to know when the next event drops.</p>
-                </div>
-              )}
-              {events.map(ev => {
-                const full = ev.spots_left <= 0;
-                const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
-                const { day, month, full: fullDate } = parseDateParts(ev.date);
-                return (
-                  <div key={ev.id} className="event-row" style={full ? { opacity: 0.55, cursor: "default" } : {}} onClick={() => !full && pickEvent(ev)}>
-                    <div className="er-date">
-                      <div className="er-day">{day}</div>
-                      <div className="er-month">{month}</div>
-                    </div>
-                    <div>
-                      <div className="er-tag">{ev.location}</div>
-                      <div className="er-title">{ev.title}</div>
-                      <div className="er-sub">{fullDate || ev.date}{ev.time ? ` · ${ev.time}` : ""}</div>
-                    </div>
-                    <div className="er-right">
-                      {ev.price != null ? (
-                        <>
-                          <div className="er-price">{ev.price} kr</div>
-                          <div className="er-right-sub">per person</div>
-                        </>
-                      ) : (
-                        <div className="er-price" style={{ fontSize: 14 }}>Free</div>
-                      )}
-                      <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%` }} /></div>
-                      <div className="er-right-sub" style={{ marginTop: 4 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</div>
-                      {!full && <button className="boka-btn">Book →</button>}
+            {events.length === 0 ? (
+              <div className="empty-state">
+                <h3>Inga kommande pop-ups just nu.</h3>
+                <p>Sign up for the <a href="/" style={{ color: "var(--ink)" }}>newsletter</a> to be the first to know when the next event drops.</p>
+              </div>
+            ) : (
+              <div>
+                {Object.entries(grouped).map(([month, evs]) => (
+                  <div key={month} className="month-group">
+                    {month && <div className="month-label">{month}</div>}
+                    <div className="events-list">
+                      {evs.map(ev => {
+                        const full = ev.spots_left <= 0;
+                        const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
+                        const { day, month: mon } = parseDateParts(ev.date);
+                        return (
+                          <div key={ev.id} className="event-card" style={full ? { opacity: 0.55, cursor: "default" } : {}} onClick={() => !full && pickEvent(ev)}>
+                            <div className="ec-image">
+                              {ev.image_url
+                                ? <img src={ev.image_url} alt={ev.title} />
+                                : <div className="ec-image-placeholder">🍜</div>
+                              }
+                              <div className="ec-date-badge">
+                                <div className="ec-badge-day">{day}</div>
+                                <div className="ec-badge-month">{mon}</div>
+                              </div>
+                            </div>
+                            <div className="ec-body">
+                              <div className="ec-location">{ev.location}</div>
+                              <div className="ec-title">{ev.title}</div>
+                              <div className="ec-meta">
+                                {ev.time && <span>{ev.time}</span>}
+                                {ev.description && <span style={{ display: "block", marginTop: 6 }}>{ev.description.substring(0, 100)}{ev.description.length > 100 ? "..." : ""}</span>}
+                              </div>
+                            </div>
+                            <div className="ec-right">
+                              <div>
+                                {ev.price != null ? (
+                                  <>
+                                    <div className="ec-price">{ev.price} kr</div>
+                                    <div className="ec-price-sub">per person</div>
+                                  </>
+                                ) : (
+                                  <div className="ec-price" style={{ fontSize: 15 }}>Free</div>
+                                )}
+                              </div>
+                              <div className="spots-wrap">
+                                <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%` }} /></div>
+                                <div className="spots-text">{full ? "Sold out" : `${ev.spots_left} spots left`}</div>
+                              </div>
+                              {!full && <button className="boka-btn">Book →</button>}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="booking-panel">
             <button className="back-btn" onClick={back}>← Back to pop-ups</button>
+            {selected.image_url && (
+              <img src={selected.image_url} alt={selected.title} className="bk-event-img" />
+            )}
             <h1 className="bk-title">{selected.title}</h1>
-            <p className="bk-meta">{selected.date}{selected.time ? ` · ${selected.time}` : ""} · {selected.location}</p>
+            <p className="bk-meta">{parseDateParts(selected.date).full || selected.date}{selected.time ? ` · ${selected.time}` : ""}{selected.location ? ` · ${selected.location}` : ""}</p>
             {selected.description && <p className="bk-desc">{selected.description}</p>}
 
             <div className="notice">
@@ -234,10 +288,34 @@ export default function PopUps() {
             <div className="f-field"><label>Email *</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="your@email.com" /></div>
             <div className="f-field">
               <label>Number of guests</label>
-              <select value={form.guests} onChange={e => setForm({ ...form, guests: e.target.value })}>
+              <select value={form.guests} onChange={e => { setForm({ ...form, guests: e.target.value }); setVegetarianCount(Math.min(vegetarianCount, Number(e.target.value))); }}>
                 {[1,2,3,4].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
               </select>
             </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <div className="sec-label" style={{ marginBottom: 10 }}>Vegetarian / plant-based</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 14, color: "var(--muted)" }}>How many guests want a vegetarian option?</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                {Array.from({ length: Number(form.guests) + 1 }, (_, i) => i).map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setVegetarianCount(n)}
+                    style={{
+                      padding: "10px 16px", borderRadius: 8, border: "1.5px solid", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer",
+                      background: vegetarianCount === n ? "var(--ink)" : "transparent",
+                      color: vegetarianCount === n ? "var(--bg)" : "var(--ink)",
+                      borderColor: vegetarianCount === n ? "var(--ink)" : "#DDD8CE",
+                    }}
+                  >
+                    {n === 0 ? "None" : n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="f-field"><label>Allergies / requests</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
 
             {selected.price != null && (

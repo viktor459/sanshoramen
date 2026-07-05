@@ -5,18 +5,20 @@ import { supabase } from "../lib/supabase";
 const S = `
   @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --bg: #F5F1E8; --ink: #1D1D1D; --muted: #6B6560; --r: 100px; }
+  :root { --bg: #F5F1E8; --ink: #1D1D1D; --muted: #6B6560; --red: #C0392B; --r: 100px; }
   body { background: var(--bg); color: var(--ink); font-family: 'Quicksand', sans-serif; font-weight: 300; }
 
   /* HERO */
   .hero { min-height: 100vh; padding-top: 72px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; overflow: hidden; }
   .hero-left { padding: 60px 64px 60px 80px; display: flex; flex-direction: column; gap: 28px; }
-  .hero-tag { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .hero-tag { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); }
   .hero-h1 { font-weight: 700; font-size: clamp(36px,4vw,58px); line-height: 1.1; letter-spacing: -0.01em; }
   .hero-sub { font-size: 16px; color: var(--muted); line-height: 1.8; max-width: 380px; }
   .hero-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .btn-dark { background: var(--ink); color: var(--bg); border: none; padding: 15px 28px; border-radius: var(--r); font-family: 'Quicksand', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; transition: opacity 0.2s, transform 0.15s; }
   .btn-dark:hover { opacity: 0.82; transform: translateY(-1px); }
+  .btn-red { background: var(--red); color: #fff; border: none; padding: 15px 28px; border-radius: var(--r); font-family: 'Quicksand', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; transition: opacity 0.2s, transform 0.15s; }
+  .btn-red:hover { opacity: 0.88; transform: translateY(-1px); }
   .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid #ccc; padding: 14px 28px; border-radius: var(--r); font-family: 'Quicksand', sans-serif; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; transition: border-color 0.2s; }
   .btn-ghost:hover { border-color: var(--ink); }
   .hero-right { height: 100vh; overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; }
@@ -30,14 +32,18 @@ const S = `
   .see-all { font-size: 14px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
   .see-all:hover { color: var(--ink); }
   .events-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .event-card { border: 1.5px solid #DDD8CE; border-radius: 16px; padding: 28px; transition: background 0.2s, transform 0.15s, border-color 0.2s; cursor: pointer; text-decoration: none; color: var(--ink); }
+  .event-card { border: 1.5px solid #DDD8CE; border-radius: 16px; overflow: hidden; transition: background 0.2s, transform 0.15s, border-color 0.2s; cursor: pointer; text-decoration: none; color: var(--ink); }
   .event-card:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); transform: translateY(-3px); }
   .event-card:hover .ec-meta, .event-card:hover .ec-price { color: #bbb; }
-  .ec-date { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; transition: color 0.2s; }
-  .event-card:hover .ec-date { color: #aaa; }
-  .ec-title { font-weight: 700; font-size: 20px; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .ec-img { width: 100%; aspect-ratio: 16/9; background: #E8E3D8; overflow: hidden; position: relative; }
+  .ec-img img { width: 100%; height: 100%; object-fit: cover; }
+  .ec-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .ec-body { padding: 24px; }
+  .ec-date { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); margin-bottom: 10px; transition: color 0.2s; }
+  .event-card:hover .ec-date { color: #f87171; }
+  .ec-title { font-weight: 700; font-size: 18px; letter-spacing: 0.04em; margin-bottom: 8px; }
   .ec-meta { font-size: 13px; color: var(--muted); line-height: 1.7; transition: color 0.2s; }
-  .ec-price { font-size: 13px; color: var(--muted); margin-top: 16px; font-weight: 500; transition: color 0.2s; }
+  .ec-price { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 500; transition: color 0.2s; }
   .ec-spots { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
   .ec-bar { flex:1; max-width:80px; height:2px; background:#E0DBD0; border-radius:2px; }
   .ec-fill { height:2px; background:var(--ink); border-radius:2px; transition: background 0.2s; }
@@ -45,14 +51,32 @@ const S = `
   .event-card:hover .ec-fill { background: #F5F1E8; }
   .no-events { color: var(--muted); font-size: 15px; padding: 40px 0; }
 
+  /* CLUB */
+  .club-section { padding: 100px 80px; background: #1D1D1D; color: #F5F1E8; }
+  .club-inner { max-width: 640px; }
+  .club-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: #fff; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 99px; margin-bottom: 24px; }
+  .club-title { font-weight: 700; font-size: 42px; letter-spacing: 0.04em; line-height: 1.15; margin-bottom: 16px; }
+  .club-title span { color: var(--red); }
+  .club-sub { font-size: 15px; color: #999; line-height: 1.9; margin-bottom: 12px; }
+  .club-perks { display: flex; flex-direction: column; gap: 10px; margin: 28px 0 36px; }
+  .club-perk { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: #ccc; line-height: 1.5; }
+  .club-perk-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; margin-top: 7px; }
+  .club-form { display: flex; gap: 12px; max-width: 480px; flex-wrap: wrap; }
+  .club-input { flex: 1; min-width: 180px; background: transparent; border: 1.5px solid #333; border-radius: var(--r); padding: 14px 20px; font-family:'Quicksand',sans-serif; font-size: 14px; color: #F5F1E8; outline: none; transition: border-color 0.2s; }
+  .club-input::placeholder { color: #555; }
+  .club-input:focus { border-color: #555; }
+  .club-btn { background: var(--red); color: #fff; border: none; padding: 14px 24px; border-radius: var(--r); font-family:'Quicksand',sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+  .club-btn:hover { opacity: 0.88; }
+  .club-success { font-size: 14px; color: #aaa; margin-top: 16px; }
+
   /* NEWSLETTER */
-  .newsletter-section { background: var(--ink); color: var(--bg); padding: 100px 80px; }
+  .newsletter-section { background: #2A2520; color: var(--bg); padding: 100px 80px; }
   .nl-inner { max-width: 560px; }
   .nl-tag { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin-bottom: 16px; }
   .nl-title { font-weight: 700; font-size: 38px; letter-spacing: 0.03em; line-height: 1.2; margin-bottom: 16px; }
   .nl-sub { font-size: 15px; color: #999; line-height: 1.8; margin-bottom: 36px; }
   .nl-form { display: flex; gap: 12px; max-width: 440px; }
-  .nl-input { flex:1; background: transparent; border: 1.5px solid #333; border-radius: var(--r); padding: 14px 20px; font-family:'Quicksand',sans-serif; font-size: 14px; color: var(--bg); outline:none; transition:border-color 0.2s; }
+  .nl-input { flex:1; background: transparent; border: 1.5px solid #3a3530; border-radius: var(--r); padding: 14px 20px; font-family:'Quicksand',sans-serif; font-size: 14px; color: var(--bg); outline:none; transition:border-color 0.2s; }
   .nl-input::placeholder { color: #555; }
   .nl-input:focus { border-color: #666; }
   .nl-btn { background: var(--bg); color: var(--ink); border: none; padding: 14px 24px; border-radius: var(--r); font-family:'Quicksand',sans-serif; font-size: 14px; font-weight:500; cursor:pointer; white-space:nowrap; transition:opacity 0.2s; }
@@ -82,7 +106,7 @@ const S = `
     .hero-h1{font-size:36px;}
     .hero-right{height:260px;}
     .hero-right img{width:100%; transform:translateX(20px) translateY(10px);}
-    .events-section,.about-section,.social-section{padding:60px 24px;}
+    .events-section,.about-section,.social-section,.club-section{padding:60px 24px;}
     .newsletter-section{padding:60px 24px;}
     .events-grid{grid-template-columns:1fr;}
     .about-section{grid-template-columns:1fr;}
@@ -90,18 +114,32 @@ const S = `
     .social-section h2{font-size:32px;}
     .nl-form{flex-direction:column;}
     .nl-btn{width:100%;}
+    .club-title{font-size:30px;}
+    .club-form{flex-direction:column;}
+    .club-btn{width:100%;}
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number; active: boolean; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; active: boolean; image_url?: string; };
+
+const formatEventDate = (dateStr: string) => {
+  if (!dateStr) return dateStr;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return new Date(dateStr + "T12:00:00").toLocaleDateString("en-SE", { weekday: "short", day: "numeric", month: "short" }).toUpperCase();
+  }
+  return dateStr;
+};
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [email, setEmail] = useState("");
   const [nlStatus, setNlStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [clubEmail, setClubEmail] = useState("");
+  const [clubFname, setClubFname] = useState("");
+  const [clubStatus, setClubStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   useEffect(() => {
-    supabase.from("events").select("*").eq("active", true).order("id").then(({ data }) => {
+    supabase.from("events").select("*").eq("active", true).order("date").then(({ data }) => {
       if (data) setEvents(data.slice(0, 3));
     });
   }, []);
@@ -115,6 +153,14 @@ export default function Home() {
     else setNlStatus(data.error === "Du är redan anmäld!" ? "done" : "error");
   };
 
+  const joinClub = async () => {
+    if (!clubEmail.includes("@")) return;
+    setClubStatus("loading");
+    const res = await fetch("/api/join-club", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: clubEmail, fname: clubFname }) });
+    if (res.ok) { setClubStatus("done"); setClubEmail(""); setClubFname(""); }
+    else setClubStatus("error");
+  };
+
   return (
     <>
       <style>{S}</style>
@@ -123,11 +169,11 @@ export default function Home() {
       <section className="hero">
         <div className="hero-left">
           <p className="hero-tag">Ramen pop-ups in Skåne</p>
-          <h1 className="hero-h1">High quality ramen. Exclusive evenings.</h1>
+          <h1 className="hero-h1">High quality ramen.<br />Exclusive evenings.</h1>
           <p className="hero-sub">We take over restaurants and bars for a night and serve ramen at a high level. Every event is unique — the menu and venue change every time.</p>
           <div className="hero-cta">
             <a href="/pop-ups" className="btn-dark">See upcoming pop-ups →</a>
-            <a href="#om" className="btn-ghost">About us</a>
+            <a href="#club" className="btn-red">Join the club</a>
           </div>
         </div>
         <div className="hero-right">
@@ -150,19 +196,58 @@ export default function Home() {
               const full = ev.spots_left <= 0;
               return (
                 <a key={ev.id} href={full ? undefined : "/pop-ups"} className="event-card" style={full ? { opacity: 0.5, cursor: "default", pointerEvents: "none" } : {}}>
-                  <div className="ec-date">{ev.date}</div>
-                  <div className="ec-title">{ev.title}</div>
-                  <div className="ec-meta">{ev.location}{ev.time ? ` · ${ev.time}` : ""}</div>
-                  <div className="ec-price">{ev.price} kr / person</div>
-                  <div className="ec-spots">
-                    <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%` }} /></div>
-                    <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</span>
+                  <div className="ec-img">
+                    {ev.image_url
+                      ? <img src={ev.image_url} alt={ev.title} />
+                      : <div className="ec-img-placeholder">🍜</div>
+                    }
+                  </div>
+                  <div className="ec-body">
+                    <div className="ec-date">{formatEventDate(ev.date)}</div>
+                    <div className="ec-title">{ev.title}</div>
+                    <div className="ec-meta">{ev.location}{ev.time ? ` · ${ev.time}` : ""}</div>
+                    <div className="ec-price">{ev.price != null ? `${ev.price} kr / person` : "Free"}</div>
+                    <div className="ec-spots">
+                      <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%` }} /></div>
+                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</span>
+                    </div>
                   </div>
                 </a>
               );
             })}
           </div>
         )}
+      </section>
+
+      {/* CLUB */}
+      <section className="club-section" id="club">
+        <div className="club-inner">
+          <div className="club-badge">
+            <span>★</span>
+            <span>Sanshō Ramen Club</span>
+          </div>
+          <h2 className="club-title">The inner<br />circle. <span>The first<br />to know.</span></h2>
+          <p className="club-sub">Club members get early access to exclusive events before they go public — and first dibs on limited spots.</p>
+          <div className="club-perks">
+            <div className="club-perk"><div className="club-perk-dot" /><span>Early access to all pop-up bookings, 48h before the public</span></div>
+            <div className="club-perk"><div className="club-perk-dot" /><span>Invitations to private, club-only events</span></div>
+            <div className="club-perk"><div className="club-perk-dot" /><span>Inside stories and behind-the-scenes from the kitchen</span></div>
+          </div>
+          {clubStatus === "done" ? (
+            <p className="club-success">★ Welcome to the club — you're on the list.</p>
+          ) : (
+            <>
+              <div className="club-form">
+                <input className="club-input" placeholder="First name" value={clubFname} onChange={e => setClubFname(e.target.value)} />
+                <input className="club-input" type="email" placeholder="your@email.com" value={clubEmail} onChange={e => setClubEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && joinClub()} />
+                <button className="club-btn" onClick={joinClub} disabled={clubStatus === "loading"}>
+                  {clubStatus === "loading" ? "..." : "Join the club →"}
+                </button>
+              </div>
+              {clubStatus === "error" && <p className="club-success" style={{ color: "#f87171" }}>Something went wrong. Try again.</p>}
+            </>
+          )}
+        </div>
       </section>
 
       {/* NEWSLETTER */}
@@ -181,7 +266,7 @@ export default function Home() {
                   {nlStatus === "loading" ? "..." : "Sign me up"}
                 </button>
               </div>
-              {nlStatus === "error" && <p className="nl-success" style={{ color: "#c0392b" }}>Something went wrong. Try again.</p>}
+              {nlStatus === "error" && <p className="nl-success" style={{ color: "#f87171" }}>Something went wrong. Try again.</p>}
             </>
           )}
         </div>

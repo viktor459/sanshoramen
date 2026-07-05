@@ -13,6 +13,7 @@ type Event = {
   price: number | null;
   description: string;
   active: boolean;
+  image_url?: string;
 };
 
 type Timeslot = {
@@ -66,7 +67,9 @@ export default function Admin() {
   const [events, setEvents] = useState<Event[]>([]);
   const [timeslots, setTimeslots] = useState<Record<number, Timeslot[]>>({});
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "" });
+  const eventFileInputRef = useRef<HTMLInputElement | null>(null);
+  const editEventFileInputRef = useRef<HTMLInputElement | null>(null);
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [eventsView, setEventsView] = useState<"add" | "edit">("add");
@@ -166,8 +169,10 @@ export default function Admin() {
       spots_left: Number(newEvent.spots),
       price: newEvent.price ? Number(newEvent.price) : null,
       description: newEvent.description, active: true,
+      image_url: newEvent.image_url || null,
     }]);
-    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "" });
+    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "" });
+    if (eventFileInputRef.current) eventFileInputRef.current.value = "";
     fetchEvents();
   };
 
@@ -177,6 +182,7 @@ export default function Admin() {
       title: editingEvent.title, date: editingEvent.date, time: editingEvent.time,
       location: editingEvent.location, spots: editingEvent.spots, spots_left: editingEvent.spots_left,
       price: editingEvent.price || null, description: editingEvent.description, active: editingEvent.active,
+      image_url: editingEvent.image_url || null,
     }).eq("id", editingEvent.id);
     setEditingEvent(null);
     setEventsView("add");
@@ -400,6 +406,11 @@ export default function Admin() {
                     <label style={S.label}>Beskrivning</label>
                     <textarea style={S.textarea} placeholder="Beskriv eventet..." value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} />
                   </div>
+                  <ImageUploadField
+                    value={newEvent.image_url}
+                    onChange={url => setNewEvent({ ...newEvent, image_url: url })}
+                    inputRef={eventFileInputRef}
+                  />
                   <button style={S.btn} onClick={addEvent}>Lägg till event</button>
                 </div>
               </>
@@ -445,6 +456,11 @@ export default function Admin() {
                     <label style={S.label}>Beskrivning</label>
                     <textarea style={S.textarea} value={editingEvent.description} onChange={e => setEditingEvent({ ...editingEvent, description: e.target.value })} />
                   </div>
+                  <ImageUploadField
+                    value={editingEvent.image_url ?? ""}
+                    onChange={url => setEditingEvent({ ...editingEvent, image_url: url })}
+                    inputRef={editEventFileInputRef}
+                  />
                   <button style={S.btn} onClick={saveEditEvent}>Spara ändringar</button>
                 </div>
               </>
@@ -455,7 +471,11 @@ export default function Admin() {
             <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Events ({events.length})</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {events.map(event => (
-                <div key={event.id} style={{ ...S.card, opacity: event.active ? 1 : 0.5 }}>
+                <div key={event.id} style={{ ...S.card, opacity: event.active ? 1 : 0.5, overflow: "hidden", padding: 0 }}>
+                  {event.image_url && (
+                    <img src={event.image_url} alt={event.title} style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} />
+                  )}
+                  <div style={{ padding: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 16 }}>{event.title}</div>
@@ -510,6 +530,7 @@ export default function Admin() {
                       <button style={S.btn} onClick={() => { setSelectedEventId(event.id); addSlot(); }}>+</button>
                     </div>
                   </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -530,8 +551,10 @@ export default function Admin() {
                 ))}
               </select>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button style={S.btn} onClick={exportCSV}>Exportera CSV</button>
+              <button style={S.btnOutline} onClick={async () => { const r = await fetch("/api/send-reminders"); const d = await r.json(); alert(`Påminnelsemejl skickade: ${d.sent}`); }}>Skicka påminnelser</button>
+              <button style={S.btnOutline} onClick={async () => { const r = await fetch("/api/send-followup"); const d = await r.json(); alert(`Uppföljningsmejl skickade: ${d.sent}`); }}>Skicka uppföljning</button>
               {filteredBookings.length > 0 && (
                 <button style={S.btnDanger} onClick={deleteAllVisible}>Ta bort alla ({filteredBookings.length})</button>
               )}
