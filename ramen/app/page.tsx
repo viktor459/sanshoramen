@@ -45,10 +45,10 @@ const S = `
   .ec-meta { font-size: 13px; color: var(--muted); line-height: 1.7; transition: color 0.2s; }
   .ec-price { font-size: 13px; color: var(--muted); margin-top: 14px; font-weight: 500; transition: color 0.2s; }
   .ec-spots { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-  .ec-bar { flex:1; max-width:80px; height:2px; background:#E0DBD0; border-radius:2px; }
-  .ec-fill { height:2px; background:var(--ink); border-radius:2px; transition: background 0.2s; }
-  .event-card:hover .ec-bar { background: #444; }
-  .event-card:hover .ec-fill { background: #F5F1E8; }
+  .ec-bar { flex:1; max-width:80px; height:4px; background:#E0DBD0; border-radius:4px; }
+  .ec-fill { height:4px; border-radius:4px; }
+  .event-card:hover .ec-bar { background: #333; }
+  .ec-urgency { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; white-space: nowrap; margin-top: 8px; display: inline-block; }
   .no-events { color: var(--muted); font-size: 15px; padding: 40px 0; }
 
   /* CLUB */
@@ -194,6 +194,8 @@ export default function Home() {
             {events.map(ev => {
               const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
               const full = ev.spots_left <= 0;
+              const urgency = full ? "sold" : pct >= 80 ? "hot" : pct >= 50 ? "low" : "ok";
+              const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
               return (
                 <a key={ev.id} href={full ? undefined : "/pop-ups"} className="event-card" style={full ? { opacity: 0.5, cursor: "default", pointerEvents: "none" } : {}}>
                   <div className="ec-img">
@@ -208,9 +210,11 @@ export default function Home() {
                     <div className="ec-meta">{ev.location}{ev.time ? ` · ${ev.time}` : ""}</div>
                     <div className="ec-price">{ev.price != null ? `${ev.price} kr / person` : "Free"}</div>
                     <div className="ec-spots">
-                      <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%` }} /></div>
-                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots_left} spots left`}</span>
+                      <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
+                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots - ev.spots_left}/${ev.spots} bokade`}</span>
                     </div>
+                    {urgency === "hot" && <div className="ec-urgency" style={{ background: "#FEE2E2", color: "#C0392B" }}>🔥 Nästan fullt!</div>}
+                    {urgency === "low" && <div className="ec-urgency" style={{ background: "#FEF3C7", color: "#92400E" }}>⚡ Få platser kvar</div>}
                   </div>
                 </a>
               );

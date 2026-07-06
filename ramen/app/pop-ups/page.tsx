@@ -33,9 +33,13 @@ const S = `
   .ec-price { font-size: 18px; font-weight: 700; }
   .ec-price-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .spots-wrap { text-align: right; }
-  .spots-bar { width: 80px; height: 2px; background: #E0DBD0; border-radius: 2px; margin-bottom: 6px; margin-left: auto; }
-  .spots-fill { height: 2px; background: var(--ink); border-radius: 2px; }
+  .spots-bar { width: 80px; height: 4px; background: #E0DBD0; border-radius: 4px; margin-bottom: 6px; margin-left: auto; }
+  .spots-fill { height: 4px; border-radius: 4px; transition: width 0.3s; }
   .spots-text { font-size: 12px; color: var(--muted); }
+  .urgency-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 99px; margin-bottom: 6px; }
+  .urgency-hot { background: #FEE2E2; color: var(--red); }
+  .urgency-low { background: #FEF3C7; color: #92400E; }
+  .urgency-ok { background: #F0FDF4; color: #166534; }
   .boka-btn { background: var(--ink); color: var(--bg); border: none; padding: 12px 22px; border-radius: var(--r); font-family: 'Quicksand', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
   .empty-state { text-align:center; padding:80px 0; color:var(--muted); }
   .empty-state h3 { font-size:20px; font-weight:500; margin-bottom:12px; }
@@ -202,6 +206,8 @@ export default function PopUps() {
                         const full = ev.spots_left <= 0;
                         const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
                         const { day, month: mon } = parseDateParts(ev.date);
+                        const urgency = full ? "sold" : pct >= 80 ? "hot" : pct >= 50 ? "low" : "ok";
+                        const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
                         return (
                           <div key={ev.id} className="event-card" style={full ? { opacity: 0.55, cursor: "default" } : {}} onClick={() => !full && pickEvent(ev)}>
                             <div className="ec-image">
@@ -234,8 +240,12 @@ export default function PopUps() {
                                 )}
                               </div>
                               <div className="spots-wrap">
-                                <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%` }} /></div>
-                                <div className="spots-text">{full ? "Sold out" : `${ev.spots_left} spots left`}</div>
+                                {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Nästan fullt!</div>}
+                                {urgency === "low" && <div className="urgency-badge urgency-low">⚡ Få platser kvar</div>}
+                                {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {ev.spots_left} platser kvar</div>}
+                                {urgency === "sold" && <div className="urgency-badge urgency-hot">Utsålt</div>}
+                                <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
+                                <div className="spots-text">{ev.spots - ev.spots_left} av {ev.spots} bokade</div>
                               </div>
                               {!full && <button className="boka-btn">Book →</button>}
                             </div>
