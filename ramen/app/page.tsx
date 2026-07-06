@@ -120,7 +120,7 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; active: boolean; image_url?: string; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; };
 
 const formatEventDate = (dateStr: string) => {
   if (!dateStr) return dateStr;
@@ -208,7 +208,9 @@ export default function Home() {
                     <div className="ec-date">{formatEventDate(ev.date)}</div>
                     <div className="ec-title">{ev.title}</div>
                     <div className="ec-meta">{ev.location}{ev.time ? ` · ${ev.time}` : ""}</div>
-                    <div className="ec-price">{ev.price != null ? `${ev.price} kr / person` : "Free"}</div>
+                    <div className="ec-price">
+                      {ev.price != null ? `${ev.price} kr / person` : ev.booking_type === "on_site" ? "Betalas på plats" : ev.booking_type === "external" ? "Extern bokning" : ""}
+                    </div>
                     <div className="ec-spots">
                       <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
                       <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots - ev.spots_left}/${ev.spots} bokade`}</span>

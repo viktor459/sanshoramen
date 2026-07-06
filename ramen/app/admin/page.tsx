@@ -14,6 +14,8 @@ type Event = {
   description: string;
   active: boolean;
   image_url?: string;
+  booking_type: "internal" | "on_site" | "external";
+  external_url?: string;
 };
 
 type Timeslot = {
@@ -67,7 +69,7 @@ export default function Admin() {
   const [events, setEvents] = useState<Event[]>([]);
   const [timeslots, setTimeslots] = useState<Record<number, Timeslot[]>>({});
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal" as "internal" | "on_site" | "external", external_url: "" });
   const eventFileInputRef = useRef<HTMLInputElement | null>(null);
   const editEventFileInputRef = useRef<HTMLInputElement | null>(null);
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
@@ -170,8 +172,10 @@ export default function Admin() {
       price: newEvent.price ? Number(newEvent.price) : null,
       description: newEvent.description, active: true,
       image_url: newEvent.image_url || null,
+      booking_type: newEvent.booking_type,
+      external_url: newEvent.external_url || null,
     }]);
-    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "" });
+    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal", external_url: "" });
     if (eventFileInputRef.current) eventFileInputRef.current.value = "";
     fetchEvents();
   };
@@ -183,6 +187,8 @@ export default function Admin() {
       location: editingEvent.location, spots: editingEvent.spots, spots_left: editingEvent.spots_left,
       price: editingEvent.price || null, description: editingEvent.description, active: editingEvent.active,
       image_url: editingEvent.image_url || null,
+      booking_type: editingEvent.booking_type,
+      external_url: editingEvent.external_url || null,
     }).eq("id", editingEvent.id);
     setEditingEvent(null);
     setEventsView("add");
@@ -406,6 +412,22 @@ export default function Admin() {
                     <label style={S.label}>Beskrivning</label>
                     <textarea style={S.textarea} placeholder="Beskriv eventet..." value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} />
                   </div>
+                  <div>
+                    <label style={S.label}>Bokningstyp</label>
+                    <div style={{ display: "flex", gap: 0, border: "1.5px solid #1D1D1D", borderRadius: 8, overflow: "hidden" }}>
+                      {(["internal", "on_site", "external"] as const).map(t => (
+                        <button key={t} onClick={() => setNewEvent({ ...newEvent, booking_type: t })} style={{ flex: 1, padding: "10px 8px", border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 12, cursor: "pointer", background: newEvent.booking_type === t ? "#1D1D1D" : "transparent", color: newEvent.booking_type === t ? "#F5F1E8" : "#1D1D1D" }}>
+                          {t === "internal" ? "Boka här" : t === "on_site" ? "Betalas på plats" : "Extern länk"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {newEvent.booking_type === "external" && (
+                    <div>
+                      <label style={S.label}>Extern bokningslänk</label>
+                      <input style={S.input} placeholder="https://..." value={newEvent.external_url} onChange={e => setNewEvent({ ...newEvent, external_url: e.target.value })} />
+                    </div>
+                  )}
                   <ImageUploadField
                     value={newEvent.image_url}
                     onChange={url => setNewEvent({ ...newEvent, image_url: url })}
@@ -456,6 +478,22 @@ export default function Admin() {
                     <label style={S.label}>Beskrivning</label>
                     <textarea style={S.textarea} value={editingEvent.description} onChange={e => setEditingEvent({ ...editingEvent, description: e.target.value })} />
                   </div>
+                  <div>
+                    <label style={S.label}>Bokningstyp</label>
+                    <div style={{ display: "flex", gap: 0, border: "1.5px solid #1D1D1D", borderRadius: 8, overflow: "hidden" }}>
+                      {(["internal", "on_site", "external"] as const).map(t => (
+                        <button key={t} onClick={() => setEditingEvent({ ...editingEvent, booking_type: t })} style={{ flex: 1, padding: "10px 8px", border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 12, cursor: "pointer", background: editingEvent.booking_type === t ? "#1D1D1D" : "transparent", color: editingEvent.booking_type === t ? "#F5F1E8" : "#1D1D1D" }}>
+                          {t === "internal" ? "Boka här" : t === "on_site" ? "Betalas på plats" : "Extern länk"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {editingEvent.booking_type === "external" && (
+                    <div>
+                      <label style={S.label}>Extern bokningslänk</label>
+                      <input style={S.input} placeholder="https://..." value={editingEvent.external_url ?? ""} onChange={e => setEditingEvent({ ...editingEvent, external_url: e.target.value })} />
+                    </div>
+                  )}
                   <ImageUploadField
                     value={editingEvent.image_url ?? ""}
                     onChange={url => setEditingEvent({ ...editingEvent, image_url: url })}

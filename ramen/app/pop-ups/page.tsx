@@ -89,7 +89,7 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; };
 type Timeslot = { id: number; event_id: number; time: string; spots: number; spots_left: number; };
 
 export default function PopUps() {
@@ -208,8 +208,15 @@ export default function PopUps() {
                         const { day, month: mon } = parseDateParts(ev.date);
                         const urgency = full ? "sold" : pct >= 80 ? "hot" : pct >= 50 ? "low" : "ok";
                         const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
+                        const isExternal = ev.booking_type === "external";
+                        const isOnSite = ev.booking_type === "on_site";
+                        const handleClick = () => {
+                          if (full) return;
+                          if (isExternal && ev.external_url) { window.open(ev.external_url, "_blank"); return; }
+                          if (!isExternal) pickEvent(ev);
+                        };
                         return (
-                          <div key={ev.id} className="event-card" style={full ? { opacity: 0.55, cursor: "default" } : {}} onClick={() => !full && pickEvent(ev)}>
+                          <div key={ev.id} className="event-card" style={full ? { opacity: 0.55, cursor: "default" } : {}} onClick={handleClick}>
                             <div className="ec-image">
                               {ev.image_url
                                 ? <img src={ev.image_url} alt={ev.title} />
@@ -235,9 +242,14 @@ export default function PopUps() {
                                     <div className="ec-price">{ev.price} kr</div>
                                     <div className="ec-price-sub">per person</div>
                                   </>
-                                ) : (
-                                  <div className="ec-price" style={{ fontSize: 15 }}>Free</div>
-                                )}
+                                ) : isOnSite ? (
+                                  <>
+                                    <div className="ec-price" style={{ fontSize: 13 }}>Betalas</div>
+                                    <div className="ec-price-sub">på plats</div>
+                                  </>
+                                ) : isExternal ? (
+                                  <div className="ec-price" style={{ fontSize: 13 }}>Extern bokning</div>
+                                ) : null}
                               </div>
                               <div className="spots-wrap">
                                 {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Nästan fullt!</div>}
@@ -247,7 +259,11 @@ export default function PopUps() {
                                 <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
                                 <div className="spots-text">{ev.spots - ev.spots_left} av {ev.spots} bokade</div>
                               </div>
-                              {!full && <button className="boka-btn">Book →</button>}
+                              {!full && (
+                                <button className="boka-btn">
+                                  {isExternal ? "Boka externt ↗" : isOnSite ? "Anmäl dig →" : "Book →"}
+                                </button>
+                              )}
                             </div>
                           </div>
                         );
