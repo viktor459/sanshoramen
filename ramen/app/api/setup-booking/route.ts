@@ -3,7 +3,7 @@ import { supabase } from "../../../lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { event_name, event_id, timeslot_id, timeslot_time, fname, lname, email, guests, note, price, vegetarian_count, date, location, time } = await req.json();
+  const { event_name, event_id, timeslot_id, timeslot_time, fname, lname, email, phone, guests, note, price, vegetarian_count, date, location, time } = await req.json();
 
   const booking_code = "SR-" + Math.random().toString(36).substring(2, 7).toUpperCase();
 
@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     fname,
     lname,
     email,
+    phone: phone || null,
     guests: Number(guests),
     note,
     vegetarian_count: Number(vegetarian_count ?? 0),
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
       event_name,
       fname,
       email,
+      phone: phone || "",
       guests: String(guests),
       vegetarian_count: String(vegetarian_count ?? 0),
       total_price: String(price ? price * Number(guests) : 0),

@@ -24,6 +24,10 @@ export default function Tack() {
     } else if (t === "shop") {
       setType("shop");
       setProduct(params.get("product") || "");
+      const session_id = params.get("session_id");
+      if (session_id) {
+        fetch(`/api/confirm-shop?session_id=${session_id}`).catch(() => {});
+      }
       setLoading(false);
     } else {
       setLoading(false);

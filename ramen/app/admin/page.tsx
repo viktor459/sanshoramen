@@ -39,6 +39,17 @@ type Booking = {
   booking_code: string;
   timeslot_time: string;
   status: string;
+  phone?: string;
+};
+
+type ShopOrder = {
+  id: number;
+  created_at: string;
+  product_name: string;
+  quantity: number;
+  total_price: number;
+  email: string;
+  status: string;
 };
 
 type Post = {
@@ -63,7 +74,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -80,6 +91,9 @@ export default function Admin() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
 
+  // Shop orders
+  const [shopOrders, setShopOrders] = useState<ShopOrder[]>([]);
+
   // Products
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({ name: "", description: "", price: "", image_url: "", category: "" });
@@ -95,7 +109,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders();
   }, []);
 
   const fetchEvents = async () => {
@@ -116,6 +130,11 @@ export default function Admin() {
   const fetchProducts = async () => {
     const { data } = await supabase.from("products").select("*").order("id");
     if (data) setProducts(data);
+  };
+
+  const fetchShopOrders = async () => {
+    const { data } = await supabase.from("shop_orders").select("*").order("created_at", { ascending: false });
+    if (data) setShopOrders(data);
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -356,9 +375,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "blogg", "products"] as const).map(t => (
+        {(["events", "bookings", "ordrar", "blogg", "products"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "blogg" ? "Blogg" : "Shop"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : "Shop"}
           </button>
         ))}
       </div>
@@ -600,14 +619,15 @@ export default function Admin() {
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
+              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {filteredBookings.length === 0 && <tr><td colSpan={9} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
+                {filteredBookings.length === 0 && <tr><td colSpan={10} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
                 {filteredBookings.map(b => (
                   <tr key={b.id}>
                     <td style={{ fontWeight: 500 }}>{b.booking_code}</td>
                     <td>{b.fname} {b.lname}</td>
                     <td style={{ color: "#6B6560" }}>{b.email}</td>
+                    <td style={{ color: "#6B6560" }}>{b.phone || "—"}</td>
                     <td>{b.event_name}</td>
                     <td>{b.timeslot_time || "—"}</td>
                     <td>{b.guests} pers</td>
@@ -624,6 +644,49 @@ export default function Admin() {
               { label: "Totalt intäkter", value: filteredBookings.reduce((s, b) => s + b.total_price, 0).toLocaleString("sv-SE") + " kr" },
               { label: "Antal bokningar", value: String(filteredBookings.length) },
               { label: "Antal gäster", value: String(filteredBookings.reduce((s, b) => s + b.guests, 0)) },
+            ].map(m => (
+              <div key={m.label} style={S.card}>
+                <div style={S.label}>{m.label}</div>
+                <div style={{ fontSize: 28, fontWeight: 700 }}>{m.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ORDRAR TAB */}
+      {tab === "ordrar" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>Shop-ordrar ({shopOrders.length})</div>
+          </div>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
+            <table>
+              <thead><tr><th>Produkt</th><th>Antal</th><th>Totalt</th><th>E-post</th><th>Status</th><th>Datum</th></tr></thead>
+              <tbody>
+                {shopOrders.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga ordrar än</td></tr>}
+                {shopOrders.map(o => (
+                  <tr key={o.id}>
+                    <td style={{ fontWeight: 500 }}>{o.product_name}</td>
+                    <td>{o.quantity} st</td>
+                    <td>{o.total_price} kr</td>
+                    <td style={{ color: "#6B6560" }}>{o.email || "—"}</td>
+                    <td>
+                      <span style={{ fontSize: 12, padding: "3px 10px", borderRadius: 99, background: o.status === "paid" ? "#EAF3DE" : "#F0EDE6", color: o.status === "paid" ? "#3B6D11" : "#6B6560" }}>
+                        {o.status === "paid" ? "Betald" : "Väntande"}
+                      </span>
+                    </td>
+                    <td style={{ color: "#6B6560" }}>{new Date(o.created_at).toLocaleDateString("sv-SE")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {[
+              { label: "Totalt intäkter", value: shopOrders.filter(o => o.status === "paid").reduce((s, o) => s + o.total_price, 0).toLocaleString("sv-SE") + " kr" },
+              { label: "Betalda ordrar", value: String(shopOrders.filter(o => o.status === "paid").length) },
+              { label: "Väntande", value: String(shopOrders.filter(o => o.status === "pending").length) },
             ].map(m => (
               <div key={m.label} style={S.card}>
                 <div style={S.label}>{m.label}</div>

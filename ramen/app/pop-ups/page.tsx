@@ -97,7 +97,7 @@ export default function PopUps() {
   const [selected, setSelected] = useState<Event | null>(null);
   const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState("");
-  const [form, setForm] = useState({ fname: "", lname: "", email: "", guests: "2", note: "" });
+  const [form, setForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2", note: "" });
   const [vegetarianCount, setVegetarianCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -124,7 +124,7 @@ export default function PopUps() {
   const handleBook = async () => {
     if (!selected) return;
     if (timeslots.length > 0 && !selectedSlot) { setError("Välj en tid för att fortsätta."); return; }
-    if (!form.fname || !form.lname || !form.email.includes("@")) { setError("Please fill in all required fields."); return; }
+    if (!form.fname || !form.lname || !form.email.includes("@") || !form.phone) { setError("Please fill in all required fields."); return; }
     setLoading(true);
     setError("");
     const slot = timeslots.find(t => t.id === Number(selectedSlot));
@@ -142,6 +142,7 @@ export default function PopUps() {
         fname: form.fname,
         lname: form.lname,
         email: form.email,
+        phone: form.phone,
         note: form.note,
         date: selected.date,
         location: selected.location,
@@ -312,6 +313,7 @@ export default function PopUps() {
               <div className="f-field"><label>Last name *</label><input value={form.lname} onChange={e => setForm({ ...form, lname: e.target.value })} placeholder="Svensson" /></div>
             </div>
             <div className="f-field"><label>Email *</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="your@email.com" /></div>
+            <div className="f-field"><label>Phone number *</label><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+46 70 123 45 67" /></div>
             <div className="f-field">
               <label>Number of guests</label>
               <select value={form.guests} onChange={e => { setForm({ ...form, guests: e.target.value }); setVegetarianCount(Math.min(vegetarianCount, Number(e.target.value))); }}>
@@ -354,7 +356,7 @@ export default function PopUps() {
 
             {error && <p className="err">{error}</p>}
             <button className="submit-btn"
-              disabled={!form.fname || !form.lname || !form.email.includes("@") || loading || (timeslots.length > 0 && !selectedSlot)}
+              disabled={!form.fname || !form.lname || !form.email.includes("@") || !form.phone || loading || (timeslots.length > 0 && !selectedSlot)}
               onClick={handleBook}>
               {loading ? "Sending..." : "Verify card & confirm booking →"}
             </button>
