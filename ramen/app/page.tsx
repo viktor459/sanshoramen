@@ -213,10 +213,10 @@ export default function Home() {
                     </div>
                     <div className="ec-spots">
                       <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
-                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots - ev.spots_left}/${ev.spots} bokade`}</span>
+                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots - ev.spots_left}/${ev.spots} booked`}</span>
                     </div>
-                    {urgency === "hot" && <div className="ec-urgency" style={{ background: "#FEE2E2", color: "#C0392B" }}>🔥 Nästan fullt!</div>}
-                    {urgency === "low" && <div className="ec-urgency" style={{ background: "#FEF3C7", color: "#92400E" }}>⚡ Få platser kvar</div>}
+                    {urgency === "hot" && <div className="ec-urgency" style={{ background: "#FEE2E2", color: "#C0392B" }}>🔥 Almost full!</div>}
+                    {urgency === "low" && <div className="ec-urgency" style={{ background: "#FEF3C7", color: "#92400E" }}>⚡ Few spots left</div>}
                   </div>
                 </a>
               );

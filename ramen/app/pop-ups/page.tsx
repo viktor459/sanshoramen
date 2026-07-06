@@ -253,12 +253,12 @@ export default function PopUps() {
                                 ) : null}
                               </div>
                               <div className="spots-wrap">
-                                {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Nästan fullt!</div>}
-                                {urgency === "low" && <div className="urgency-badge urgency-low">⚡ Få platser kvar</div>}
-                                {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {ev.spots_left} platser kvar</div>}
-                                {urgency === "sold" && <div className="urgency-badge urgency-hot">Utsålt</div>}
+                                {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Almost full!</div>}
+                                {urgency === "low" && <div className="urgency-badge urgency-low">⚡ Few spots left</div>}
+                                {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {ev.spots_left} spots left</div>}
+                                {urgency === "sold" && <div className="urgency-badge urgency-hot">Sold out</div>}
                                 <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
-                                <div className="spots-text">{ev.spots - ev.spots_left} av {ev.spots} bokade</div>
+                                <div className="spots-text">{ev.spots - ev.spots_left} of {ev.spots} booked</div>
                               </div>
                               {!full && (
                                 <button className="boka-btn">
