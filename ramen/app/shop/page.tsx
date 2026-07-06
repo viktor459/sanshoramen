@@ -50,7 +50,7 @@ export default function Shop() {
     const res = await fetch("/api/shop-checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_name: product.name, price: product.price, quantity: 1 }),
+      body: JSON.stringify({ product_name: product.name, quantity: 1 }),
     });
     const { url } = await res.json();
     if (url) window.location.href = url;
