@@ -209,7 +209,7 @@ export default function Home() {
                     <div className="ec-title">{ev.title}</div>
                     <div className="ec-meta">{ev.location}{ev.time ? ` · ${ev.time}` : ""}</div>
                     <div className="ec-price">
-                      {ev.price != null ? `${ev.price} kr / person` : ev.booking_type === "on_site" ? "Betalas på plats" : ev.booking_type === "external" ? "Extern bokning" : ""}
+                      {ev.price != null ? `${ev.price} kr / person` : ev.booking_type === "on_site" ? "Pay on site" : ev.booking_type === "external" ? "External booking" : ""}
                     </div>
                     <div className="ec-spots">
                       <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%`, background: barColor }} /></div>

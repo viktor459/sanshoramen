@@ -123,7 +123,7 @@ export default function PopUps() {
 
   const handleBook = async () => {
     if (!selected) return;
-    if (timeslots.length > 0 && !selectedSlot) { setError("Välj en tid för att fortsätta."); return; }
+    if (timeslots.length > 0 && !selectedSlot) { setError("Please select a time to continue."); return; }
     if (!form.fname || !form.lname || !form.email.includes("@") || !form.phone) { setError("Please fill in all required fields."); return; }
     setLoading(true);
     setError("");
@@ -244,25 +244,24 @@ export default function PopUps() {
                                     <div className="ec-price-sub">per person</div>
                                   </>
                                 ) : isOnSite ? (
-                                  <>
-                                    <div className="ec-price" style={{ fontSize: 13 }}>Betalas</div>
-                                    <div className="ec-price-sub">på plats</div>
-                                  </>
+                                  <div className="ec-price" style={{ fontSize: 13 }}>Pay on site</div>
                                 ) : isExternal ? (
-                                  <div className="ec-price" style={{ fontSize: 13 }}>Extern bokning</div>
+                                  <div className="ec-price" style={{ fontSize: 13 }}>External booking</div>
                                 ) : null}
                               </div>
-                              <div className="spots-wrap">
-                                {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Almost full!</div>}
-                                {urgency === "low" && <div className="urgency-badge urgency-low">⚡ Few spots left</div>}
-                                {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {ev.spots_left} spots left</div>}
-                                {urgency === "sold" && <div className="urgency-badge urgency-hot">Sold out</div>}
-                                <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
-                                <div className="spots-text">{ev.spots - ev.spots_left} of {ev.spots} booked</div>
-                              </div>
+                              {!isExternal && (
+                                <div className="spots-wrap">
+                                  {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Almost full!</div>}
+                                  {urgency === "low" && <div className="urgency-badge urgency-low">⚡ Few spots left</div>}
+                                  {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {ev.spots_left} spots left</div>}
+                                  {urgency === "sold" && <div className="urgency-badge urgency-hot">Sold out</div>}
+                                  <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
+                                  <div className="spots-text">{ev.spots - ev.spots_left} of {ev.spots} booked</div>
+                                </div>
+                              )}
                               {!full && (
                                 <button className="boka-btn">
-                                  {isExternal ? "Boka externt ↗" : isOnSite ? "Anmäl dig →" : "Book →"}
+                                  {isExternal ? "Book here ↗" : isOnSite ? "Sign up →" : "Book →"}
                                 </button>
                               )}
                             </div>
