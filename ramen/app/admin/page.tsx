@@ -38,7 +38,9 @@ type Booking = {
   note: string;
   total_price: number;
   booking_code: string;
+  timeslot_id?: number;
   timeslot_time: string;
+  event_id: number;
   status: string;
   phone?: string;
 };
@@ -254,7 +256,16 @@ export default function Admin() {
   const saveGuests = async (id: string, value: string) => {
     const n = parseInt(value);
     if (!isNaN(n) && n > 0) {
-      await supabase.from("bookings").update({ guests: n }).eq("id", id);
+      const booking = bookings.find(b => b.id === id);
+      if (booking) {
+        const diff = booking.guests - n; // positive = freed up spots, negative = used more
+        await supabase.from("bookings").update({ guests: n }).eq("id", id);
+        if (booking.timeslot_id) {
+          await supabase.rpc("increment_timeslot_spots", { slot_id: booking.timeslot_id, n: diff }).maybeSingle();
+        } else {
+          await supabase.rpc("increment_event_spots", { ev_id: booking.event_id, n: diff }).maybeSingle();
+        }
+      }
       fetchBookings();
     }
     setEditingGuests(null);
