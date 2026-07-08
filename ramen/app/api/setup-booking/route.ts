@@ -28,7 +28,7 @@ const calendarUrl = (event_name: string, date: string, location: string, event_t
 };
 
 export async function POST(req: Request) {
-  const { event_name, event_id, timeslot_id, timeslot_time, fname, lname, email, phone, guests, note, price, vegetarian_count, date, location, time } = await req.json();
+  const { event_name, event_id, timeslot_id, timeslot_time, fname, lname, email, phone, guests, note, price, vegetarian_count, newsletter_consent, date, location, time } = await req.json();
 
   // Fetch event to check require_card
   const { data: event } = await supabase.from("events").select("require_card").eq("id", event_id).single();
@@ -66,7 +66,11 @@ export async function POST(req: Request) {
 
   if (!requireCard) {
     // No card required — confirm immediately and send email
-    await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" });
+    let unsubscribeToken: string | null = null;
+    if (newsletter_consent) {
+      const { data: sub } = await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" }).select("unsubscribe_token").single();
+      unsubscribeToken = sub?.unsubscribe_token ?? null;
+    }
     const formattedDate = formatDate(date);
     const gcalLink = calendarUrl(event_name, date || "", location || "", time || "");
     const vegCount = Number(vegetarian_count ?? 0);
@@ -99,7 +103,7 @@ export async function POST(req: Request) {
             ${gcalLink ? `<a href="${gcalLink}" style="display:inline-block;margin-top:24px;padding:12px 22px;background:#F5F1E8;border:1.5px solid #1D1D1D;border-radius:100px;text-decoration:none;color:#1D1D1D;font-size:13px;font-weight:500;">+ Lägg till i Google Kalender</a>` : ""}
 
             <p style="font-size:13px;color:#6B6560;margin-top:28px;line-height:1.7;">Frågor? Hör av dig på <a href="mailto:contact@sanshoramen.se" style="color:#1D1D1D;">contact@sanshoramen.se</a></p>
-            <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne</p>
+            <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne${unsubscribeToken ? ` · <a href="${process.env.NEXT_PUBLIC_URL}/api/unsubscribe?token=${unsubscribeToken}" style="color:#aaa;">Unsubscribe</a>` : ""}</p>
           </div>
         `,
       });
@@ -137,6 +141,7 @@ export async function POST(req: Request) {
       date: date || "",
       location: location || "",
       event_time: time || "",
+      newsletter_consent: newsletter_consent ? "1" : "0",
     },
   });
 

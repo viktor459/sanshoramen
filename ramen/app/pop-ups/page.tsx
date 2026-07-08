@@ -99,6 +99,7 @@ export default function PopUps() {
   const [selectedSlot, setSelectedSlot] = useState("");
   const [form, setForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2", note: "" });
   const [vegetarianCount, setVegetarianCount] = useState(0);
+  const [newsletterConsent, setNewsletterConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -144,6 +145,7 @@ export default function PopUps() {
         email: form.email,
         phone: form.phone,
         note: form.note,
+        newsletter_consent: newsletterConsent,
         date: selected.date,
         location: selected.location,
         time: selected.time,
@@ -352,6 +354,11 @@ export default function PopUps() {
                 <div className="price-total"><span>Due today</span><span>0 SEK</span></div>
               </div>
             )}
+
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", fontSize: 13, color: "#6B6560", lineHeight: 1.5, marginTop: 4 }}>
+              <input type="checkbox" checked={newsletterConsent} onChange={e => setNewsletterConsent(e.target.checked)} style={{ marginTop: 2, accentColor: "#1D1D1D", flexShrink: 0 }} />
+              <span>I want to receive news about upcoming Sanshō Ramen events by email. You can unsubscribe at any time. <a href="/integritetspolicy" target="_blank" style={{ color: "#1D1D1D" }}>Privacy policy.</a></span>
+            </label>
 
             {error && <p className="err">{error}</p>}
             <button className="submit-btn"

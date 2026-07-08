@@ -36,14 +36,18 @@ export async function GET(req: Request) {
   if (session.status !== "complete") return NextResponse.json({ error: "Ej slutförd" }, { status: 400 });
 
   const m = session.metadata!;
-  const { booking_id, booking_code, event_name, fname, email, guests, total_price, timeslot_time, date, location, event_time, vegetarian_count } = m;
+  const { booking_id, booking_code, event_name, fname, email, guests, total_price, timeslot_time, date, location, event_time, vegetarian_count, newsletter_consent } = m;
 
   await supabase.from("bookings").update({
     status: "confirmed",
     stripe_setup_intent_id: String(session.setup_intent || ""),
   }).eq("id", booking_id);
 
-  await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" });
+  let unsubscribeToken: string | null = null;
+  if (newsletter_consent === "1") {
+    const { data: sub } = await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" }).select("unsubscribe_token").single();
+    unsubscribeToken = sub?.unsubscribe_token ?? null;
+  }
 
   const formattedDate = formatDate(date);
   const gcalLink = calendarUrl(event_name, date, location, event_time);
@@ -81,7 +85,7 @@ export async function GET(req: Request) {
           </div>
 
           <p style="font-size:13px;color:#6B6560;margin-top:28px;line-height:1.7;">Frågor? Hör av dig på <a href="mailto:contact@sanshoramen.se" style="color:#1D1D1D;">contact@sanshoramen.se</a></p>
-          <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne</p>
+          <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne${unsubscribeToken ? ` · <a href="${process.env.NEXT_PUBLIC_URL}/api/unsubscribe?token=${unsubscribeToken}" style="color:#aaa;">Unsubscribe</a>` : ""}</p>
         </div>
       `,
     });

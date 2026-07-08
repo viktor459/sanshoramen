@@ -8,8 +8,9 @@ export async function POST(req: Request) {
   const { email, fname } = await req.json();
   if (!email?.includes("@")) return NextResponse.json({ error: "Ogiltig e-post" }, { status: 400 });
 
-  const { error } = await supabase.from("club_members").upsert([{ email, fname }], { onConflict: "email" });
+  const { data: member, error } = await supabase.from("club_members").upsert([{ email, fname }], { onConflict: "email" }).select("unsubscribe_token").single();
   if (error) return NextResponse.json({ error: "Kunde inte spara" }, { status: 500 });
+  const unsubscribeToken = member?.unsubscribe_token ?? null;
 
   try {
     await resend.emails.send({
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
             </div>
           </div>
           <a href="https://sanshoramen.se/pop-ups" style="display:inline-block;padding:14px 28px;background:#C0392B;color:#fff;text-decoration:none;border-radius:100px;font-size:14px;font-weight:500;">Se kommande events →</a>
-          <p style="font-size:12px;color:#555;margin-top:40px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne</p>
+          <p style="font-size:12px;color:#555;margin-top:40px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne${unsubscribeToken ? ` · <a href="${process.env.NEXT_PUBLIC_URL}/api/unsubscribe?token=${unsubscribeToken}&list=club" style="color:#555;">Unsubscribe</a>` : ""}</p>
         </div>
       `,
     });

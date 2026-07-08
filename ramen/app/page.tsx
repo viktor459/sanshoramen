@@ -311,6 +311,10 @@ export default function Home() {
           </a>
         </div>
       </section>
+
+      <footer style={{ textAlign: "center", padding: "24px", fontSize: 12, color: "#999", background: "#F5F1E8" }}>
+        <a href="/integritetspolicy" style={{ color: "#999", textDecoration: "none" }}>Privacy policy</a>
+      </footer>
     </>
   );
 }
