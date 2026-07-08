@@ -15,11 +15,21 @@ export default function Tack() {
     if (t === "booking") {
       setType("booking");
       const session_id = params.get("session_id");
+      const booking_code = params.get("booking_code");
       if (session_id) {
         fetch(`/api/confirm-booking?session_id=${session_id}`)
           .then(r => r.json())
           .then(data => { setBooking(data); setLoading(false); })
           .catch(() => setLoading(false));
+      } else if (booking_code) {
+        // Direct booking (no card required)
+        setBooking({
+          booking_code,
+          fname: params.get("fname") || undefined,
+          event_name: params.get("event_name") || undefined,
+          guests: params.get("guests") || undefined,
+        });
+        setLoading(false);
       } else setLoading(false);
     } else if (t === "shop") {
       setType("shop");

@@ -16,6 +16,7 @@ type Event = {
   image_url?: string;
   booking_type: "internal" | "on_site" | "external";
   external_url?: string;
+  require_card: boolean;
 };
 
 type Timeslot = {
@@ -80,7 +81,7 @@ export default function Admin() {
   const [events, setEvents] = useState<Event[]>([]);
   const [timeslots, setTimeslots] = useState<Record<number, Timeslot[]>>({});
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal" as "internal" | "on_site" | "external", external_url: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal" as "internal" | "on_site" | "external", external_url: "", require_card: true });
   const eventFileInputRef = useRef<HTMLInputElement | null>(null);
   const editEventFileInputRef = useRef<HTMLInputElement | null>(null);
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
@@ -193,8 +194,9 @@ export default function Admin() {
       image_url: newEvent.image_url || null,
       booking_type: newEvent.booking_type,
       external_url: newEvent.external_url || null,
+      require_card: newEvent.require_card,
     }]);
-    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal", external_url: "" });
+    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal", external_url: "", require_card: true });
     if (eventFileInputRef.current) eventFileInputRef.current.value = "";
     fetchEvents();
   };
@@ -208,6 +210,7 @@ export default function Admin() {
       image_url: editingEvent.image_url || null,
       booking_type: editingEvent.booking_type,
       external_url: editingEvent.external_url || null,
+      require_card: editingEvent.require_card,
     }).eq("id", editingEvent.id);
     setEditingEvent(null);
     setEventsView("add");
@@ -447,6 +450,14 @@ export default function Admin() {
                       <input style={S.input} placeholder="https://..." value={newEvent.external_url} onChange={e => setNewEvent({ ...newEvent, external_url: e.target.value })} />
                     </div>
                   )}
+                  {newEvent.booking_type !== "external" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button onClick={() => setNewEvent({ ...newEvent, require_card: !newEvent.require_card })} style={{ width: 40, height: 22, borderRadius: 11, border: "none", cursor: "pointer", background: newEvent.require_card ? "#1D1D1D" : "#ccc", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                        <span style={{ position: "absolute", top: 3, left: newEvent.require_card ? 20 : 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                      </button>
+                      <span style={{ fontSize: 13, color: "#1D1D1D" }}>Require card verification</span>
+                    </div>
+                  )}
                   <ImageUploadField
                     value={newEvent.image_url}
                     onChange={url => setNewEvent({ ...newEvent, image_url: url })}
@@ -511,6 +522,14 @@ export default function Admin() {
                     <div>
                       <label style={S.label}>Extern bokningslänk</label>
                       <input style={S.input} placeholder="https://..." value={editingEvent.external_url ?? ""} onChange={e => setEditingEvent({ ...editingEvent, external_url: e.target.value })} />
+                    </div>
+                  )}
+                  {editingEvent.booking_type !== "external" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button onClick={() => setEditingEvent({ ...editingEvent, require_card: !editingEvent.require_card })} style={{ width: 40, height: 22, borderRadius: 11, border: "none", cursor: "pointer", background: editingEvent.require_card ? "#1D1D1D" : "#ccc", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                        <span style={{ position: "absolute", top: 3, left: editingEvent.require_card ? 20 : 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                      </button>
+                      <span style={{ fontSize: 13, color: "#1D1D1D" }}>Require card verification</span>
                     </div>
                   )}
                   <ImageUploadField
