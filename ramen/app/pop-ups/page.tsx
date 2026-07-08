@@ -318,7 +318,7 @@ export default function PopUps() {
             <div className="f-field">
               <label>Number of guests</label>
               <select value={form.guests} onChange={e => { setForm({ ...form, guests: e.target.value }); setVegetarianCount(Math.min(vegetarianCount, Number(e.target.value))); }}>
-                {[1,2,3,4].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
+                {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
               </select>
             </div>
 
