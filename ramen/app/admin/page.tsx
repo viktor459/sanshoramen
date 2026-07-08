@@ -91,6 +91,7 @@ export default function Admin() {
   // Bookings
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
+  const [editingGuests, setEditingGuests] = useState<{ id: string; value: string } | null>(null);
 
   // Shop orders
   const [shopOrders, setShopOrders] = useState<ShopOrder[]>([]);
@@ -248,6 +249,15 @@ export default function Admin() {
     if (!confirm("Ta bort bokningen?")) return;
     await supabase.from("bookings").delete().eq("id", id);
     fetchBookings();
+  };
+
+  const saveGuests = async (id: string, value: string) => {
+    const n = parseInt(value);
+    if (!isNaN(n) && n > 0) {
+      await supabase.from("bookings").update({ guests: n }).eq("id", id);
+      fetchBookings();
+    }
+    setEditingGuests(null);
   };
 
   const deleteAllVisible = async () => {
@@ -649,7 +659,24 @@ export default function Admin() {
                     <td style={{ color: "#6B6560" }}>{b.phone || "—"}</td>
                     <td>{b.event_name}</td>
                     <td>{b.timeslot_time || "—"}</td>
-                    <td>{b.guests} pers</td>
+                    <td>
+                      {editingGuests?.id === b.id ? (
+                        <input
+                          type="number"
+                          min={1}
+                          value={editingGuests.value}
+                          onChange={e => setEditingGuests({ id: b.id, value: e.target.value })}
+                          onBlur={() => saveGuests(b.id, editingGuests.value)}
+                          onKeyDown={e => { if (e.key === "Enter") saveGuests(b.id, editingGuests.value); if (e.key === "Escape") setEditingGuests(null); }}
+                          autoFocus
+                          style={{ width: 52, fontFamily: "'Quicksand', sans-serif", fontSize: 13, border: "1.5px solid #1D1D1D", borderRadius: 6, padding: "2px 6px" }}
+                        />
+                      ) : (
+                        <span onClick={() => setEditingGuests({ id: b.id, value: String(b.guests) })} style={{ cursor: "pointer", borderBottom: "1px dashed #bbb" }} title="Click to edit">
+                          {b.guests} pers
+                        </span>
+                      )}
+                    </td>
                     <td>{b.total_price} kr</td>
                     <td style={{ color: "#6B6560" }}>{new Date(b.created_at).toLocaleDateString("sv-SE")}</td>
                     <td><button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button></td>
