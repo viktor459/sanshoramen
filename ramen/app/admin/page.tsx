@@ -515,7 +515,11 @@ export default function Admin() {
                       </a>
                     )}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={S.label}>Totalt platser</label>
+                      <input style={S.input} type="number" value={editingEvent.spots} onChange={e => setEditingEvent({ ...editingEvent, spots: Number(e.target.value) })} />
+                    </div>
                     <div>
                       <label style={S.label}>Platser kvar</label>
                       <input style={S.input} type="number" value={editingEvent.spots_left} onChange={e => setEditingEvent({ ...editingEvent, spots_left: Number(e.target.value) })} />
