@@ -150,7 +150,7 @@ export default function EventPage() {
           <p style={{ color: "var(--red)", fontWeight: 600, fontSize: 16 }}>This event is sold out.</p>
         ) : (
           <>
-            {event.require_card && (
+            {event.require_card && !isOnSite && (
               <div className="notice">
                 <strong>Free to book — card verification required.</strong> We save your card details and charge <strong>250 SEK</strong> for no-shows if you don't cancel at least 48 hours before the event.
               </div>
