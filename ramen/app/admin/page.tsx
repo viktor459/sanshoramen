@@ -185,6 +185,8 @@ export default function Admin() {
     if (data) setPosts(data);
   };
 
+  const toSlug = (s: string) => s.toLowerCase().replace(/[åä]/g, "a").replace(/ö/g, "o").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
   const addEvent = async () => {
     if (!newEvent.title || !newEvent.date) return;
     const time = [newEvent.timeStart, newEvent.timeEnd].filter(Boolean).join(" – ");
@@ -198,6 +200,7 @@ export default function Admin() {
       booking_type: newEvent.booking_type,
       external_url: newEvent.external_url || null,
       require_card: newEvent.require_card,
+      slug: toSlug(newEvent.title),
     }]);
     setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal", external_url: "", require_card: true });
     if (eventFileInputRef.current) eventFileInputRef.current.value = "";
@@ -214,6 +217,7 @@ export default function Admin() {
       booking_type: editingEvent.booking_type,
       external_url: editingEvent.external_url || null,
       require_card: editingEvent.require_card,
+      slug: toSlug(editingEvent.title),
     }).eq("id", editingEvent.id);
     setEditingEvent(null);
     setEventsView("add");

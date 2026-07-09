@@ -52,7 +52,7 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; slug: string; };
 
 export default function PopUps() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -114,7 +114,7 @@ export default function PopUps() {
                     const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
                     const isExternal = ev.booking_type === "external";
                     const isOnSite = ev.booking_type === "on_site";
-                    const href = isExternal && ev.external_url ? ev.external_url : `/pop-ups/${ev.id}`;
+                    const href = isExternal && ev.external_url ? ev.external_url : `/pop-ups/${ev.slug || ev.id}`;
                     const target = isExternal ? "_blank" : undefined;
 
                     return (

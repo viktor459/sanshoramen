@@ -43,11 +43,11 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; require_card: boolean; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; require_card: boolean; slug: string; };
 type Timeslot = { id: number; event_id: number; time: string; spots: number; spots_left: number; };
 
 export default function EventPage() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
@@ -59,14 +59,14 @@ export default function EventPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    supabase.from("events").select("*").eq("id", id).eq("active", true).single()
+    supabase.from("events").select("*").eq("slug", slug).eq("active", true).single()
       .then(({ data }) => {
         if (!data) { router.replace("/pop-ups"); return; }
         setEvent(data);
         supabase.from("timeslots").select("*").eq("event_id", data.id).order("time")
           .then(({ data: slots }) => { if (slots) setTimeslots(slots); });
       });
-  }, [id]);
+  }, [slug]);
 
   const parseDateParts = (dateStr: string) => {
     if (!dateStr) return { full: "" };
