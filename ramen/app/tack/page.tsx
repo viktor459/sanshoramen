@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 type BookingData = { booking_code?: string; event_name?: string; fname?: string; guests?: string; };
 
 export default function Tack() {
-  const [type, setType] = useState<"booking" | "shop" | null>(null);
+  const [type, setType] = useState<"booking" | "shop" | "club" | null>(null);
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [product, setProduct] = useState("");
   const [loading, setLoading] = useState(true);
@@ -39,6 +39,13 @@ export default function Tack() {
         fetch(`/api/confirm-shop?session_id=${session_id}`).catch(() => {});
       }
       setLoading(false);
+    } else if (t === "club") {
+      setType("club");
+      const session_id = params.get("session_id");
+      if (session_id) {
+        fetch(`/api/confirm-club?session_id=${session_id}`).catch(() => {});
+      }
+      setLoading(false);
     } else {
       setLoading(false);
     }
@@ -71,6 +78,13 @@ export default function Tack() {
               )}
               <p style={{ fontSize: 13, color: "#6B6560", lineHeight: 1.7, marginBottom: 36 }}>
                 A confirmation has been sent to your email. 🍜
+              </p>
+            </>
+          ) : type === "club" ? (
+            <>
+              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Welcome to the club!</h1>
+              <p style={{ fontSize: 15, color: "#6B6560", marginBottom: 36, lineHeight: 1.7 }}>
+                You're now a member of Sanshō Ramen Club. A welcome email is on its way.
               </p>
             </>
           ) : type === "shop" ? (

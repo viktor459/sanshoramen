@@ -1,42 +1,30 @@
-import { supabase } from "../../../lib/supabase";
-import { Resend } from "resend";
+import { stripe } from "../../../lib/stripe";
 import { NextResponse } from "next/server";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const { email, fname } = await req.json();
   if (!email?.includes("@")) return NextResponse.json({ error: "Ogiltig e-post" }, { status: 400 });
 
-  const { data: member, error } = await supabase.from("club_members").upsert([{ email, fname }], { onConflict: "email" }).select("unsubscribe_token").single();
-  if (error) return NextResponse.json({ error: "Kunde inte spara" }, { status: 500 });
-  const unsubscribeToken = member?.unsubscribe_token ?? null;
+  const session = await stripe.checkout.sessions.create({
+    mode: "subscription",
+    payment_method_types: ["card"],
+    customer_email: email,
+    line_items: [{
+      price_data: {
+        currency: "sek",
+        recurring: { interval: "month" },
+        product_data: {
+          name: "Sanshō Ramen Club",
+          description: "Early access to all pop-up bookings + private events",
+        },
+        unit_amount: 9900, // 99 SEK in öre
+      },
+      quantity: 1,
+    }],
+    success_url: `${process.env.NEXT_PUBLIC_URL}/tack?type=club&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_URL}/#club`,
+    metadata: { email, fname: fname || "" },
+  });
 
-  try {
-    await resend.emails.send({
-      from: "Sanshō Ramen <contact@sanshoramen.se>",
-      to: email,
-      subject: "Välkommen till Sanshō Ramen Club ★",
-      html: `
-        <div style="font-family:'Helvetica Neue',sans-serif;max-width:560px;margin:0 auto;background:#1D1D1D;padding:48px 40px;">
-          <img src="https://sanshoramen.se/logotype.png" style="height:26px;margin-bottom:40px;filter:invert(1);" />
-          <div style="display:inline-block;background:#C0392B;color:#fff;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;padding:6px 14px;border-radius:99px;margin-bottom:28px;">★ Sanshō Ramen Club</div>
-          <h1 style="font-size:28px;font-weight:700;color:#F5F1E8;margin-bottom:12px;line-height:1.2;">Välkommen till the inner circle${fname ? `, ${fname}` : ""}.</h1>
-          <p style="font-size:15px;color:#999;line-height:1.8;margin-bottom:32px;">Du är nu med i Sanshō Ramen Club och får tidig tillgång till alla pop-ups — 48 timmar innan de annonseras publikt.</p>
-          <div style="border:1px solid #2a2a2a;border-radius:12px;padding:24px;margin-bottom:32px;">
-            <p style="font-size:13px;color:#C0392B;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Dina fördelar</p>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-              <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#C0392B;font-size:16px;">★</span><span style="font-size:14px;color:#ccc;line-height:1.5;">Early access till alla pop-up-bokningar, 48h innan publikt</span></div>
-              <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#C0392B;font-size:16px;">★</span><span style="font-size:14px;color:#ccc;line-height:1.5;">Inbjudningar till privata, club-only-event</span></div>
-              <div style="display:flex;align-items:flex-start;gap:12px;"><span style="color:#C0392B;font-size:16px;">★</span><span style="font-size:14px;color:#ccc;line-height:1.5;">Behind-the-scenes från köket</span></div>
-            </div>
-          </div>
-          <a href="https://sanshoramen.se/pop-ups" style="display:inline-block;padding:14px 28px;background:#C0392B;color:#fff;text-decoration:none;border-radius:100px;font-size:14px;font-weight:500;">Se kommande events →</a>
-          <p style="font-size:12px;color:#555;margin-top:40px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne${unsubscribeToken ? ` · <a href="${process.env.NEXT_PUBLIC_URL}/api/unsubscribe?token=${unsubscribeToken}&list=club" style="color:#555;">Unsubscribe</a>` : ""}</p>
-        </div>
-      `,
-    });
-  } catch (_) { /* ignore */ }
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ url: session.url });
 }

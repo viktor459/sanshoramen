@@ -157,8 +157,9 @@ export default function Home() {
     if (!clubEmail.includes("@")) return;
     setClubStatus("loading");
     const res = await fetch("/api/join-club", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: clubEmail, fname: clubFname }) });
-    if (res.ok) { setClubStatus("done"); setClubEmail(""); setClubFname(""); }
-    else setClubStatus("error");
+    const { url, error } = await res.json();
+    if (url) { window.location.href = url; return; }
+    setClubStatus("error");
   };
 
   return (
