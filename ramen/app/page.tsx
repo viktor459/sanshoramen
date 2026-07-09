@@ -173,7 +173,6 @@ export default function Home() {
           <p className="hero-sub">We take over restaurants and bars for a night and serve ramen at a high level. Every event is unique — the menu and venue change every time.</p>
           <div className="hero-cta">
             <a href="/pop-ups" className="btn-dark">See upcoming pop-ups →</a>
-            <a href="#club" className="btn-red">Join the club</a>
           </div>
         </div>
         <div className="hero-right">
@@ -226,36 +225,6 @@ export default function Home() {
       </section>
 
       {/* CLUB */}
-      <section className="club-section" id="club">
-        <div className="club-inner">
-          <div className="club-badge">
-            <span>★</span>
-            <span>Sanshō Ramen Club</span>
-          </div>
-          <h2 className="club-title">The inner<br />circle. <span>The first<br />to know.</span></h2>
-          <p className="club-sub">Club members get early access to exclusive events before they go public — and first dibs on limited spots.</p>
-          <div className="club-perks">
-            <div className="club-perk"><div className="club-perk-dot" /><span>Early access to all pop-up bookings, 48h before the public</span></div>
-            <div className="club-perk"><div className="club-perk-dot" /><span>Invitations to private, club-only events</span></div>
-            <div className="club-perk"><div className="club-perk-dot" /><span>Inside stories and behind-the-scenes from the kitchen</span></div>
-          </div>
-          {clubStatus === "done" ? (
-            <p className="club-success">★ Welcome to the club — you're on the list.</p>
-          ) : (
-            <>
-              <div className="club-form">
-                <input className="club-input" placeholder="First name" value={clubFname} onChange={e => setClubFname(e.target.value)} />
-                <input className="club-input" type="email" placeholder="your@email.com" value={clubEmail} onChange={e => setClubEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && joinClub()} />
-                <button className="club-btn" onClick={joinClub} disabled={clubStatus === "loading"}>
-                  {clubStatus === "loading" ? "..." : "Join the club →"}
-                </button>
-              </div>
-              {clubStatus === "error" && <p className="club-success" style={{ color: "#f87171" }}>Something went wrong. Try again.</p>}
-            </>
-          )}
-        </div>
-      </section>
-
       {/* NEWSLETTER */}
       <section className="newsletter-section">
         <div className="nl-inner">
@@ -309,6 +278,29 @@ export default function Home() {
             <svg viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
             YouTube
           </a>
+        </div>
+      </section>
+
+      {/* CLUB */}
+      <section className="club-section" id="club">
+        <div className="club-inner">
+          <p style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "#555", marginBottom: 16 }}>★ Sanshō Ramen Club</p>
+          <h2 className="club-title" style={{ fontSize: 28 }}>For the serious ramen fan.</h2>
+          <p className="club-sub">99 kr/month. Early access to bookings 48h before the public, invitations to private events, and inside stories from the kitchen.</p>
+          {clubStatus === "done" ? (
+            <p className="club-success">★ Welcome to the club — we'll be in touch.</p>
+          ) : (
+            <>
+              <div className="club-form">
+                <input className="club-input" placeholder="First name" value={clubFname} onChange={e => setClubFname(e.target.value)} />
+                <input className="club-input" type="email" placeholder="your@email.com" value={clubEmail} onChange={e => setClubEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && joinClub()} />
+                <button className="club-btn" onClick={joinClub} disabled={clubStatus === "loading"}>
+                  {clubStatus === "loading" ? "..." : "Join →"}
+                </button>
+              </div>
+              {clubStatus === "error" && <p className="club-success" style={{ color: "#f87171" }}>Something went wrong. Try again.</p>}
+            </>
+          )}
         </div>
       </section>
 
