@@ -10,15 +10,7 @@ export async function POST(req: Request) {
     payment_method_types: ["card"],
     customer_email: email,
     line_items: [{
-      price_data: {
-        currency: "sek",
-        recurring: { interval: "month" },
-        product_data: {
-          name: "Sanshō Ramen Club",
-          description: "Early access to all pop-up bookings + private events",
-        },
-        unit_amount: 9900, // 99 SEK in öre
-      },
+      price: "price_1TrJGh9CwB7hbw2RwGqZ9LLy",
       quantity: 1,
     }],
     success_url: `${process.env.NEXT_PUBLIC_URL}/tack?type=club&session_id={CHECKOUT_SESSION_ID}`,
