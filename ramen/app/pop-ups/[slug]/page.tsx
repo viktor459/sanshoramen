@@ -54,7 +54,7 @@ export default function EventPage() {
   const [selectedSlot, setSelectedSlot] = useState("");
   const [form, setForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2", note: "" });
   const [vegetarianCount, setVegetarianCount] = useState(0);
-  const [newsletterConsent, setNewsletterConsent] = useState(false);
+  const [newsletterConsent, setNewsletterConsent] = useState(true);
   const [stukChecked, setStukChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
