@@ -17,6 +17,7 @@ type Event = {
   booking_type: "internal" | "on_site" | "external";
   external_url?: string;
   require_card: boolean;
+  require_stuk: boolean;
 };
 
 type Timeslot = {
@@ -83,7 +84,7 @@ export default function Admin() {
   const [events, setEvents] = useState<Event[]>([]);
   const [timeslots, setTimeslots] = useState<Record<number, Timeslot[]>>({});
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal" as "internal" | "on_site" | "external", external_url: "", require_card: true });
+  const [newEvent, setNewEvent] = useState({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal" as "internal" | "on_site" | "external", external_url: "", require_card: true, require_stuk: false });
   const eventFileInputRef = useRef<HTMLInputElement | null>(null);
   const editEventFileInputRef = useRef<HTMLInputElement | null>(null);
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
@@ -200,9 +201,10 @@ export default function Admin() {
       booking_type: newEvent.booking_type,
       external_url: newEvent.external_url || null,
       require_card: newEvent.require_card,
+      require_stuk: newEvent.require_stuk,
       slug: toSlug(newEvent.title),
     }]);
-    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal", external_url: "", require_card: true });
+    setNewEvent({ title: "", date: "", timeStart: "", timeEnd: "", location: "", spots: "", price: "", description: "", image_url: "", booking_type: "internal", external_url: "", require_card: true, require_stuk: false });
     if (eventFileInputRef.current) eventFileInputRef.current.value = "";
     fetchEvents();
   };
@@ -217,6 +219,7 @@ export default function Admin() {
       booking_type: editingEvent.booking_type,
       external_url: editingEvent.external_url || null,
       require_card: editingEvent.require_card,
+      require_stuk: editingEvent.require_stuk,
       slug: toSlug(editingEvent.title),
     }).eq("id", editingEvent.id);
     setEditingEvent(null);
@@ -483,6 +486,12 @@ export default function Admin() {
                       <span style={{ fontSize: 13, color: "#1D1D1D" }}>Require card verification</span>
                     </div>
                   )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <button onClick={() => setNewEvent({ ...newEvent, require_stuk: !newEvent.require_stuk })} style={{ width: 40, height: 22, borderRadius: 11, border: "none", cursor: "pointer", background: newEvent.require_stuk ? "#1D1D1D" : "#ccc", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                      <span style={{ position: "absolute", top: 3, left: newEvent.require_stuk ? 20 : 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                    </button>
+                    <span style={{ fontSize: 13, color: "#1D1D1D" }}>Kräv STUK (studentlegitimation)</span>
+                  </div>
                   <ImageUploadField
                     value={newEvent.image_url}
                     onChange={url => setNewEvent({ ...newEvent, image_url: url })}
@@ -561,6 +570,12 @@ export default function Admin() {
                       <span style={{ fontSize: 13, color: "#1D1D1D" }}>Require card verification</span>
                     </div>
                   )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <button onClick={() => setEditingEvent({ ...editingEvent, require_stuk: !editingEvent.require_stuk })} style={{ width: 40, height: 22, borderRadius: 11, border: "none", cursor: "pointer", background: editingEvent.require_stuk ? "#1D1D1D" : "#ccc", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+                      <span style={{ position: "absolute", top: 3, left: editingEvent.require_stuk ? 20 : 3, width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                    </button>
+                    <span style={{ fontSize: 13, color: "#1D1D1D" }}>Kräv STUK (studentlegitimation)</span>
+                  </div>
                   <ImageUploadField
                     value={editingEvent.image_url ?? ""}
                     onChange={url => setEditingEvent({ ...editingEvent, image_url: url })}

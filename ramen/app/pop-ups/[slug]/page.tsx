@@ -43,7 +43,7 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; require_card: boolean; slug: string; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; require_card: boolean; require_stuk: boolean; slug: string; };
 type Timeslot = { id: number; event_id: number; time: string; spots: number; spots_left: number; };
 
 export default function EventPage() {
@@ -55,6 +55,7 @@ export default function EventPage() {
   const [form, setForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2", note: "" });
   const [vegetarianCount, setVegetarianCount] = useState(0);
   const [newsletterConsent, setNewsletterConsent] = useState(false);
+  const [stukChecked, setStukChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -81,6 +82,7 @@ export default function EventPage() {
     if (!event) return;
     if (timeslots.length > 0 && !selectedSlot) { setError("Please select a time to continue."); return; }
     if (!form.fname || !form.lname || !form.email.includes("@") || !form.phone) { setError("Please fill in all required fields."); return; }
+    if (event.require_stuk && !stukChecked) { setError("Du måste bekräfta att du och dina gäster har STUK för att boka."); return; }
     setLoading(true);
     setError("");
     const slot = timeslots.find(t => t.id === Number(selectedSlot));
@@ -206,6 +208,19 @@ export default function EventPage() {
 
             <div className="f-field"><label>Allergies / requests</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
 
+            {event.require_stuk && (
+              <div style={{ background: "#FFF3E0", border: "1.5px solid #F0A830", borderRadius: 10, padding: "16px 20px", marginBottom: 16, fontSize: 13, color: "#7A5000", lineHeight: 1.6 }}>
+                <strong>Obs! Detta evenemang är endast för studenter.</strong> Du måste ha ett giltigt STUK-kort (studentlegitimation) för att delta. Kom ihåg att ta med det.
+              </div>
+            )}
+
+            {event.require_stuk && (
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", fontSize: 13, color: "#1D1D1D", lineHeight: 1.5, marginBottom: 16, fontWeight: 500 }}>
+                <input type="checkbox" checked={stukChecked} onChange={e => setStukChecked(e.target.checked)} style={{ marginTop: 2, accentColor: "#1D1D1D", flexShrink: 0, width: 16, height: 16 }} />
+                <span>Jag och alla gäster för bokningen har STUK *</span>
+              </label>
+            )}
+
             {event.price != null && (
               <div className="price-sum">
                 <div className="price-row"><span>{form.guests} × {event.price} SEK</span><span>{Number(form.guests) * event.price} SEK</span></div>
@@ -221,7 +236,7 @@ export default function EventPage() {
 
             {error && <p className="err">{error}</p>}
             <button className="submit-btn"
-              disabled={!form.fname || !form.lname || !form.email.includes("@") || !form.phone || loading || (timeslots.length > 0 && !selectedSlot)}
+              disabled={!form.fname || !form.lname || !form.email.includes("@") || !form.phone || loading || (timeslots.length > 0 && !selectedSlot) || (event.require_stuk && !stukChecked)}
               onClick={handleBook}>
               {loading ? "Sending..." : isOnSite ? "Confirm booking →" : event.require_card ? "Verify card & confirm booking →" : "Confirm booking →"}
             </button>
