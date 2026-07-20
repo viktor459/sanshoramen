@@ -263,8 +263,17 @@ export default function Admin() {
 
   const deleteBooking = async (id: string) => {
     if (!confirm("Ta bort bokningen?")) return;
+    const booking = bookings.find(b => b.id === id);
     await supabase.from("bookings").delete().eq("id", id);
+    if (booking) {
+      if (booking.timeslot_id) {
+        await supabase.rpc("increment_timeslot_spots", { slot_id: booking.timeslot_id, n: booking.guests }).maybeSingle();
+      } else {
+        await supabase.rpc("increment_event_spots", { ev_id: booking.event_id, n: booking.guests }).maybeSingle();
+      }
+    }
     fetchBookings();
+    fetchEvents();
   };
 
   const saveGuests = async (id: string, value: string) => {
