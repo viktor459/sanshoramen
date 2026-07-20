@@ -96,6 +96,7 @@ export default function Admin() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
   const [editingGuests, setEditingGuests] = useState<{ id: string; value: string } | null>(null);
+  const [editingVeg, setEditingVeg] = useState<{ id: string; value: string } | null>(null);
 
   // Shop orders
   const [shopOrders, setShopOrders] = useState<ShopOrder[]>([]);
@@ -292,6 +293,15 @@ export default function Admin() {
       fetchBookings();
     }
     setEditingGuests(null);
+  };
+
+  const saveVeg = async (id: string, value: string) => {
+    const n = parseInt(value);
+    if (!isNaN(n) && n >= 0) {
+      await supabase.from("bookings").update({ vegetarian_count: n }).eq("id", id);
+      fetchBookings();
+    }
+    setEditingVeg(null);
   };
 
   const deleteAllVisible = async () => {
@@ -698,9 +708,9 @@ export default function Admin() {
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Veg</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
+              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {filteredBookings.length === 0 && <tr><td colSpan={11} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
+                {filteredBookings.length === 0 && <tr><td colSpan={12} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
                 {filteredBookings.map(b => (
                   <tr key={b.id}>
                     <td style={{ fontWeight: 500 }}>{b.booking_code}</td>
@@ -727,7 +737,25 @@ export default function Admin() {
                         </span>
                       )}
                     </td>
-                    <td style={{ color: "#6B6560" }}>{b.vegetarian_count > 0 ? `${b.vegetarian_count} st` : "—"}</td>
+                    <td>
+                      {editingVeg?.id === b.id ? (
+                        <input
+                          type="number"
+                          min={0}
+                          value={editingVeg.value}
+                          onChange={e => setEditingVeg({ id: b.id, value: e.target.value })}
+                          onBlur={() => saveVeg(b.id, editingVeg.value)}
+                          onKeyDown={e => { if (e.key === "Enter") saveVeg(b.id, editingVeg.value); if (e.key === "Escape") setEditingVeg(null); }}
+                          autoFocus
+                          style={{ width: 44, fontFamily: "'Quicksand', sans-serif", fontSize: 13, border: "1.5px solid #1D1D1D", borderRadius: 6, padding: "2px 6px" }}
+                        />
+                      ) : (
+                        <span onClick={() => setEditingVeg({ id: b.id, value: String(b.vegetarian_count ?? 0) })} style={{ cursor: "pointer", borderBottom: "1px dashed #bbb", color: b.vegetarian_count > 0 ? "#1D1D1D" : "#bbb" }} title="Klicka för att ändra">
+                          {b.vegetarian_count > 0 ? `${b.vegetarian_count} st` : "—"}
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 160 }} title={b.note || ""}>{b.note ? (b.note.length > 30 ? b.note.slice(0, 30) + "…" : b.note) : "—"}</td>
                     <td>{b.total_price} kr</td>
                     <td style={{ color: "#6B6560" }}>{new Date(b.created_at).toLocaleDateString("sv-SE")}</td>
                     <td><button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button></td>
