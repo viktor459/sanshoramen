@@ -69,6 +69,7 @@ type Post = {
 };
 
 type Product = { id: number; name: string; description: string; price: number; image_url: string; category: string; active: boolean };
+type WaitlistEntry = { id: number; created_at: string; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; };
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -79,7 +80,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -101,6 +102,9 @@ export default function Admin() {
   // Shop orders
   const [shopOrders, setShopOrders] = useState<ShopOrder[]>([]);
 
+  // Waitlist
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+
   // Products
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({ name: "", description: "", price: "", image_url: "", category: "" });
@@ -116,7 +120,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist();
   }, []);
 
   const fetchEvents = async () => {
@@ -142,6 +146,16 @@ export default function Admin() {
   const fetchShopOrders = async () => {
     const { data } = await supabase.from("shop_orders").select("*").order("created_at", { ascending: false });
     if (data) setShopOrders(data);
+  };
+
+  const fetchWaitlist = async () => {
+    const { data } = await supabase.from("waitlist").select("*").order("created_at", { ascending: true });
+    if (data) setWaitlist(data);
+  };
+
+  const deleteWaitlistEntry = async (id: number) => {
+    await supabase.from("waitlist").delete().eq("id", id);
+    fetchWaitlist();
   };
 
   const deleteShopOrder = async (id: number) => {
@@ -432,9 +446,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "ordrar", "blogg", "products"] as const).map(t => (
+        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : "Shop"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : "Shop"}
           </button>
         ))}
       </div>
@@ -819,6 +833,32 @@ export default function Admin() {
                 <div style={{ fontSize: 28, fontWeight: 700 }}>{m.value}</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* WAITLIST TAB */}
+      {tab === "waitlist" && (
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Waitlist ({waitlist.length})</div>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
+            <table>
+              <thead><tr><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Gäster</th><th>Datum</th><th></th></tr></thead>
+              <tbody>
+                {waitlist.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Ingen på waitlist än</td></tr>}
+                {waitlist.map(w => (
+                  <tr key={w.id}>
+                    <td style={{ fontWeight: 500 }}>{w.fname} {w.lname}</td>
+                    <td style={{ color: "#6B6560" }}>{w.email}</td>
+                    <td style={{ color: "#6B6560" }}>{w.phone || "—"}</td>
+                    <td>{w.event_name}</td>
+                    <td>{w.guests} pers</td>
+                    <td style={{ color: "#6B6560" }}>{new Date(w.created_at).toLocaleDateString("sv-SE")}</td>
+                    <td><button style={S.btnDanger} onClick={() => deleteWaitlistEntry(w.id)}>×</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

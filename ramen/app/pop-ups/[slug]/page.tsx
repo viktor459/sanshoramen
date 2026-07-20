@@ -57,6 +57,9 @@ export default function EventPage() {
   const [newsletterConsent, setNewsletterConsent] = useState(true);
   const [stukChecked, setStukChecked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [waitlistForm, setWaitlistForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2" });
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistDone, setWaitlistDone] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -76,6 +79,23 @@ export default function EventPage() {
       return { full: d.toLocaleDateString("en-SE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) };
     }
     return { full: dateStr };
+  };
+
+  const handleWaitlist = async () => {
+    if (!event) return;
+    if (!waitlistForm.fname || !waitlistForm.lname || !waitlistForm.email.includes("@") || !waitlistForm.phone) return;
+    setWaitlistLoading(true);
+    await supabase.from("waitlist").insert([{
+      event_id: event.id,
+      event_name: event.title,
+      fname: waitlistForm.fname,
+      lname: waitlistForm.lname,
+      email: waitlistForm.email,
+      phone: waitlistForm.phone,
+      guests: Number(waitlistForm.guests),
+    }]);
+    setWaitlistLoading(false);
+    setWaitlistDone(true);
   };
 
   const handleBook = async () => {
@@ -149,7 +169,35 @@ export default function EventPage() {
             Book here ↗
           </a>
         ) : full ? (
-          <p style={{ color: "var(--red)", fontWeight: 600, fontSize: 16 }}>This event is sold out.</p>
+          <>
+            <p style={{ color: "var(--red)", fontWeight: 600, fontSize: 16, marginBottom: 24 }}>This event is sold out.</p>
+            {waitlistDone ? (
+              <div style={{ background: "#EAF3DE", border: "1.5px solid #8BC34A", borderRadius: 12, padding: "20px 24px", fontSize: 14, color: "#3B6D11", lineHeight: 1.7 }}>
+                <strong>You're on the waitlist!</strong> We'll email you if a spot opens up.
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20 }}>Join the waitlist and we'll contact you if a spot opens up.</p>
+                <div className="form-grid">
+                  <div className="f-field"><label>First name *</label><input value={waitlistForm.fname} onChange={e => setWaitlistForm({ ...waitlistForm, fname: e.target.value })} placeholder="Johan" /></div>
+                  <div className="f-field"><label>Last name *</label><input value={waitlistForm.lname} onChange={e => setWaitlistForm({ ...waitlistForm, lname: e.target.value })} placeholder="Svensson" /></div>
+                </div>
+                <div className="f-field"><label>Email *</label><input type="email" value={waitlistForm.email} onChange={e => setWaitlistForm({ ...waitlistForm, email: e.target.value })} placeholder="your@email.com" /></div>
+                <div className="f-field"><label>Phone number *</label><input type="tel" value={waitlistForm.phone} onChange={e => setWaitlistForm({ ...waitlistForm, phone: e.target.value })} placeholder="+46 70 123 45 67" /></div>
+                <div className="f-field">
+                  <label>Number of guests</label>
+                  <select value={waitlistForm.guests} onChange={e => setWaitlistForm({ ...waitlistForm, guests: e.target.value })}>
+                    {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
+                  </select>
+                </div>
+                <button className="submit-btn"
+                  disabled={!waitlistForm.fname || !waitlistForm.lname || !waitlistForm.email.includes("@") || !waitlistForm.phone || waitlistLoading}
+                  onClick={handleWaitlist}>
+                  {waitlistLoading ? "Sending..." : "Join waitlist →"}
+                </button>
+              </>
+            )}
+          </>
         ) : (
           <>
             {event.require_card && !isOnSite && (
