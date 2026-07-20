@@ -163,7 +163,7 @@ export default function EventPage() {
         </p>
         {event.description && <p className="bk-desc">{event.description}</p>}
 
-        {isExternal ? (
+        {isExternal && !full ? (
           <a href={event.external_url || "#"} target="_blank" rel="noreferrer"
             style={{ display: "inline-block", background: "var(--ink)", color: "var(--bg)", padding: "16px 32px", borderRadius: "var(--r)", textDecoration: "none", fontSize: 15, fontWeight: 500 }}>
             Book here ↗

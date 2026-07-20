@@ -114,12 +114,12 @@ export default function PopUps() {
                     const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
                     const isExternal = ev.booking_type === "external";
                     const isOnSite = ev.booking_type === "on_site";
-                    const href = isExternal && ev.external_url ? ev.external_url : `/pop-ups/${ev.slug || ev.id}`;
-                    const target = isExternal ? "_blank" : undefined;
+                    const href = isExternal && ev.external_url && !full ? ev.external_url : `/pop-ups/${ev.slug || ev.id}`;
+                    const target = isExternal && !full ? "_blank" : undefined;
 
                     return (
-                      <a key={ev.id} href={href} target={target} rel={isExternal ? "noreferrer" : undefined}
-                        className="event-card" style={full && isExternal ? { opacity: 0.55, pointerEvents: "none" } : {}}>
+                      <a key={ev.id} href={href} target={target} rel={isExternal && !full ? "noreferrer" : undefined}
+                        className="event-card">
                         <div className="ec-image">
                           {ev.image_url
                             ? <img src={ev.image_url} alt={ev.title} />
@@ -168,6 +168,9 @@ export default function PopUps() {
                           )}
                           {isExternal && !full && (
                             <button className="boka-btn">Book here ↗</button>
+                          )}
+                          {isExternal && full && (
+                            <button className="boka-btn" style={{ background: "#6B6560" }}>Join waitlist →</button>
                           )}
                         </div>
                       </a>
