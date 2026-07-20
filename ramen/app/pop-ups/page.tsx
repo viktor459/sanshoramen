@@ -119,7 +119,7 @@ export default function PopUps() {
 
                     return (
                       <a key={ev.id} href={href} target={target} rel={isExternal ? "noreferrer" : undefined}
-                        className="event-card" style={full ? { opacity: 0.55, pointerEvents: "none" } : {}}>
+                        className="event-card" style={full && isExternal ? { opacity: 0.55, pointerEvents: "none" } : {}}>
                         <div className="ec-image">
                           {ev.image_url
                             ? <img src={ev.image_url} alt={ev.title} />
@@ -161,10 +161,13 @@ export default function PopUps() {
                               <div className="spots-text">{ev.spots - ev.spots_left} of {ev.spots} booked</div>
                             </div>
                           )}
-                          {!full && (
-                            <button className="boka-btn">
-                              {isExternal ? "Book here ↗" : isOnSite ? "Sign up →" : "Book →"}
+                          {!isExternal && (
+                            <button className="boka-btn" style={full ? { background: "#6B6560" } : {}}>
+                              {full ? "Join waitlist →" : isOnSite ? "Sign up →" : "Book →"}
                             </button>
+                          )}
+                          {isExternal && !full && (
+                            <button className="boka-btn">Book here ↗</button>
                           )}
                         </div>
                       </a>
