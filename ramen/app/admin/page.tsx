@@ -36,6 +36,7 @@ type Booking = {
   lname: string;
   email: string;
   guests: number;
+  vegetarian_count: number;
   note: string;
   total_price: number;
   booking_code: string;
@@ -140,6 +141,12 @@ export default function Admin() {
   const fetchShopOrders = async () => {
     const { data } = await supabase.from("shop_orders").select("*").order("created_at", { ascending: false });
     if (data) setShopOrders(data);
+  };
+
+  const deleteShopOrder = async (id: number) => {
+    if (!confirm("Ta bort ordern?")) return;
+    await supabase.from("shop_orders").delete().eq("id", id);
+    fetchShopOrders();
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -682,9 +689,9 @@ export default function Admin() {
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
+              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Veg</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {filteredBookings.length === 0 && <tr><td colSpan={10} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
+                {filteredBookings.length === 0 && <tr><td colSpan={11} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
                 {filteredBookings.map(b => (
                   <tr key={b.id}>
                     <td style={{ fontWeight: 500 }}>{b.booking_code}</td>
@@ -711,6 +718,7 @@ export default function Admin() {
                         </span>
                       )}
                     </td>
+                    <td style={{ color: "#6B6560" }}>{b.vegetarian_count > 0 ? `${b.vegetarian_count} st` : "—"}</td>
                     <td>{b.total_price} kr</td>
                     <td style={{ color: "#6B6560" }}>{new Date(b.created_at).toLocaleDateString("sv-SE")}</td>
                     <td><button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button></td>
@@ -742,9 +750,9 @@ export default function Admin() {
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Produkt</th><th>Antal</th><th>Totalt</th><th>E-post</th><th>Status</th><th>Datum</th></tr></thead>
+              <thead><tr><th>Produkt</th><th>Antal</th><th>Totalt</th><th>E-post</th><th>Status</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {shopOrders.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga ordrar än</td></tr>}
+                {shopOrders.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga ordrar än</td></tr>}
                 {shopOrders.map(o => (
                   <tr key={o.id}>
                     <td style={{ fontWeight: 500 }}>{o.product_name}</td>
@@ -757,6 +765,7 @@ export default function Admin() {
                       </span>
                     </td>
                     <td style={{ color: "#6B6560" }}>{new Date(o.created_at).toLocaleDateString("sv-SE")}</td>
+                    <td><button style={S.btnDanger} onClick={() => deleteShopOrder(o.id)}>×</button></td>
                   </tr>
                 ))}
               </tbody>
