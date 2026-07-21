@@ -8,7 +8,7 @@ const LUNDS_NATION = "8b1e1750-7e45-47c6-b6be-20efb71f5235";
 
 async function addContact(audienceId: string, email: string, firstName: string, lastName: string) {
   const { data, error } = await resend.contacts.create({ audienceId, email, firstName, lastName, unsubscribed: false });
-  return { data, error: error ? String(error) : null };
+  return { data, error: error ? JSON.stringify(error) : null };
 }
 
 export async function GET() {
