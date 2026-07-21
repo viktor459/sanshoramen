@@ -17,7 +17,7 @@ export default function Footer() {
           <div>
             <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Explore</h4>
             <a href="/pop-ups" className="footer-link">Pop-ups</a>
-            <a href="/blogg" className="footer-link">Blogg</a>
+            <a href="/blogg" className="footer-link">Blog</a>
             <a href="/shop" className="footer-link">Shop</a>
           </div>
           <div>

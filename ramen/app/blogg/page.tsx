@@ -29,13 +29,13 @@ const S = `
   @media(max-width:768px){ .page-wrap{padding:100px 24px 60px;} .page-title{font-size:36px;} .posts-grid{grid-template-columns:1fr;} .post-card-featured{grid-column:span 1; grid-template-columns:1fr;} .pf-img{display:none;} }
 `;
 
-type Post = { id: number; created_at: string; title: string; slug: string; tag: string; excerpt: string; published: boolean; };
+type Post = { id: number; created_at: string; title: string; slug: string; tag: string; excerpt: string; image_url?: string; published: boolean; };
 
 export default function Blogg() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    supabase.from("posts").select("id,created_at,title,slug,tag,excerpt,published").eq("published", true).order("created_at", { ascending: false }).then(({ data }) => {
+    supabase.from("posts").select("id,created_at,title,slug,tag,excerpt,image_url,published").eq("published", true).order("created_at", { ascending: false }).then(({ data }) => {
       if (data) setPosts(data);
     });
   }, []);
@@ -56,7 +56,7 @@ export default function Blogg() {
                 return (
                   <a key={post.id} href={`/blogg/${post.slug}`} className="post-card post-card-featured">
                     <div className="pf-img">
-                      <div className="pf-img-placeholder">🍜</div>
+                      {post.image_url ? <img src={post.image_url} alt={post.title} /> : <div className="pf-img-placeholder">🍜</div>}
                     </div>
                     <div className="pf-content">
                       <div className="pc-tag">{post.tag || "Ramen"}</div>
@@ -70,6 +70,7 @@ export default function Blogg() {
               }
               return (
                 <a key={post.id} href={`/blogg/${post.slug}`} className="post-card">
+                  {post.image_url && <img src={post.image_url} alt={post.title} style={{ width: "100%", aspectRatio: "16/7", objectFit: "cover", borderRadius: 8, marginBottom: 20 }} />}
                   <div className="pc-tag">{post.tag || "Ramen"}</div>
                   <h2 className="pc-title">{post.title}</h2>
                   {post.excerpt && <p className="pc-excerpt">{post.excerpt}</p>}

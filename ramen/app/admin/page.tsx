@@ -65,6 +65,7 @@ type Post = {
   tag: string;
   excerpt: string;
   content: string;
+  image_url?: string;
   published: boolean;
 };
 
@@ -116,7 +117,7 @@ export default function Admin() {
   // Blog
   const [posts, setPosts] = useState<Post[]>([]);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [newPost, setNewPost] = useState({ title: "", slug: "", tag: "", excerpt: "", content: "", published: false });
+  const [newPost, setNewPost] = useState({ title: "", slug: "", tag: "", excerpt: "", content: "", image_url: "", published: false });
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
@@ -341,7 +342,7 @@ export default function Admin() {
     if (!newPost.title || !newPost.content) return;
     const slug = newPost.slug || slugify(newPost.title);
     await supabase.from("posts").insert([{ ...newPost, slug }]);
-    setNewPost({ title: "", slug: "", tag: "", excerpt: "", content: "", published: false });
+    setNewPost({ title: "", slug: "", tag: "", excerpt: "", content: "", image_url: "", published: false });
     setBlogView("list");
     fetchPosts();
   };
@@ -350,7 +351,7 @@ export default function Admin() {
     if (!editingPost) return;
     await supabase.from("posts").update({
       title: editingPost.title, slug: editingPost.slug, tag: editingPost.tag,
-      excerpt: editingPost.excerpt, content: editingPost.content, published: editingPost.published,
+      excerpt: editingPost.excerpt, content: editingPost.content, image_url: editingPost.image_url || null, published: editingPost.published,
     }).eq("id", editingPost.id);
     setEditingPost(null);
     setBlogView("list");
@@ -930,12 +931,17 @@ export default function Admin() {
               </div>
             </div>
             <div>
+              <label style={S.label}>Preview-bild</label>
+              <ImageUploadField value={newPost.image_url} onChange={url => setNewPost({ ...newPost, image_url: url })} inputRef={eventFileInputRef} />
+            </div>
+            <div>
               <label style={S.label}>Ingress (kort beskrivning)</label>
               <textarea style={{ ...S.textarea, minHeight: 80 }} placeholder="En kort beskrivning som visas i blogglistan..." value={newPost.excerpt} onChange={e => setNewPost({ ...newPost, excerpt: e.target.value })} />
             </div>
             <div>
               <label style={S.label}>Innehåll *</label>
-              <textarea style={{ ...S.textarea, minHeight: 400 }} placeholder="Skriv din artikel här..." value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} />
+              <div style={{ fontSize: 11, color: "#6B6560", marginBottom: 6 }}>Tips: använd <code>## Rubrik</code>, <code>### Underrubrik</code>, <code>![bildtext](url)</code> för bilder</div>
+              <textarea style={{ ...S.textarea, minHeight: 400 }} placeholder={"## Rubrik\n\nText här...\n\n### Underrubrik\n\n![bildtext](https://...)"} value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} />
             </div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <button style={S.btn} onClick={saveNewPost}>Spara som utkast</button>
@@ -965,11 +971,16 @@ export default function Admin() {
               </div>
             </div>
             <div>
+              <label style={S.label}>Preview-bild</label>
+              <ImageUploadField value={editingPost.image_url ?? ""} onChange={url => setEditingPost({ ...editingPost, image_url: url })} inputRef={editEventFileInputRef} />
+            </div>
+            <div>
               <label style={S.label}>Ingress</label>
               <textarea style={{ ...S.textarea, minHeight: 80 }} value={editingPost.excerpt} onChange={e => setEditingPost({ ...editingPost, excerpt: e.target.value })} />
             </div>
             <div>
               <label style={S.label}>Innehåll *</label>
+              <div style={{ fontSize: 11, color: "#6B6560", marginBottom: 6 }}>Tips: använd <code>## Rubrik</code>, <code>### Underrubrik</code>, <code>![bildtext](url)</code> för bilder</div>
               <textarea style={{ ...S.textarea, minHeight: 400 }} value={editingPost.content} onChange={e => setEditingPost({ ...editingPost, content: e.target.value })} />
             </div>
             <div style={{ display: "flex", gap: 12 }}>
