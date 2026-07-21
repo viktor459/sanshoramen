@@ -70,6 +70,15 @@ export async function POST(req: Request) {
     if (newsletter_consent) {
       const { data: sub } = await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" }).select("unsubscribe_token").single();
       unsubscribeToken = sub?.unsubscribe_token ?? null;
+      try {
+        await resend.contacts.create({
+          audienceId: "a0ff9f3b-8238-4e07-b6ab-5e7dbcd6e0c1",
+          email,
+          firstName: fname,
+          lastName: lname || "",
+          unsubscribed: false,
+        });
+      } catch (_) { /* ignore */ }
     }
     const formattedDate = formatDate(date);
     const gcalLink = calendarUrl(event_name, date || "", location || "", time || "");

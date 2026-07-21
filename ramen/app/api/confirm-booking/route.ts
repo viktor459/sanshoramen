@@ -47,6 +47,15 @@ export async function GET(req: Request) {
   if (newsletter_consent === "1") {
     const { data: sub } = await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" }).select("unsubscribe_token").single();
     unsubscribeToken = sub?.unsubscribe_token ?? null;
+    try {
+      await resend.contacts.create({
+        audienceId: "a0ff9f3b-8238-4e07-b6ab-5e7dbcd6e0c1",
+        email,
+        firstName: fname,
+        lastName: m.lname || "",
+        unsubscribed: false,
+      });
+    } catch (_) { /* ignore */ }
   }
 
   const formattedDate = formatDate(date);
