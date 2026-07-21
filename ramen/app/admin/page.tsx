@@ -840,7 +840,17 @@ export default function Admin() {
       {/* WAITLIST TAB */}
       {tab === "waitlist" && (
         <div>
-          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Waitlist ({waitlist.length})</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>Waitlist ({waitlist.length})</div>
+            {waitlist.length > 0 && (
+              <button style={S.btn} onClick={() => {
+                const rows = [["Namn", "E-post", "Tel", "Event", "Gäster", "Datum"]];
+                waitlist.forEach(w => rows.push([`${w.fname} ${w.lname}`, w.email, w.phone || "", w.event_name, String(w.guests), new Date(w.created_at).toLocaleDateString("sv-SE")]));
+                const csv = rows.map(r => r.join(";")).join("\n");
+                const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "waitlist.csv"; a.click();
+              }}>Exportera CSV</button>
+            )}
+          </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
               <thead><tr><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Gäster</th><th>Datum</th><th></th></tr></thead>
