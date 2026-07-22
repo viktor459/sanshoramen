@@ -85,15 +85,19 @@ export default function EventPage() {
     if (!event) return;
     if (!waitlistForm.fname || !waitlistForm.lname || !waitlistForm.email.includes("@") || !waitlistForm.phone) return;
     setWaitlistLoading(true);
-    await supabase.from("waitlist").insert([{
-      event_id: event.id,
-      event_name: event.title,
-      fname: waitlistForm.fname,
-      lname: waitlistForm.lname,
-      email: waitlistForm.email,
-      phone: waitlistForm.phone,
-      guests: Number(waitlistForm.guests),
-    }]);
+    await fetch("/api/join-waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_id: event.id,
+        event_name: event.title,
+        fname: waitlistForm.fname,
+        lname: waitlistForm.lname,
+        email: waitlistForm.email,
+        phone: waitlistForm.phone,
+        guests: Number(waitlistForm.guests),
+      }),
+    });
     setWaitlistLoading(false);
     setWaitlistDone(true);
   };
