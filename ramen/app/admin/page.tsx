@@ -70,7 +70,7 @@ type Post = {
 };
 
 type Product = { id: number; name: string; description: string; price: number; image_url: string; category: string; active: boolean };
-type WaitlistEntry = { id: number; created_at: string; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; };
+type WaitlistEntry = { id: number; created_at: string; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; vegetarian_count: number; note: string; };
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -97,6 +97,7 @@ export default function Admin() {
   // Bookings
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
+  const [filterWaitlistEvent, setFilterWaitlistEvent] = useState<string>("all");
   const [editingGuests, setEditingGuests] = useState<{ id: string; value: string } | null>(null);
   const [editingVeg, setEditingVeg] = useState<{ id: string; value: string } | null>(null);
 
@@ -845,25 +846,33 @@ export default function Admin() {
             <div style={{ fontWeight: 700, fontSize: 18 }}>Waitlist ({waitlist.length})</div>
             {waitlist.length > 0 && (
               <button style={S.btn} onClick={() => {
-                const rows = [["Namn", "E-post", "Tel", "Event", "Gäster", "Datum"]];
-                waitlist.forEach(w => rows.push([`${w.fname} ${w.lname}`, w.email, w.phone || "", w.event_name, String(w.guests), new Date(w.created_at).toLocaleDateString("sv-SE")]));
+                const rows = [["Namn", "E-post", "Tel", "Event", "Gäster", "Veg", "Övrigt", "Datum"]];
+                waitlist.forEach(w => rows.push([`${w.fname} ${w.lname}`, w.email, w.phone || "", w.event_name, String(w.guests), String(w.vegetarian_count ?? 0), w.note || "", new Date(w.created_at).toLocaleDateString("sv-SE")]));
                 const csv = rows.map(r => r.join(";")).join("\n");
                 const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "waitlist.csv"; a.click();
               }}>Exportera CSV</button>
             )}
           </div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <select value={filterWaitlistEvent} onChange={e => setFilterWaitlistEvent(e.target.value)} style={{ ...S.input, width: "auto" }}>
+              <option value="all">Alla events</option>
+              {[...new Set(waitlist.map(w => w.event_name))].map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+          </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Gäster</th><th>Datum</th><th></th></tr></thead>
+              <thead><tr><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {waitlist.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Ingen på waitlist än</td></tr>}
-                {waitlist.map(w => (
+                {waitlist.filter(w => filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent).length === 0 && <tr><td colSpan={9} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Ingen på waitlist än</td></tr>}
+                {waitlist.filter(w => filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent).map(w => (
                   <tr key={w.id}>
                     <td style={{ fontWeight: 500 }}>{w.fname} {w.lname}</td>
                     <td style={{ color: "#6B6560" }}>{w.email}</td>
                     <td style={{ color: "#6B6560" }}>{w.phone || "—"}</td>
                     <td>{w.event_name}</td>
                     <td>{w.guests} pers</td>
+                    <td style={{ color: (w.vegetarian_count ?? 0) > 0 ? "#1D1D1D" : "#bbb" }}>{(w.vegetarian_count ?? 0) > 0 ? `${w.vegetarian_count} st` : "—"}</td>
+                    <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 160 }} title={w.note || ""}>{w.note ? (w.note.length > 30 ? w.note.slice(0, 30) + "…" : w.note) : "—"}</td>
                     <td style={{ color: "#6B6560" }}>{new Date(w.created_at).toLocaleDateString("sv-SE")}</td>
                     <td><button style={S.btnDanger} onClick={() => deleteWaitlistEntry(w.id)}>×</button></td>
                   </tr>

@@ -57,7 +57,8 @@ export default function EventPage() {
   const [newsletterConsent, setNewsletterConsent] = useState(true);
   const [stukChecked, setStukChecked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [waitlistForm, setWaitlistForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2" });
+  const [waitlistForm, setWaitlistForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "2", note: "" });
+  const [waitlistVeg, setWaitlistVeg] = useState(0);
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistDone, setWaitlistDone] = useState(false);
   const [error, setError] = useState("");
@@ -96,6 +97,8 @@ export default function EventPage() {
         email: waitlistForm.email,
         phone: waitlistForm.phone,
         guests: Number(waitlistForm.guests),
+        vegetarian_count: waitlistVeg,
+        note: waitlistForm.note,
       }),
     });
     setWaitlistLoading(false);
@@ -190,10 +193,26 @@ export default function EventPage() {
                 <div className="f-field"><label>Phone number *</label><input type="tel" value={waitlistForm.phone} onChange={e => setWaitlistForm({ ...waitlistForm, phone: e.target.value })} placeholder="+46 70 123 45 67" /></div>
                 <div className="f-field">
                   <label>Number of guests</label>
-                  <select value={waitlistForm.guests} onChange={e => setWaitlistForm({ ...waitlistForm, guests: e.target.value })}>
+                  <select value={waitlistForm.guests} onChange={e => { setWaitlistForm({ ...waitlistForm, guests: e.target.value }); setWaitlistVeg(Math.min(waitlistVeg, Number(e.target.value))); }}>
                     {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
                   </select>
                 </div>
+                <div className="f-field">
+                  <label>Vegetarian options</label>
+                  <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 10 }}>How many guests want a vegetarian option?</p>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {Array.from({ length: Number(waitlistForm.guests) + 1 }, (_, n) => (
+                      <button key={n} type="button" onClick={() => setWaitlistVeg(n)} style={{
+                        width: 40, height: 40, borderRadius: 8, border: "1.5px solid",
+                        background: waitlistVeg === n ? "var(--ink)" : "transparent",
+                        color: waitlistVeg === n ? "var(--bg)" : "var(--ink)",
+                        borderColor: waitlistVeg === n ? "var(--ink)" : "#DDD8CE",
+                        cursor: "pointer", fontFamily: "inherit", fontSize: 15
+                      }}>{n}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="f-field"><label>Allergies / requests</label><textarea value={waitlistForm.note} onChange={e => setWaitlistForm({ ...waitlistForm, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
                 <button className="submit-btn"
                   disabled={!waitlistForm.fname || !waitlistForm.lname || !waitlistForm.email.includes("@") || !waitlistForm.phone || waitlistLoading}
                   onClick={handleWaitlist}>
