@@ -967,7 +967,7 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
-          <div style={{ marginTop: 12, textAlign: "right" }}><a href="/karta" target="_blank" style={{ fontSize: 13, color: "#6B6560" }}>Öppna kartan →</a></div>
+          <div style={{ marginTop: 12, textAlign: "right" }}><a href="/ramen-map" target="_blank" style={{ fontSize: 13, color: "#6B6560" }}>Öppna kartan →</a></div>
         </div>
       )}
 
