@@ -291,18 +291,6 @@ export default function Home() {
       </section>
 
       {/* CLUB */}
-      <section className="map-section">
-        <div>
-          <p style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "#888", marginBottom: 16 }}>🗺 Ramen Map</p>
-          <h2 className="section-title" style={{ color: "#F5F1E8", marginBottom: 20 }}>Our ramen<br />around the world.</h2>
-          <p style={{ fontSize: 16, color: "#AAA", lineHeight: 1.8, marginBottom: 32 }}>We travel the world in pursuit of the perfect bowl. Here's every ramen spot we've visited — rated, reviewed, and mapped.</p>
-          <a href="/karta" style={{ display: "inline-block", padding: "14px 32px", background: "#C9A96E", color: "#1A1A16", borderRadius: "100px", fontWeight: 700, fontSize: 15, letterSpacing: "0.03em", textDecoration: "none", transition: "opacity 0.2s" }}>Explore the map →</a>
-        </div>
-        <div className="map-preview">
-          <div className="map-preview-overlay"><span>🍜</span></div>
-        </div>
-      </section>
-
       <section className="club-section" id="club">
         <div className="club-inner">
           <p style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "#555", marginBottom: 16 }}>★ Sanshō Ramen Club</p>
