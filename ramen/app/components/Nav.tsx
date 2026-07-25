@@ -34,7 +34,6 @@ export default function Nav() {
         <ul className="nav-links">
           <li><a href="/pop-ups" className={path === "/pop-ups" ? "active" : ""}>Pop-ups</a></li>
           <li><a href="/blogg" className={path.startsWith("/blogg") ? "active" : ""}>Blog</a></li>
-          <li><a href="/karta" className={path === "/karta" ? "active" : ""}>Map</a></li>
           <li><a href="/shop" className={path === "/shop" ? "active" : ""}>Shop</a></li>
           <li><a href="/pop-ups" className="cta">Book a spot</a></li>
         </ul>
@@ -46,7 +45,6 @@ export default function Nav() {
         <button className="close-btn" onClick={() => setOpen(false)}>×</button>
         <a href="/pop-ups" onClick={() => setOpen(false)}>Pop-ups</a>
         <a href="/blogg" onClick={() => setOpen(false)}>Blog</a>
-        <a href="/karta" onClick={() => setOpen(false)}>Map</a>
         <a href="/shop" onClick={() => setOpen(false)}>Shop</a>
         <a href="https://instagram.com/sanshoramen" target="_blank" rel="noreferrer" onClick={() => setOpen(false)}>Instagram</a>
       </div>
