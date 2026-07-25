@@ -90,6 +90,13 @@ const S = `
   .about-img { border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; }
   .about-img img { width:100%; height:100%; object-fit:cover; display:block; }
 
+  /* MAP TEASER */
+  .map-section { padding: 100px 80px; background: #1A1A16; color: #F5F1E8; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .map-preview { border-radius: 16px; overflow: hidden; aspect-ratio: 4/3; position: relative; background: #2A2520; }
+  .map-preview img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+  .map-preview-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); }
+  .map-preview-overlay span { font-size: 56px; }
+
   /* SOCIAL */
   .social-section { background: var(--ink); color: var(--bg); padding: 80px; text-align: center; }
   .social-section h2 { font-weight:700; font-size:44px; letter-spacing:0.06em; margin-bottom:8px; }
@@ -106,7 +113,8 @@ const S = `
     .hero-h1{font-size:36px;}
     .hero-right{height:260px;}
     .hero-right img{width:100%; transform:translateX(20px) translateY(10px);}
-    .events-section,.about-section,.social-section,.club-section{padding:60px 24px;}
+    .events-section,.about-section,.social-section,.club-section,.map-section{padding:60px 24px;}
+    .map-section{grid-template-columns:1fr;}
     .newsletter-section{padding:60px 24px;}
     .events-grid{grid-template-columns:1fr;}
     .about-section{grid-template-columns:1fr;}
@@ -283,6 +291,18 @@ export default function Home() {
       </section>
 
       {/* CLUB */}
+      <section className="map-section">
+        <div>
+          <p style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "#888", marginBottom: 16 }}>🗺 Ramen Map</p>
+          <h2 className="section-title" style={{ color: "#F5F1E8", marginBottom: 20 }}>Our ramen<br />around the world.</h2>
+          <p style={{ fontSize: 16, color: "#AAA", lineHeight: 1.8, marginBottom: 32 }}>We travel the world in pursuit of the perfect bowl. Here's every ramen spot we've visited — rated, reviewed, and mapped.</p>
+          <a href="/karta" style={{ display: "inline-block", padding: "14px 32px", background: "#C9A96E", color: "#1A1A16", borderRadius: "100px", fontWeight: 700, fontSize: 15, letterSpacing: "0.03em", textDecoration: "none", transition: "opacity 0.2s" }}>Explore the map →</a>
+        </div>
+        <div className="map-preview">
+          <div className="map-preview-overlay"><span>🍜</span></div>
+        </div>
+      </section>
+
       <section className="club-section" id="club">
         <div className="club-inner">
           <p style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "#555", marginBottom: 16 }}>★ Sanshō Ramen Club</p>

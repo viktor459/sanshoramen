@@ -71,6 +71,7 @@ type Post = {
 
 type Product = { id: number; name: string; description: string; price: number; image_url: string; category: string; active: boolean };
 type WaitlistEntry = { id: number; created_at: string; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; vegetarian_count: number; note: string; };
+type RamenSpot = { id: number; name: string; city: string; country: string; lat: number; lng: number; rating: number; note: string; image_url: string; visited_at: string; };
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -81,7 +82,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -107,6 +108,11 @@ export default function Admin() {
   // Waitlist
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
 
+  // Ramen Map
+  const [spots, setSpots] = useState<RamenSpot[]>([]);
+  const [editingSpot, setEditingSpot] = useState<RamenSpot | null>(null);
+  const [newSpot, setNewSpot] = useState({ name: "", city: "", country: "", lat: "", lng: "", rating: "4", note: "", image_url: "", visited_at: "" });
+
   // Products
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({ name: "", description: "", price: "", image_url: "", category: "" });
@@ -122,7 +128,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots();
   }, []);
 
   const fetchEvents = async () => {
@@ -158,6 +164,31 @@ export default function Admin() {
   const deleteWaitlistEntry = async (id: number) => {
     await supabase.from("waitlist").delete().eq("id", id);
     fetchWaitlist();
+  };
+
+  const fetchSpots = async () => {
+    const { data } = await supabase.from("ramen_spots").select("*").order("rating", { ascending: false });
+    if (data) setSpots(data);
+  };
+
+  const saveNewSpot = async () => {
+    if (!newSpot.name || !newSpot.city || !newSpot.country || !newSpot.lat || !newSpot.lng) return;
+    await supabase.from("ramen_spots").insert([{ ...newSpot, lat: parseFloat(newSpot.lat), lng: parseFloat(newSpot.lng), rating: parseFloat(newSpot.rating) }]);
+    setNewSpot({ name: "", city: "", country: "", lat: "", lng: "", rating: "4", note: "", image_url: "", visited_at: "" });
+    fetchSpots();
+  };
+
+  const saveEditSpot = async () => {
+    if (!editingSpot) return;
+    await supabase.from("ramen_spots").update({ name: editingSpot.name, city: editingSpot.city, country: editingSpot.country, lat: editingSpot.lat, lng: editingSpot.lng, rating: editingSpot.rating, note: editingSpot.note, image_url: editingSpot.image_url, visited_at: editingSpot.visited_at }).eq("id", editingSpot.id);
+    setEditingSpot(null);
+    fetchSpots();
+  };
+
+  const deleteSpot = async (id: number) => {
+    if (!confirm("Ta bort stället?")) return;
+    await supabase.from("ramen_spots").delete().eq("id", id);
+    fetchSpots();
   };
 
   const deleteShopOrder = async (id: number) => {
@@ -448,9 +479,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products"] as const).map(t => (
+        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "karta"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : "Shop"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : "Ramen Map"}
           </button>
         ))}
       </div>
@@ -880,6 +911,63 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* RAMEN MAP TAB */}
+      {tab === "karta" && (
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Ramen Map ({spots.length} ställen)</div>
+
+          {/* Add new spot */}
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, padding: 24, marginBottom: 24 }}>
+            <div style={{ fontWeight: 600, marginBottom: 16 }}>Lägg till nytt ställe</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Namn *</label><input style={S.input} value={newSpot.name} onChange={e => setNewSpot({ ...newSpot, name: e.target.value })} placeholder="Fuunji" /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Stad *</label><input style={S.input} value={newSpot.city} onChange={e => setNewSpot({ ...newSpot, city: e.target.value })} placeholder="Tokyo" /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Land *</label><input style={S.input} value={newSpot.country} onChange={e => setNewSpot({ ...newSpot, country: e.target.value })} placeholder="Japan" /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Betyg (1–5)</label><input style={S.input} type="number" min="1" max="5" step="0.5" value={newSpot.rating} onChange={e => setNewSpot({ ...newSpot, rating: e.target.value })} /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Latitud *</label><input style={S.input} value={newSpot.lat} onChange={e => setNewSpot({ ...newSpot, lat: e.target.value })} placeholder="35.6762" /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Longitud *</label><input style={S.input} value={newSpot.lng} onChange={e => setNewSpot({ ...newSpot, lng: e.target.value })} placeholder="139.6503" /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Besökt (datum)</label><input style={S.input} type="date" value={newSpot.visited_at} onChange={e => setNewSpot({ ...newSpot, visited_at: e.target.value })} /></div>
+              <div><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Bild-URL</label><input style={S.input} value={newSpot.image_url} onChange={e => setNewSpot({ ...newSpot, image_url: e.target.value })} placeholder="https://..." /></div>
+            </div>
+            <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Kommentar</label><textarea style={{ ...S.input, height: 72 }} value={newSpot.note} onChange={e => setNewSpot({ ...newSpot, note: e.target.value })} placeholder="Fantastisk tsukemen, kö på 40 min..." /></div>
+            <div style={{ fontSize: 11, color: "#6B6560", marginBottom: 12 }}>Tips: Hitta koordinater på maps.google.com → högerklicka på kartan → koordinaterna kopieras</div>
+            <button style={S.btn} onClick={saveNewSpot} disabled={!newSpot.name || !newSpot.city || !newSpot.country || !newSpot.lat || !newSpot.lng}>+ Lägg till</button>
+          </div>
+
+          {/* Spots list */}
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
+            <table>
+              <thead><tr><th>Namn</th><th>Stad</th><th>Land</th><th>Betyg</th><th>Besökt</th><th>Kommentar</th><th></th></tr></thead>
+              <tbody>
+                {spots.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga ställen tillagda än</td></tr>}
+                {spots.map(spot => editingSpot?.id === spot.id ? (
+                  <tr key={spot.id}>
+                    <td><input style={{ ...S.input, width: 120 }} value={editingSpot.name} onChange={e => setEditingSpot({ ...editingSpot, name: e.target.value })} /></td>
+                    <td><input style={{ ...S.input, width: 100 }} value={editingSpot.city} onChange={e => setEditingSpot({ ...editingSpot, city: e.target.value })} /></td>
+                    <td><input style={{ ...S.input, width: 100 }} value={editingSpot.country} onChange={e => setEditingSpot({ ...editingSpot, country: e.target.value })} /></td>
+                    <td><input style={{ ...S.input, width: 60 }} type="number" min="1" max="5" step="0.5" value={editingSpot.rating} onChange={e => setEditingSpot({ ...editingSpot, rating: parseFloat(e.target.value) })} /></td>
+                    <td><input style={{ ...S.input, width: 120 }} type="date" value={editingSpot.visited_at || ""} onChange={e => setEditingSpot({ ...editingSpot, visited_at: e.target.value })} /></td>
+                    <td><input style={{ ...S.input, width: 180 }} value={editingSpot.note} onChange={e => setEditingSpot({ ...editingSpot, note: e.target.value })} /></td>
+                    <td><div style={{ display: "flex", gap: 6 }}><button style={S.btn} onClick={saveEditSpot}>Spara</button><button style={S.btnOutline} onClick={() => setEditingSpot(null)}>Avbryt</button></div></td>
+                  </tr>
+                ) : (
+                  <tr key={spot.id}>
+                    <td style={{ fontWeight: 500 }}>{spot.name}</td>
+                    <td style={{ color: "#6B6560" }}>{spot.city}</td>
+                    <td style={{ color: "#6B6560" }}>{spot.country}</td>
+                    <td style={{ color: "#C9A96E" }}>{"★".repeat(Math.round(spot.rating))}{"☆".repeat(5 - Math.round(spot.rating))} <span style={{ color: "#6B6560", fontSize: 12 }}>({spot.rating})</span></td>
+                    <td style={{ color: "#6B6560" }}>{spot.visited_at ? new Date(spot.visited_at).toLocaleDateString("sv-SE", { year: "numeric", month: "short" }) : "—"}</td>
+                    <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 200 }} title={spot.note}>{spot.note ? (spot.note.length > 40 ? spot.note.slice(0, 40) + "…" : spot.note) : "—"}</td>
+                    <td><div style={{ display: "flex", gap: 6 }}><button style={S.btnOutline} onClick={() => setEditingSpot(spot)}>Redigera</button><button style={S.btnDanger} onClick={() => deleteSpot(spot.id)}>×</button></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ marginTop: 12, textAlign: "right" }}><a href="/karta" target="_blank" style={{ fontSize: 13, color: "#6B6560" }}>Öppna kartan →</a></div>
         </div>
       )}
 
