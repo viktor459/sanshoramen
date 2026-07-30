@@ -58,9 +58,17 @@ export default function PopUps() {
   const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    supabase.from("events").select("*").eq("active", true).order("date").then(({ data }) => {
+    const fetchEvents = () => supabase.from("events").select("*").eq("active", true).order("date").then(({ data }) => {
       if (data) setEvents(data);
     });
+
+    fetchEvents();
+
+    const channel = supabase.channel("events-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchEvents())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const parseDateParts = (dateStr: string) => {
