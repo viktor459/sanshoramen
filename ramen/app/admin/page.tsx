@@ -92,7 +92,7 @@ export default function Admin() {
   const eventFileInputRef = useRef<HTMLInputElement | null>(null);
   const editEventFileInputRef = useRef<HTMLInputElement | null>(null);
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
-  const [editingSlot, setEditingSlot] = useState<{ id: number; spots: string } | null>(null);
+  const [editingSlot, setEditingSlot] = useState<{ id: number; spots: string; spots_left: string } | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [eventsView, setEventsView] = useState<"add" | "edit">("add");
 
@@ -356,8 +356,8 @@ export default function Admin() {
     alert(`Bokning skapad! Kod: ${booking_code}`);
   };
 
-  const saveSlotSpots = async (id: number, eventId: number, spots: number) => {
-    await supabase.from("timeslots").update({ spots }).eq("id", id);
+  const saveSlotSpots = async (id: number, eventId: number, spots: number, spots_left: number) => {
+    await supabase.from("timeslots").update({ spots, spots_left }).eq("id", id);
     setEditingSlot(null);
     fetchTimeslots(eventId);
   };
@@ -794,20 +794,22 @@ export default function Admin() {
                         <span style={{ flex: 1 }}>{slot.time} — {slot.spots_left}/{slot.spots} platser</span>
                         {editingSlot?.id === slot.id ? (
                           <>
-                            <input
-                              type="number"
-                              style={{ ...S.input, width: 70, padding: "4px 8px" }}
-                              value={editingSlot.spots}
-                              onChange={e => setEditingSlot({ ...editingSlot, spots: e.target.value })}
-                              onKeyDown={e => { if (e.key === "Enter") saveSlotSpots(slot.id, event.id, Number(editingSlot.spots)); if (e.key === "Escape") setEditingSlot(null); }}
-                              autoFocus
-                            />
-                            <button style={S.btn} onClick={() => saveSlotSpots(slot.id, event.id, Number(editingSlot.spots))}>✓</button>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span style={{ fontSize: 11, color: "#6B6560", width: 40 }}>Totalt</span>
+                                <input type="number" style={{ ...S.input, width: 60, padding: "2px 6px" }} value={editingSlot.spots} onChange={e => setEditingSlot({ ...editingSlot, spots: e.target.value })} autoFocus />
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span style={{ fontSize: 11, color: "#6B6560", width: 40 }}>Kvar</span>
+                                <input type="number" style={{ ...S.input, width: 60, padding: "2px 6px" }} value={editingSlot.spots_left} onChange={e => setEditingSlot({ ...editingSlot, spots_left: e.target.value })} onKeyDown={e => { if (e.key === "Enter") saveSlotSpots(slot.id, event.id, Number(editingSlot.spots), Number(editingSlot.spots_left)); if (e.key === "Escape") setEditingSlot(null); }} />
+                              </div>
+                            </div>
+                            <button style={S.btn} onClick={() => saveSlotSpots(slot.id, event.id, Number(editingSlot.spots), Number(editingSlot.spots_left))}>✓</button>
                             <button style={S.btnOutline} onClick={() => setEditingSlot(null)}>✕</button>
                           </>
                         ) : (
                           <>
-                            <button style={{ ...S.btnOutline, padding: "2px 8px", fontSize: 12 }} onClick={() => setEditingSlot({ id: slot.id, spots: String(slot.spots) })}>Redigera</button>
+                            <button style={{ ...S.btnOutline, padding: "2px 8px", fontSize: 12 }} onClick={() => setEditingSlot({ id: slot.id, spots: String(slot.spots), spots_left: String(slot.spots_left) })}>Redigera</button>
                             <button style={S.btnDanger} onClick={() => deleteSlot(slot.id, event.id)}>×</button>
                           </>
                         )}
