@@ -905,19 +905,22 @@ export default function Admin() {
                     <td>{b.timeslot_time || "—"}</td>
                     <td>
                       {editingGuests?.id === b.id ? (
-                        <input
-                          type="number"
-                          min={1}
-                          value={editingGuests.value}
-                          onChange={e => setEditingGuests({ id: b.id, value: e.target.value })}
-                          onBlur={() => saveGuests(b.id, editingGuests.value)}
-                          onKeyDown={e => { if (e.key === "Enter") saveGuests(b.id, editingGuests.value); if (e.key === "Escape") setEditingGuests(null); }}
-                          autoFocus
-                          style={{ width: 52, fontFamily: "'Quicksand', sans-serif", fontSize: 13, border: "1.5px solid #1D1D1D", borderRadius: 6, padding: "2px 6px" }}
-                        />
+                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          <input
+                            type="number"
+                            min={1}
+                            value={editingGuests.value}
+                            onChange={e => setEditingGuests({ id: b.id, value: e.target.value })}
+                            onKeyDown={e => { if (e.key === "Enter") saveGuests(b.id, editingGuests.value); if (e.key === "Escape") setEditingGuests(null); }}
+                            autoFocus
+                            style={{ width: 52, fontFamily: "'Quicksand', sans-serif", fontSize: 13, border: "1.5px solid #1D1D1D", borderRadius: 6, padding: "2px 6px" }}
+                          />
+                          <button style={{ ...S.btn, padding: "2px 7px", fontSize: 12 }} onClick={() => saveGuests(b.id, editingGuests.value)}>✓</button>
+                          <button style={{ ...S.btnOutline, padding: "2px 7px", fontSize: 12 }} onClick={() => setEditingGuests(null)}>✕</button>
+                        </div>
                       ) : (
-                        <span onClick={() => setEditingGuests({ id: b.id, value: String(b.guests) })} style={{ cursor: "pointer", borderBottom: "1px dashed #bbb" }} title="Click to edit">
-                          {b.guests} pers
+                        <span onClick={() => setEditingGuests({ id: b.id, value: String(b.guests) })} style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          {b.guests} pers <span style={{ fontSize: 11, color: "#bbb" }}>✎</span>
                         </span>
                       )}
                     </td>
