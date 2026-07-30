@@ -131,7 +131,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: `${process.env.NEXT_PUBLIC_URL}/tack?${redirectParams.toString()}` });
   }
 
-  // Card required — create Stripe setup session
+  const commonMetadata = {
+    booking_id: String(booking.id),
+    booking_code,
+    event_name,
+    fname,
+    email,
+    phone: phone || "",
+    guests: String(guests),
+    vegetarian_count: String(vegetarian_count ?? 0),
+    total_price: String(total_price),
+    timeslot_time: timeslot_time || "",
+    date: date || "",
+    location: location || "",
+    event_time: time || "",
+    newsletter_consent: newsletter_consent ? "1" : "0",
+  };
+
+  if (total_price > 0) {
+    // Paid event — charge card immediately
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      currency: "sek",
+      payment_method_types: ["card"],
+      customer_email: email,
+      line_items: [{
+        price_data: {
+          currency: "sek",
+          product_data: { name: event_name, description: `${guests} person${Number(guests) > 1 ? "er" : ""} · ${timeslot_time || time || ""}` },
+          unit_amount: Math.round(total_price * 100),
+        },
+        quantity: 1,
+      }],
+      success_url: `${process.env.NEXT_PUBLIC_URL}/tack?session_id={CHECKOUT_SESSION_ID}&type=booking`,
+      cancel_url: `${process.env.NEXT_PUBLIC_URL}/pop-ups`,
+      metadata: commonMetadata,
+    });
+    return NextResponse.json({ url: session.url });
+  }
+
+  // Free event with card required — setup session for no-show fee
   const session = await stripe.checkout.sessions.create({
     mode: "setup",
     currency: "sek",
@@ -139,22 +178,7 @@ export async function POST(req: Request) {
     customer_email: email,
     success_url: `${process.env.NEXT_PUBLIC_URL}/tack?session_id={CHECKOUT_SESSION_ID}&type=booking`,
     cancel_url: `${process.env.NEXT_PUBLIC_URL}/pop-ups`,
-    metadata: {
-      booking_id: String(booking.id),
-      booking_code,
-      event_name,
-      fname,
-      email,
-      phone: phone || "",
-      guests: String(guests),
-      vegetarian_count: String(vegetarian_count ?? 0),
-      total_price: String(total_price),
-      timeslot_time: timeslot_time || "",
-      date: date || "",
-      location: location || "",
-      event_time: time || "",
-      newsletter_consent: newsletter_consent ? "1" : "0",
-    },
+    metadata: commonMetadata,
   });
 
   return NextResponse.json({ url: session.url });

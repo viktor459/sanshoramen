@@ -34,13 +34,14 @@ export async function GET(req: Request) {
 
   const session = await stripe.checkout.sessions.retrieve(session_id);
   if (session.status !== "complete") return NextResponse.json({ error: "Ej slutförd" }, { status: 400 });
+  if (session.mode === "payment" && session.payment_status !== "paid") return NextResponse.json({ error: "Ej betald" }, { status: 400 });
 
   const m = session.metadata!;
   const { booking_id, booking_code, event_name, fname, email, guests, total_price, timeslot_time, date, location, event_time, vegetarian_count, newsletter_consent } = m;
 
   await supabase.from("bookings").update({
     status: "confirmed",
-    stripe_setup_intent_id: String(session.setup_intent || ""),
+    stripe_setup_intent_id: String(session.setup_intent || session.payment_intent || ""),
   }).eq("id", booking_id);
 
   let unsubscribeToken: string | null = null;
@@ -87,14 +88,14 @@ export async function GET(req: Request) {
             ${event_time ? `<tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Tid</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;">${timeslot_time || event_time}</td></tr>` : ""}
             ${location ? `<tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Adress</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;"><a href="https://maps.google.com/maps?q=${encodeURIComponent(location)}" style="color:#1D1D1D;">${location}</a></td></tr>` : ""}
             <tr><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;color:#6B6560;">Gäster</td><td style="padding:12px 0;border-bottom:0.5px solid #DDD8CE;">${guests} person${Number(guests) > 1 ? "er" : ""}${vegCount > 0 ? ` (${vegCount} vegetarisk)` : ""}</td></tr>
-            <tr><td style="padding:12px 0;color:#6B6560;">Totalt</td><td style="padding:12px 0;font-weight:700;">${Number(total_price) > 0 ? `${total_price} kr` : "Gratis"}</td></tr>
+            <tr><td style="padding:12px 0;color:#6B6560;">Totalt</td><td style="padding:12px 0;font-weight:700;">${Number(total_price) > 0 ? `${total_price} kr (betalt online)` : "Gratis"}</td></tr>
           </table>
 
           ${gcalLink ? `<a href="${gcalLink}" style="display:inline-block;margin-top:24px;padding:12px 22px;background:#F5F1E8;border:1.5px solid #1D1D1D;border-radius:100px;text-decoration:none;color:#1D1D1D;font-size:13px;font-weight:500;">+ Lägg till i Google Kalender</a>` : ""}
 
-          <div style="background:#FFF8E7;border-radius:8px;padding:16px 20px;margin-top:28px;">
+          ${Number(total_price) === 0 ? `<div style="background:#FFF8E7;border-radius:8px;padding:16px 20px;margin-top:28px;">
             <p style="font-size:13px;color:#856F30;line-height:1.6;">⚠️ <strong>Avbokningspolicy:</strong> Vi sparar dina kortuppgifter. Om du inte avbokar senast 48 timmar innan eventet drar vi en no-show-avgift på <strong>250 kr</strong>. Avboka via <a href="mailto:contact@sanshoramen.se" style="color:#856F30;">contact@sanshoramen.se</a>.</p>
-          </div>
+          </div>` : ""}
 
           <p style="font-size:13px;color:#6B6560;margin-top:28px;line-height:1.7;">Frågor? Hör av dig på <a href="mailto:contact@sanshoramen.se" style="color:#1D1D1D;">contact@sanshoramen.se</a></p>
           <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne${unsubscribeToken ? ` · <a href="${process.env.NEXT_PUBLIC_URL}/api/unsubscribe?token=${unsubscribeToken}" style="color:#aaa;">Unsubscribe</a>` : ""}</p>
