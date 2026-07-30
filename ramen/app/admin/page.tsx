@@ -72,6 +72,7 @@ type Post = {
 type Product = { id: number; name: string; description: string; price: number; image_url: string; category: string; active: boolean };
 type WaitlistEntry = { id: number; created_at: string; event_id: number; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; vegetarian_count: number; note: string; };
 type RamenSpot = { id: number; name: string; city: string; country: string; lat: number; lng: number; rating: number; note: string; image_url: string; visited_at: string; };
+type Review = { id: number; created_at: string; event_name: string; event_slug: string; name: string; rating: number; comment: string; };
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -82,7 +83,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -112,6 +113,10 @@ export default function Admin() {
   // Waitlist
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
 
+  // Reviews
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [filterReviewEvent, setFilterReviewEvent] = useState("all");
+
   // Ramen Map
   const [spots, setSpots] = useState<RamenSpot[]>([]);
   const [editingSpot, setEditingSpot] = useState<RamenSpot | null>(null);
@@ -132,7 +137,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews();
   }, []);
 
   const fetchEvents = async () => {
@@ -168,6 +173,16 @@ export default function Admin() {
   const deleteWaitlistEntry = async (id: number) => {
     await supabase.from("waitlist").delete().eq("id", id);
     fetchWaitlist();
+  };
+
+  const fetchReviews = async () => {
+    const { data } = await supabase.from("reviews").select("*").order("created_at", { ascending: false });
+    if (data) setReviews(data);
+  };
+
+  const deleteReview = async (id: number) => {
+    await supabase.from("reviews").delete().eq("id", id);
+    fetchReviews();
   };
 
   const fetchSpots = async () => {
@@ -557,9 +572,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "karta"] as const).map(t => (
+        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "recensioner", "karta"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : "Ramen Map"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : t === "recensioner" ? `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}` : "Ramen Map"}
           </button>
         ))}
       </div>
@@ -1064,6 +1079,53 @@ export default function Admin() {
                 {totalVeg > 0 && <span><strong>{totalVeg}</strong> vegetariska</span>}
               </div>
             ) : null;
+          })()}
+        </div>
+      )}
+
+      {/* RECENSIONER TAB */}
+      {tab === "recensioner" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>Recensioner ({reviews.length})</div>
+          </div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <select value={filterReviewEvent} onChange={e => setFilterReviewEvent(e.target.value)} style={{ ...S.input, width: "auto" }}>
+              <option value="all">Alla events</option>
+              {[...new Set(reviews.map(r => r.event_name))].map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+          </div>
+          {(() => {
+            const filtered = reviews.filter(r => filterReviewEvent === "all" || r.event_name === filterReviewEvent);
+            const avg = filtered.length > 0 ? (filtered.reduce((s, r) => s + r.rating, 0) / filtered.length).toFixed(1) : null;
+            return (
+              <>
+                {avg && <div style={{ marginBottom: 16, fontSize: 14, color: "#6B6560" }}>Snittbetyg: <strong style={{ color: "#C9A96E", fontSize: 18 }}>{"★".repeat(Math.round(Number(avg)))} {avg}/5</strong></div>}
+                <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
+                  <table>
+                    <thead><tr><th>Namn</th><th>Betyg</th><th>Kommentar</th><th>Event</th><th>Datum</th><th></th></tr></thead>
+                    <tbody>
+                      {filtered.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga recensioner än</td></tr>}
+                      {filtered.map(r => (
+                        <tr key={r.id}>
+                          <td style={{ fontWeight: 500 }}>{r.name}</td>
+                          <td style={{ color: "#C9A96E", letterSpacing: 2 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</td>
+                          <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 280 }}>{r.comment || "—"}</td>
+                          <td style={{ fontSize: 13 }}>{r.event_name}</td>
+                          <td style={{ color: "#6B6560", fontSize: 13 }}>{new Date(r.created_at).toLocaleDateString("sv-SE")}</td>
+                          <td><button style={S.btnDanger} onClick={() => deleteReview(r.id)}>×</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {filtered.length > 0 && (
+                  <div style={{ marginTop: 12, fontSize: 13, color: "#6B6560" }}>
+                    Länk att dela: <code style={{ background: "#E8E3D8", padding: "2px 6px", borderRadius: 4 }}>sanshoramen.se/review/{filtered[0]?.event_slug}</code>
+                  </div>
+                )}
+              </>
+            );
           })()}
         </div>
       )}
