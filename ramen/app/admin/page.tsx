@@ -102,6 +102,9 @@ export default function Admin() {
   const [filterWaitlistEvent, setFilterWaitlistEvent] = useState<string>("all");
   const [editingGuests, setEditingGuests] = useState<{ id: string; value: string } | null>(null);
   const [editingVeg, setEditingVeg] = useState<{ id: string; value: string } | null>(null);
+  const [editingEventSpots, setEditingEventSpots] = useState<{ id: number; spots: string; spots_left: string } | null>(null);
+  const [manualBooking, setManualBooking] = useState<{ eventId: number; slotId: string } | null>(null);
+  const [manualForm, setManualForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "1", note: "", vegetarian_count: "0" });
 
   // Shop orders
   const [shopOrders, setShopOrders] = useState<ShopOrder[]>([]);
@@ -295,19 +298,62 @@ export default function Admin() {
     fetchEvents();
   };
 
-  const addSlot = async () => {
-    if (!selectedEventId || !newSlot.time || !newSlot.spots) return;
+  const addSlot = async (eventId: number) => {
+    if (!newSlot.time || !newSlot.spots) return;
     await supabase.from("timeslots").insert([{
-      event_id: selectedEventId, time: newSlot.time,
+      event_id: eventId, time: newSlot.time,
       spots: Number(newSlot.spots), spots_left: Number(newSlot.spots),
     }]);
     setNewSlot({ time: "", spots: "" });
-    fetchTimeslots(selectedEventId);
+    fetchTimeslots(eventId);
   };
 
   const deleteSlot = async (id: number, eventId: number) => {
     await supabase.from("timeslots").delete().eq("id", id);
     fetchTimeslots(eventId);
+  };
+
+  const saveEventSpots = async () => {
+    if (!editingEventSpots) return;
+    await supabase.from("events").update({ spots: Number(editingEventSpots.spots), spots_left: Number(editingEventSpots.spots_left) }).eq("id", editingEventSpots.id);
+    setEditingEventSpots(null);
+    fetchEvents();
+  };
+
+  const addManualBooking = async () => {
+    if (!manualBooking || !manualForm.fname || !manualForm.email) return;
+    const ev = events.find(e => e.id === manualBooking.eventId);
+    if (!ev) return;
+    const booking_code = "SR-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+    const slotId = manualBooking.slotId ? Number(manualBooking.slotId) : null;
+    const slot = slotId ? (timeslots[manualBooking.eventId] || []).find(s => s.id === slotId) : null;
+    await supabase.from("bookings").insert([{
+      event_id: ev.id,
+      event_name: ev.title,
+      fname: manualForm.fname,
+      lname: manualForm.lname,
+      email: manualForm.email,
+      phone: manualForm.phone || null,
+      guests: Number(manualForm.guests),
+      vegetarian_count: Number(manualForm.vegetarian_count),
+      note: manualForm.note,
+      total_price: 0,
+      booking_code,
+      status: "confirmed",
+      timeslot_id: slotId,
+      timeslot_time: slot?.time || null,
+    }]);
+    if (slotId) {
+      await supabase.rpc("decrement_timeslot_spots", { slot_id: slotId, n: Number(manualForm.guests) }).maybeSingle();
+    } else {
+      await supabase.rpc("decrement_event_spots", { ev_id: ev.id, n: Number(manualForm.guests) }).maybeSingle();
+    }
+    setManualBooking(null);
+    setManualForm({ fname: "", lname: "", email: "", phone: "", guests: "1", note: "", vegetarian_count: "0" });
+    fetchBookings();
+    fetchEvents();
+    fetchTimeslots(ev.id);
+    alert(`Bokning skapad! Kod: ${booking_code}`);
   };
 
   const saveSlotSpots = async (id: number, eventId: number, spots: number) => {
@@ -705,9 +751,22 @@ export default function Admin() {
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 16 }}>{event.title}</div>
                       <div style={{ fontSize: 13, color: "#6B6560" }}>{formatDate(event.date)}{event.location ? ` · ${event.location}` : ""}</div>
-                      <div style={{ fontSize: 13, color: "#6B6560" }}>
-                        {event.spots_left}/{event.spots} platser
-                        {event.price != null ? ` · ${event.price} kr` : " · Gratis/inget pris"}
+                      <div style={{ fontSize: 13, color: "#6B6560", display: "flex", alignItems: "center", gap: 8 }}>
+                        {editingEventSpots?.id === event.id ? (
+                          <>
+                            <span>Platser:</span>
+                            <input type="number" style={{ ...S.input, width: 60, padding: "2px 6px" }} placeholder="Totalt" value={editingEventSpots.spots} onChange={e => setEditingEventSpots({ ...editingEventSpots, spots: e.target.value })} />
+                            <span>Kvar:</span>
+                            <input type="number" style={{ ...S.input, width: 60, padding: "2px 6px" }} placeholder="Kvar" value={editingEventSpots.spots_left} onChange={e => setEditingEventSpots({ ...editingEventSpots, spots_left: e.target.value })} />
+                            <button style={{ ...S.btn, padding: "2px 8px", fontSize: 12 }} onClick={saveEventSpots}>✓</button>
+                            <button style={{ ...S.btnOutline, padding: "2px 8px", fontSize: 12 }} onClick={() => setEditingEventSpots(null)}>✕</button>
+                          </>
+                        ) : (
+                          <>
+                            <span>{event.spots_left}/{event.spots} platser{event.price != null ? ` · ${event.price} kr` : " · Gratis"}</span>
+                            <button style={{ ...S.btnOutline, padding: "1px 7px", fontSize: 11 }} onClick={() => setEditingEventSpots({ id: event.id, spots: String(event.spots), spots_left: String(event.spots_left) })}>Redigera</button>
+                          </>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -770,8 +829,36 @@ export default function Admin() {
                         onFocus={() => setSelectedEventId(event.id)}
                         onChange={e => setNewSlot({ ...newSlot, spots: e.target.value })}
                       />
-                      <button style={S.btn} onClick={() => { setSelectedEventId(event.id); addSlot(); }}>+</button>
+                      <button style={S.btn} onClick={() => addSlot(event.id)}>+</button>
                     </div>
+                  </div>
+                  <div style={{ marginTop: 12, borderTop: "0.5px solid #ccc", paddingTop: 12 }}>
+                    {manualBooking?.eventId === event.id ? (
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>Lägg till bokning manuellt</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                          <input style={S.input} placeholder="Förnamn *" value={manualForm.fname} onChange={e => setManualForm({ ...manualForm, fname: e.target.value })} />
+                          <input style={S.input} placeholder="Efternamn" value={manualForm.lname} onChange={e => setManualForm({ ...manualForm, lname: e.target.value })} />
+                          <input style={S.input} placeholder="E-post *" value={manualForm.email} onChange={e => setManualForm({ ...manualForm, email: e.target.value })} />
+                          <input style={S.input} placeholder="Telefon" value={manualForm.phone} onChange={e => setManualForm({ ...manualForm, phone: e.target.value })} />
+                          <input style={S.input} type="number" placeholder="Gäster" min="1" value={manualForm.guests} onChange={e => setManualForm({ ...manualForm, guests: e.target.value })} />
+                          <input style={S.input} type="number" placeholder="Veg" min="0" value={manualForm.vegetarian_count} onChange={e => setManualForm({ ...manualForm, vegetarian_count: e.target.value })} />
+                        </div>
+                        {(timeslots[event.id] || []).length > 0 && (
+                          <select style={{ ...S.input, marginBottom: 8 }} value={manualBooking.slotId} onChange={e => setManualBooking({ ...manualBooking, slotId: e.target.value })}>
+                            <option value="">Ingen specifik tid</option>
+                            {(timeslots[event.id] || []).map(s => <option key={s.id} value={s.id}>{s.time} ({s.spots_left} platser kvar)</option>)}
+                          </select>
+                        )}
+                        <input style={{ ...S.input, marginBottom: 8 }} placeholder="Övrigt" value={manualForm.note} onChange={e => setManualForm({ ...manualForm, note: e.target.value })} />
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button style={S.btn} onClick={addManualBooking} disabled={!manualForm.fname || !manualForm.email}>Lägg till</button>
+                          <button style={S.btnOutline} onClick={() => setManualBooking(null)}>Avbryt</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button style={{ ...S.btnOutline, fontSize: 13 }} onClick={() => setManualBooking({ eventId: event.id, slotId: "" })}>+ Lägg till bokning manuellt</button>
+                    )}
                   </div>
                   </div>
                 </div>
@@ -961,6 +1048,18 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
+          {(() => {
+            const filtered = waitlist.filter(w => filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent);
+            const totalGuests = filtered.reduce((sum, w) => sum + w.guests, 0);
+            const totalVeg = filtered.reduce((sum, w) => sum + (w.vegetarian_count ?? 0), 0);
+            return filtered.length > 0 ? (
+              <div style={{ marginTop: 12, fontSize: 13, color: "#6B6560", display: "flex", gap: 20 }}>
+                <span><strong>{filtered.length}</strong> personer på väntelistan</span>
+                <span><strong>{totalGuests}</strong> gäster totalt</span>
+                {totalVeg > 0 && <span><strong>{totalVeg}</strong> vegetariska</span>}
+              </div>
+            ) : null;
+          })()}
         </div>
       )}
 
