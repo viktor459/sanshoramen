@@ -439,7 +439,7 @@ export default function Admin() {
     location ? `https://maps.google.com/maps?q=${encodeURIComponent(location)}&output=embed` : null;
 
   const S = {
-    page: { minHeight: "100vh", background: "#F5F1E8", fontFamily: "'Quicksand', sans-serif", padding: "40px 48px" } as React.CSSProperties,
+    page: { minHeight: "100vh", background: "#F5F1E8", fontFamily: "'Quicksand', sans-serif", padding: "100px 48px 40px" } as React.CSSProperties,
     input: { background: "transparent", border: "1.5px solid #1D1D1D", borderRadius: 8, padding: "10px 14px", fontFamily: "'Quicksand', sans-serif", fontSize: 14, color: "#1D1D1D", outline: "none", width: "100%" } as React.CSSProperties,
     textarea: { background: "transparent", border: "1.5px solid #1D1D1D", borderRadius: 8, padding: "10px 14px", fontFamily: "'Quicksand', sans-serif", fontSize: 14, color: "#1D1D1D", outline: "none", width: "100%", resize: "vertical" as const, minHeight: 120 } as React.CSSProperties,
     btn: { background: "#1D1D1D", color: "#F5F1E8", border: "none", padding: "10px 20px", borderRadius: 100, fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", whiteSpace: "nowrap" as const } as React.CSSProperties,
