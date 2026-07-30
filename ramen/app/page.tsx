@@ -129,6 +129,7 @@ const S = `
 `;
 
 type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; };
+type Timeslot = { id: number; event_id: number; spots: number; spots_left: number; };
 
 const formatEventDate = (dateStr: string) => {
   if (!dateStr) return dateStr;
@@ -140,6 +141,7 @@ const formatEventDate = (dateStr: string) => {
 
 export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
   const [email, setEmail] = useState("");
   const [nlStatus, setNlStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [clubEmail, setClubEmail] = useState("");
@@ -147,9 +149,23 @@ export default function Home() {
   const [clubStatus, setClubStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   useEffect(() => {
-    supabase.from("events").select("*").eq("active", true).order("date").then(({ data }) => {
-      if (data) setEvents(data.slice(0, 3));
-    });
+    const fetchAll = async () => {
+      const [{ data: evData }, { data: slotData }] = await Promise.all([
+        supabase.from("events").select("*").eq("active", true).eq("archived", false).order("date"),
+        supabase.from("timeslots").select("id, event_id, spots, spots_left"),
+      ]);
+      if (evData) setEvents(evData.slice(0, 3));
+      if (slotData) setTimeslots(slotData);
+    };
+
+    fetchAll();
+
+    const channel = supabase.channel("home-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, fetchAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "timeslots" }, fetchAll)
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const subscribe = async () => {
@@ -200,8 +216,11 @@ export default function Home() {
         ) : (
           <div className="events-grid">
             {events.map(ev => {
-              const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
-              const full = ev.spots_left <= 0;
+              const evSlots = timeslots.filter(s => s.event_id === ev.id);
+              const effectiveSpotsLeft = evSlots.length > 0 ? evSlots.reduce((sum, s) => sum + s.spots_left, 0) : ev.spots_left;
+              const effectiveSpots = evSlots.length > 0 ? evSlots.reduce((sum, s) => sum + s.spots, 0) : ev.spots;
+              const pct = ((effectiveSpots - effectiveSpotsLeft) / effectiveSpots) * 100;
+              const full = effectiveSpotsLeft <= 0;
               const urgency = full ? "sold" : pct >= 80 ? "hot" : pct >= 50 ? "low" : "ok";
               const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
               return (
@@ -221,7 +240,7 @@ export default function Home() {
                     </div>
                     <div className="ec-spots">
                       <div className="ec-bar"><div className="ec-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
-                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${ev.spots - ev.spots_left}/${ev.spots} booked`}</span>
+                      <span style={{ fontSize: 12 }}>{full ? "Sold out" : `${effectiveSpots - effectiveSpotsLeft}/${effectiveSpots} booked`}</span>
                     </div>
                     {urgency === "hot" && <div className="ec-urgency" style={{ background: "#FEE2E2", color: "#C0392B" }}>🔥 Almost full!</div>}
                     {urgency === "low" && <div className="ec-urgency" style={{ background: "#FEF3C7", color: "#92400E" }}>⚡ Few spots left</div>}
