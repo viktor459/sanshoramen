@@ -52,20 +52,23 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; slug: string; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; archived: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; slug: string; };
 type Timeslot = { id: number; event_id: number; spots: number; spots_left: number; };
 
 export default function PopUps() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [archivedEvents, setArchivedEvents] = useState<Event[]>([]);
   const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
-      const [{ data: evData }, { data: slotData }] = await Promise.all([
-        supabase.from("events").select("*").eq("active", true).order("date"),
+      const [{ data: evData }, { data: archData }, { data: slotData }] = await Promise.all([
+        supabase.from("events").select("*").eq("active", true).eq("archived", false).order("date"),
+        supabase.from("events").select("*").eq("archived", true).order("date", { ascending: false }),
         supabase.from("timeslots").select("id, event_id, spots, spots_left"),
       ]);
       if (evData) setEvents(evData);
+      if (archData) setArchivedEvents(archData);
       if (slotData) setTimeslots(slotData);
     };
 
@@ -202,6 +205,39 @@ export default function PopUps() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {archivedEvents.length > 0 && (
+          <div style={{ marginTop: 64 }}>
+            <div className="month-label" style={{ marginBottom: 16 }}>Tidigare pop-ups</div>
+            <div className="events-list" style={{ filter: "grayscale(0.6)", opacity: 0.55, pointerEvents: "none" }}>
+              {archivedEvents.map(ev => {
+                const { day, month: mon } = parseDateParts(ev.date);
+                return (
+                  <div key={ev.id} className="event-card" style={{ cursor: "default" }}>
+                    <div className="ec-image">
+                      {ev.image_url
+                        ? <img src={ev.image_url} alt={ev.title} />
+                        : <div className="ec-image-placeholder">🍜</div>
+                      }
+                      <div className="ec-date-badge">
+                        <div className="ec-badge-day">{day}</div>
+                        <div className="ec-badge-month">{mon}</div>
+                      </div>
+                    </div>
+                    <div className="ec-body">
+                      <div className="ec-location">{ev.location}</div>
+                      <div className="ec-title">{ev.title}</div>
+                      <div className="ec-meta">{ev.time && <span>{ev.time}</span>}</div>
+                    </div>
+                    <div className="ec-right">
+                      <div className="urgency-badge urgency-hot" style={{ background: "#F0EDE6", color: "#6B6560" }}>Avslutat</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

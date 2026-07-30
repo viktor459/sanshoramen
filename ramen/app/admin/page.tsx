@@ -13,6 +13,7 @@ type Event = {
   price: number | null;
   description: string;
   active: boolean;
+  archived: boolean;
   image_url?: string;
   booking_type: "internal" | "on_site" | "external";
   external_url?: string;
@@ -303,6 +304,17 @@ export default function Admin() {
 
   const toggleActive = async (event: Event) => {
     await supabase.from("events").update({ active: !event.active }).eq("id", event.id);
+    fetchEvents();
+  };
+
+  const archiveEvent = async (event: Event) => {
+    if (!confirm(`Arkivera "${event.title}"? Det tas bort från förstasidan och syns suddigt på pop-up sidan.`)) return;
+    await supabase.from("events").update({ archived: true, active: false }).eq("id", event.id);
+    fetchEvents();
+  };
+
+  const unarchiveEvent = async (event: Event) => {
+    await supabase.from("events").update({ archived: false, active: true }).eq("id", event.id);
     fetchEvents();
   };
 
@@ -754,10 +766,10 @@ export default function Admin() {
           </div>
 
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Events ({events.length})</div>
+            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Events ({events.filter(e => !e.archived).length}) · <span style={{ fontSize: 14, color: "#6B6560" }}>Arkiverade: {events.filter(e => e.archived).length}</span></div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {events.map(event => (
-                <div key={event.id} style={{ ...S.card, opacity: event.active ? 1 : 0.5, overflow: "hidden", padding: 0 }}>
+                <div key={event.id} style={{ ...S.card, opacity: event.archived ? 0.45 : event.active ? 1 : 0.6, overflow: "hidden", padding: 0, border: event.archived ? "1.5px dashed #ccc" : undefined }}>
                   {event.image_url && (
                     <img src={event.image_url} alt={event.title} style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} />
                   )}
@@ -785,8 +797,13 @@ export default function Admin() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      {event.archived && <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 99, background: "#F0EDE6", color: "#6B6560", alignSelf: "center" }}>Arkiverat</span>}
                       <button style={S.btnOutline} onClick={() => { setEditingEvent(event); setEventsView("edit"); }}>Redigera</button>
-                      <button style={S.btnOutline} onClick={() => toggleActive(event)}>{event.active ? "Dölj" : "Visa"}</button>
+                      {!event.archived && <button style={S.btnOutline} onClick={() => toggleActive(event)}>{event.active ? "Dölj" : "Visa"}</button>}
+                      {event.archived
+                        ? <button style={S.btnOutline} onClick={() => unarchiveEvent(event)}>Återställ</button>
+                        : <button style={{ ...S.btnOutline, color: "#92400E", borderColor: "#D97706" }} onClick={() => archiveEvent(event)}>Arkivera</button>
+                      }
                       <button style={S.btnDanger} onClick={() => deleteEvent(event.id)}>Ta bort</button>
                     </div>
                   </div>
