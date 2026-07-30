@@ -70,7 +70,7 @@ type Post = {
 };
 
 type Product = { id: number; name: string; description: string; price: number; image_url: string; category: string; active: boolean };
-type WaitlistEntry = { id: number; created_at: string; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; vegetarian_count: number; note: string; };
+type WaitlistEntry = { id: number; created_at: string; event_id: number; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; vegetarian_count: number; note: string; };
 type RamenSpot = { id: number; name: string; city: string; country: string; lat: number; lng: number; rating: number; note: string; image_url: string; visited_at: string; };
 
 const formatDate = (dateStr: string) => {
