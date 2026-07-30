@@ -53,19 +53,27 @@ const S = `
 `;
 
 type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; slug: string; };
+type Timeslot = { id: number; event_id: number; spots: number; spots_left: number; };
 
 export default function PopUps() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
 
   useEffect(() => {
-    const fetchEvents = () => supabase.from("events").select("*").eq("active", true).order("date").then(({ data }) => {
-      if (data) setEvents(data);
-    });
+    const fetchAll = async () => {
+      const [{ data: evData }, { data: slotData }] = await Promise.all([
+        supabase.from("events").select("*").eq("active", true).order("date"),
+        supabase.from("timeslots").select("id, event_id, spots, spots_left"),
+      ]);
+      if (evData) setEvents(evData);
+      if (slotData) setTimeslots(slotData);
+    };
 
-    fetchEvents();
+    fetchAll();
 
     const channel = supabase.channel("events-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => fetchEvents())
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, fetchAll)
+      .on("postgres_changes", { event: "*", schema: "public", table: "timeslots" }, fetchAll)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -115,8 +123,15 @@ export default function PopUps() {
                 {month && <div className="month-label">{month}</div>}
                 <div className="events-list">
                   {evs.map(ev => {
-                    const full = ev.spots_left <= 0;
-                    const pct = ((ev.spots - ev.spots_left) / ev.spots) * 100;
+                    const evSlots = timeslots.filter(s => s.event_id === ev.id);
+                    const effectiveSpotsLeft = evSlots.length > 0
+                      ? evSlots.reduce((sum, s) => sum + s.spots_left, 0)
+                      : ev.spots_left;
+                    const effectiveSpots = evSlots.length > 0
+                      ? evSlots.reduce((sum, s) => sum + s.spots, 0)
+                      : ev.spots;
+                    const full = effectiveSpotsLeft <= 0;
+                    const pct = ((effectiveSpots - effectiveSpotsLeft) / effectiveSpots) * 100;
                     const { day, month: mon } = parseDateParts(ev.date);
                     const urgency = full ? "sold" : pct >= 80 ? "hot" : pct >= 50 ? "low" : "ok";
                     const barColor = urgency === "hot" || urgency === "sold" ? "#C0392B" : urgency === "low" ? "#D97706" : "#16A34A";
@@ -163,10 +178,10 @@ export default function PopUps() {
                             <div className="spots-wrap">
                               {urgency === "hot" && <div className="urgency-badge urgency-hot">🔥 Almost full!</div>}
                               {urgency === "low" && <div className="urgency-badge urgency-low">⚡ Few spots left</div>}
-                              {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {ev.spots_left} spots left</div>}
+                              {urgency === "ok" && <div className="urgency-badge urgency-ok">✓ {effectiveSpotsLeft} spots left</div>}
                               {urgency === "sold" && <div className="urgency-badge urgency-hot">Sold out</div>}
                               <div className="spots-bar"><div className="spots-fill" style={{ width: `${pct}%`, background: barColor }} /></div>
-                              <div className="spots-text">{ev.spots - ev.spots_left} of {ev.spots} booked</div>
+                              <div className="spots-text">{effectiveSpots - effectiveSpotsLeft} of {effectiveSpots} booked</div>
                             </div>
                           )}
                           {!isExternal && (
