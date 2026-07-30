@@ -92,6 +92,7 @@ export default function Admin() {
   const eventFileInputRef = useRef<HTMLInputElement | null>(null);
   const editEventFileInputRef = useRef<HTMLInputElement | null>(null);
   const [newSlot, setNewSlot] = useState({ time: "", spots: "" });
+  const [editingSlot, setEditingSlot] = useState<{ id: number; spots: string } | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [eventsView, setEventsView] = useState<"add" | "edit">("add");
 
@@ -307,6 +308,37 @@ export default function Admin() {
   const deleteSlot = async (id: number, eventId: number) => {
     await supabase.from("timeslots").delete().eq("id", id);
     fetchTimeslots(eventId);
+  };
+
+  const saveSlotSpots = async (id: number, eventId: number, spots: number) => {
+    await supabase.from("timeslots").update({ spots }).eq("id", id);
+    setEditingSlot(null);
+    fetchTimeslots(eventId);
+  };
+
+  const promoteWaitlistEntry = async (w: WaitlistEntry) => {
+    if (!confirm(`Flytta ${w.fname} ${w.lname} till eventet? De får ingen automatisk bokningskod.`)) return;
+    const booking_code = "SR-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+    await supabase.from("bookings").insert([{
+      event_id: w.event_id,
+      event_name: w.event_name,
+      fname: w.fname,
+      lname: w.lname,
+      email: w.email,
+      phone: w.phone || null,
+      guests: w.guests,
+      vegetarian_count: w.vegetarian_count ?? 0,
+      note: w.note || "",
+      total_price: 0,
+      booking_code,
+      status: "confirmed",
+    }]);
+    await supabase.rpc("decrement_event_spots", { ev_id: w.event_id, n: w.guests }).maybeSingle();
+    await supabase.from("waitlist").delete().eq("id", w.id);
+    fetchBookings();
+    fetchWaitlist();
+    fetchEvents();
+    alert(`${w.fname} ${w.lname} är nu bokad med kod ${booking_code}.`);
   };
 
   const deleteBooking = async (id: string) => {
@@ -699,9 +731,27 @@ export default function Admin() {
                   <div style={{ marginTop: 4, borderTop: "0.5px solid #ccc", paddingTop: 12 }}>
                     <div style={S.label}>Tider</div>
                     {(timeslots[event.id] || []).map(slot => (
-                      <div key={slot.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, marginBottom: 6 }}>
-                        <span>{slot.time} — {slot.spots_left}/{slot.spots} platser</span>
-                        <button style={S.btnDanger} onClick={() => deleteSlot(slot.id, event.id)}>×</button>
+                      <div key={slot.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, marginBottom: 6, gap: 8 }}>
+                        <span style={{ flex: 1 }}>{slot.time} — {slot.spots_left}/{slot.spots} platser</span>
+                        {editingSlot?.id === slot.id ? (
+                          <>
+                            <input
+                              type="number"
+                              style={{ ...S.input, width: 70, padding: "4px 8px" }}
+                              value={editingSlot.spots}
+                              onChange={e => setEditingSlot({ ...editingSlot, spots: e.target.value })}
+                              onKeyDown={e => { if (e.key === "Enter") saveSlotSpots(slot.id, event.id, Number(editingSlot.spots)); if (e.key === "Escape") setEditingSlot(null); }}
+                              autoFocus
+                            />
+                            <button style={S.btn} onClick={() => saveSlotSpots(slot.id, event.id, Number(editingSlot.spots))}>✓</button>
+                            <button style={S.btnOutline} onClick={() => setEditingSlot(null)}>✕</button>
+                          </>
+                        ) : (
+                          <>
+                            <button style={{ ...S.btnOutline, padding: "2px 8px", fontSize: 12 }} onClick={() => setEditingSlot({ id: slot.id, spots: String(slot.spots) })}>Redigera</button>
+                            <button style={S.btnDanger} onClick={() => deleteSlot(slot.id, event.id)}>×</button>
+                          </>
+                        )}
                       </div>
                     ))}
                     <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
@@ -905,7 +955,7 @@ export default function Admin() {
                     <td style={{ color: (w.vegetarian_count ?? 0) > 0 ? "#1D1D1D" : "#bbb" }}>{(w.vegetarian_count ?? 0) > 0 ? `${w.vegetarian_count} st` : "—"}</td>
                     <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 160 }} title={w.note || ""}>{w.note ? (w.note.length > 30 ? w.note.slice(0, 30) + "…" : w.note) : "—"}</td>
                     <td style={{ color: "#6B6560" }}>{new Date(w.created_at).toLocaleDateString("sv-SE")}</td>
-                    <td><button style={S.btnDanger} onClick={() => deleteWaitlistEntry(w.id)}>×</button></td>
+                    <td><div style={{ display: "flex", gap: 6 }}><button style={{ ...S.btnOutline, fontSize: 12, padding: "4px 10px" }} onClick={() => promoteWaitlistEntry(w)} title="Flytta till bokningar">→ Event</button><button style={S.btnDanger} onClick={() => deleteWaitlistEntry(w.id)}>×</button></div></td>
                   </tr>
                 ))}
               </tbody>
