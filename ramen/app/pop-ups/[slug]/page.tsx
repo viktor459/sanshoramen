@@ -223,9 +223,14 @@ export default function EventPage() {
           </>
         ) : (
           <>
-            {event.require_card && !isOnSite && (
+            {event.require_card && !isOnSite && event.price == null && (
               <div className="notice">
                 <strong>Free to book — card verification required.</strong> We save your card details and charge <strong>250 SEK</strong> for no-shows if you don't cancel at least 48 hours before the event.
+              </div>
+            )}
+            {event.price != null && (
+              <div className="notice" style={{ background: "#F0F7FF", borderColor: "#BFDBFE", color: "#1E40AF" }}>
+                <strong>Payment required.</strong> This event is paid upfront — you'll be redirected to our secure payment page to complete your booking.
               </div>
             )}
 
@@ -295,8 +300,7 @@ export default function EventPage() {
             {event.price != null && (
               <div className="price-sum">
                 <div className="price-row"><span>{form.guests} × {event.price} SEK</span><span>{Number(form.guests) * event.price} SEK</span></div>
-                <div className="price-row"><span>Booking fee</span><span>0 SEK</span></div>
-                <div className="price-total"><span>Due today</span><span>0 SEK</span></div>
+                <div className="price-total"><span>Due today</span><span>{Number(form.guests) * event.price} SEK</span></div>
               </div>
             )}
 
