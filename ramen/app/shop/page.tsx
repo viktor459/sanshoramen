@@ -12,16 +12,21 @@ const S = `
   .page-title { font-weight:700; font-size:52px; letter-spacing:0.06em; margin-bottom:16px; }
   .page-sub { font-size:15px; color:var(--muted); line-height:1.8; margin-bottom:56px; max-width:480px; }
   .products-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-  .product-card { border:1.5px solid #DDD8CE; border-radius:16px; overflow:hidden; transition:transform 0.15s, box-shadow 0.15s; }
+  .product-card { border:1.5px solid #DDD8CE; border-radius:16px; overflow:hidden; transition:transform 0.15s, box-shadow 0.15s; display:flex; flex-direction:column; }
   .product-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.08); }
   .product-img { aspect-ratio:1; background:#E8E3D8; display:flex; align-items:center; justify-content:center; font-size:56px; }
-  .product-body { padding:20px 24px 24px; }
+  .product-body { padding:20px 24px 24px; display:flex; flex-direction:column; flex:1; }
   .product-cat { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
   .product-name { font-weight:700; font-size:18px; letter-spacing:0.03em; margin-bottom:8px; }
-  .product-desc { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:20px; }
-  .product-footer { display:flex; justify-content:space-between; align-items:center; }
-  .product-price { font-size:18px; font-weight:700; }
-  .buy-btn { background:var(--ink); color:var(--bg); border:none; padding:11px 22px; border-radius:var(--r); font-family:'Quicksand',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:opacity 0.2s; }
+  .product-desc { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:20px; flex:1; }
+  .product-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .product-price { font-size:18px; font-weight:700; white-space:nowrap; }
+  .qty-buy { display:flex; align-items:center; gap:8px; }
+  .qty-wrap { display:flex; align-items:center; border:1.5px solid #DDD8CE; border-radius:var(--r); overflow:hidden; }
+  .qty-btn { background:none; border:none; width:32px; height:36px; font-size:18px; cursor:pointer; color:var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Quicksand',sans-serif; }
+  .qty-btn:hover { background:#EDE8DF; }
+  .qty-num { font-size:14px; font-weight:600; min-width:20px; text-align:center; }
+  .buy-btn { background:var(--ink); color:var(--bg); border:none; padding:10px 18px; border-radius:var(--r); font-family:'Quicksand',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:opacity 0.2s; white-space:nowrap; }
   .buy-btn:hover { opacity:0.82; }
   .buy-btn:disabled { opacity:0.4; cursor:not-allowed; }
   .empty-state { text-align:center; padding:80px 0; color:var(--muted); }
@@ -38,19 +43,30 @@ const EMOJIS: Record<string, string> = {
 export default function Shop() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<number | null>(null);
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
 
   useEffect(() => {
     supabase.from("products").select("*").eq("active", true).order("id").then(({ data }) => {
-      if (data) setProducts(data);
+      if (data) {
+        setProducts(data);
+        const initial: Record<number, number> = {};
+        data.forEach(p => { initial[p.id] = 1; });
+        setQuantities(initial);
+      }
     });
   }, []);
 
+  const setQty = (id: number, delta: number) => {
+    setQuantities(prev => ({ ...prev, [id]: Math.max(1, Math.min(10, (prev[id] || 1) + delta)) }));
+  };
+
   const buy = async (product: Product) => {
     setLoading(product.id);
+    const qty = quantities[product.id] || 1;
     const res = await fetch("/api/shop-checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_name: product.name, quantity: 1 }),
+      body: JSON.stringify({ product_name: product.name, quantity: qty }),
     });
     const { url } = await res.json();
     if (url) window.location.href = url;
@@ -83,10 +99,17 @@ export default function Shop() {
                   <h3 className="product-name">{p.name}</h3>
                   <p className="product-desc">{p.description}</p>
                   <div className="product-footer">
-                    <span className="product-price">{p.price} kr</span>
-                    <button className="buy-btn" onClick={() => buy(p)} disabled={loading === p.id}>
-                      {loading === p.id ? "..." : "Buy →"}
-                    </button>
+                    <span className="product-price">{p.price * (quantities[p.id] || 1)} kr</span>
+                    <div className="qty-buy">
+                      <div className="qty-wrap">
+                        <button className="qty-btn" onClick={() => setQty(p.id, -1)}>−</button>
+                        <span className="qty-num">{quantities[p.id] || 1}</span>
+                        <button className="qty-btn" onClick={() => setQty(p.id, 1)}>+</button>
+                      </div>
+                      <button className="buy-btn" onClick={() => buy(p)} disabled={loading === p.id}>
+                        {loading === p.id ? "..." : "Buy →"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

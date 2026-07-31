@@ -47,8 +47,11 @@ export async function POST(req: Request) {
                 <div style="font-size:18px;font-weight:700;">${m.product_name}</div>
                 <div style="font-size:14px;color:#aaa;margin-top:4px;">${m.total_price} kr</div>
               </div>
-              <p style="font-size:14px;color:#1D1D1D;line-height:1.7;">Your order will be available for pick-up at our next pop-up. Follow us on Instagram to find out when and where.</p>
-              <a href="https://www.instagram.com/sanshoramen" style="display:inline-block;margin-top:16px;background:#1D1D1D;color:#F5F1E8;text-decoration:none;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:500;">@sanshoramen →</a>
+              <div style="background:#fff;border:1.5px solid #E8E3D8;border-radius:12px;padding:24px 28px;margin-bottom:28px;">
+                <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#6B6560;margin-bottom:10px;">Pick-up</div>
+                <p style="font-size:14px;color:#1D1D1D;line-height:1.7;margin:0;">Your order will be ready for pick-up at our <strong>next pop-up</strong>. We'll reach out with details closer to the date. Follow us on Instagram for updates.</p>
+                <a href="https://www.instagram.com/sanshoramen" style="display:inline-block;margin-top:14px;background:#1D1D1D;color:#F5F1E8;text-decoration:none;padding:11px 22px;border-radius:100px;font-size:13px;font-weight:500;">@sanshoramen on Instagram →</a>
+              </div>
               <p style="font-size:12px;color:#aaa;margin-top:40px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne</p>
             </div>
           `,

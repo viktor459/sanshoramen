@@ -38,9 +38,10 @@ export async function POST(req: Request) {
       quantity: qty,
     }],
     mode: "payment",
+    customer_email: email || undefined,
+    invoice_creation: { enabled: true },
     success_url: `${process.env.NEXT_PUBLIC_URL}/tack?type=shop&product=${encodeURIComponent(product.name)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_URL}/shop`,
-    customer_email: email || undefined,
     metadata: {
       order_id: order ? String(order.id) : "",
       product_name: product.name,
