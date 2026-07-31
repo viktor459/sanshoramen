@@ -56,6 +56,7 @@ type ShopOrder = {
   total_price: number;
   email: string;
   status: string;
+  stripe_session_id?: string;
 };
 
 type Post = {
@@ -163,7 +164,22 @@ export default function Admin() {
 
   const fetchShopOrders = async () => {
     const { data } = await supabase.from("shop_orders").select("*").order("created_at", { ascending: false });
-    if (data) setShopOrders(data);
+    if (data) {
+      setShopOrders(data);
+      // Auto-sync pending orders against Stripe
+      const pending = data.filter(o => o.status === "pending" && o.stripe_session_id);
+      for (const o of pending) {
+        fetch("/api/sync-shop-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: o.id, stripe_session_id: o.stripe_session_id }),
+        }).then(r => r.json()).then(res => {
+          if (res.status === "paid") {
+            setShopOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: "paid" } : x));
+          }
+        }).catch(() => {});
+      }
+    }
   };
 
   const fetchWaitlist = async () => {
@@ -1023,7 +1039,17 @@ export default function Admin() {
                       </span>
                     </td>
                     <td style={{ color: "#6B6560" }}>{new Date(o.created_at).toLocaleDateString("sv-SE")}</td>
-                    <td><button style={S.btnDanger} onClick={() => deleteShopOrder(o.id)}>×</button></td>
+                    <td style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      {o.status === "pending" && o.stripe_session_id && (
+                        <button style={{ ...S.btnOutline, fontSize: 11, padding: "2px 8px" }} onClick={async () => {
+                          const res = await fetch("/api/sync-shop-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_id: o.id, stripe_session_id: o.stripe_session_id }) });
+                          const data = await res.json();
+                          if (data.status === "paid") setShopOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: "paid" } : x));
+                          else alert(`Stripe-status: ${data.status}`);
+                        }}>Kontrollera</button>
+                      )}
+                      <button style={S.btnDanger} onClick={() => deleteShopOrder(o.id)}>×</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
