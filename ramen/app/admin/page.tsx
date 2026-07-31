@@ -341,6 +341,36 @@ export default function Admin() {
     fetchEvents();
   };
 
+  const duplicateEvent = async (event: Event) => {
+    const { data: newEvent } = await supabase.from("events").insert([{
+      title: `${event.title} (kopia)`,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      spots: event.spots,
+      spots_left: event.spots,
+      price: event.price,
+      description: event.description,
+      active: false,
+      archived: false,
+      image_url: event.image_url || null,
+      booking_type: event.booking_type,
+      external_url: event.external_url || null,
+      require_card: event.require_card,
+      require_stuk: event.require_stuk,
+      slug: toSlug(`${event.title} kopia ${Date.now()}`),
+    }]).select("id").single();
+    if (newEvent) {
+      const slots = timeslots[event.id] || [];
+      if (slots.length > 0) {
+        await supabase.from("timeslots").insert(slots.map(s => ({
+          event_id: newEvent.id, time: s.time, spots: s.spots, spots_left: s.spots,
+        })));
+      }
+    }
+    fetchEvents();
+  };
+
   const addSlot = async (eventId: number) => {
     if (!newSlot.time || !newSlot.spots) return;
     await supabase.from("timeslots").insert([{
@@ -815,6 +845,7 @@ export default function Admin() {
                     <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
                       {event.archived && <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 99, background: "#F0EDE6", color: "#6B6560", alignSelf: "center" }}>Arkiverat</span>}
                       <button style={S.btnOutline} onClick={() => { setEditingEvent(event); setEventsView("edit"); }}>Redigera</button>
+                      <button style={S.btnOutline} onClick={() => duplicateEvent(event)}>Duplicera</button>
                       {!event.archived && <button style={S.btnOutline} onClick={() => toggleActive(event)}>{event.active ? "Dölj" : "Visa"}</button>}
                       {event.archived
                         ? <button style={S.btnOutline} onClick={() => unarchiveEvent(event)}>Återställ</button>
