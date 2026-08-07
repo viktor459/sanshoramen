@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 
 const S = `
@@ -34,7 +34,13 @@ const S = `
 `;
 
 const TIMES = ["16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30"];
-const FULL_TIMES = ["16:00","20:00"];
+const MAX_GUESTS: Record<string, number> = {
+  "16:00": 25, "16:30": 11, "17:00": 11, "17:30": 11,
+  "18:00": 11, "18:30": 11, "19:00": 11, "19:30": 11,
+  "20:00": 25, "20:30": 11,
+};
+// Pre-fill 16:00 and 20:00 as already full
+const PREFILLED: Record<string, number> = { "16:00": 25, "20:00": 25 };
 
 export default function Community() {
   // Newsletter
@@ -44,6 +50,16 @@ export default function Community() {
   // Stallet
   const [stalletForm, setStalletForm] = useState({ name: "", email: "", time: "", guests: "1" });
   const [stalletStatus, setStalletStatus] = useState<"idle"|"loading"|"done">("idle");
+  const [guestsByTime, setGuestsByTime] = useState<Record<string, number>>(PREFILLED);
+
+  useEffect(() => {
+    supabase.from("stallet_preferences").select("preferred_time, guests").then(({ data }) => {
+      if (!data) return;
+      const counts: Record<string, number> = { ...PREFILLED };
+      data.forEach(r => { counts[r.preferred_time] = (counts[r.preferred_time] || 0) + r.guests; });
+      setGuestsByTime(counts);
+    });
+  }, []);
 
   const submitNewsletter = async () => {
     if (!nlEmail.includes("@")) return;
@@ -107,9 +123,11 @@ export default function Community() {
                 <label>Välj tid</label>
                 <div className="times-grid">
                   {TIMES.map(t => {
-                    const full = FULL_TIMES.includes(t);
+                    const used = guestsByTime[t] || 0;
+                    const max = MAX_GUESTS[t];
+                    const full = used >= max;
                     return (
-                      <button key={t} className={`time-btn${stalletForm.time === t ? " sel" : ""}${full ? " full" : ""}`} onClick={() => !full && setStalletForm(f => ({...f, time: t}))} disabled={full} style={full ? { opacity:0.35, cursor:"not-allowed", textDecoration:"line-through" } : {}}>
+                      <button key={t} className={`time-btn${stalletForm.time === t ? " sel" : ""}`} onClick={() => !full && setStalletForm(f => ({...f, time: t}))} disabled={full} style={full ? { opacity:0.35, cursor:"not-allowed", textDecoration:"line-through", background:"#f0ede6" } : {}}>
                         {t}{full ? " •" : ""}
                       </button>
                     );
