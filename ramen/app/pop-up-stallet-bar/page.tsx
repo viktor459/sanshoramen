@@ -40,10 +40,6 @@ export default function Community() {
   const [nlEmail, setNlEmail] = useState("");
   const [nlStatus, setNlStatus] = useState<"idle"|"loading"|"done"|"error">("idle");
 
-  // Loyalty
-  const [loyaltyForm, setLoyaltyForm] = useState({ fname: "", email: "" });
-  const [loyaltyStatus, setLoyaltyStatus] = useState<"idle"|"loading"|"done">("idle");
-
   // Stallet
   const [stalletForm, setStalletForm] = useState({ name: "", email: "", time: "" });
   const [stalletStatus, setStalletStatus] = useState<"idle"|"loading"|"done">("idle");
@@ -53,13 +49,6 @@ export default function Community() {
     setNlStatus("loading");
     const res = await fetch("/api/subscribe", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email: nlEmail }) });
     setNlStatus(res.ok ? "done" : "error");
-  };
-
-  const submitLoyalty = async () => {
-    if (!loyaltyForm.fname || !loyaltyForm.email.includes("@")) return;
-    setLoyaltyStatus("loading");
-    await fetch("/api/join-club", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email: loyaltyForm.email, fname: loyaltyForm.fname }) });
-    setLoyaltyStatus("done");
   };
 
   const submitStallet = async () => {
@@ -100,45 +89,11 @@ export default function Community() {
           )}
         </div>
 
-        {/* LOYALTY */}
-        <div className="section" style={{ background:"#1D1D1D", color:"#F5F1E8" }}>
-          <p className="tag" style={{ color:"#C0392B" }}>★ Lojalitetsprogram</p>
-          <h2 className="section-title" style={{ color:"#F5F1E8" }}>Sanshō Inner Circle</h2>
-          <p className="section-sub" style={{ color:"#999" }}>För dig som är stamgäst. Ju fler pop-ups du besöker, desto mer får du tillbaka.</p>
-          <div className="perks">
-            <div className="perk"><span className="perk-icon">★</span><span style={{ color:"#ccc" }}>Early access till bokningar — 48h innan alla andra</span></div>
-            <div className="perk"><span className="perk-icon">★</span><span style={{ color:"#ccc" }}>Inbjudningar till privata club-only-event</span></div>
-            <div className="perk"><span className="perk-icon">★</span><span style={{ color:"#ccc" }}>Behind-the-scenes från köket och nya menyer</span></div>
-            <div className="perk"><span className="perk-icon">★</span><span style={{ color:"#ccc" }}>Surprises för de mest lojala gästerna</span></div>
-          </div>
-          {loyaltyStatus === "done" ? (
-            <div className="success">
-              <div className="success-emoji">🍜</div>
-              <div className="success-title" style={{ color:"#F5F1E8" }}>Välkommen till the inner circle!</div>
-              <div className="success-sub">Vi hör av oss med mer info.</div>
-            </div>
-          ) : (
-            <>
-              <div className="field">
-                <label style={{ color:"#888" }}>Förnamn</label>
-                <input placeholder="Ditt namn" value={loyaltyForm.fname} onChange={e => setLoyaltyForm(f => ({...f, fname: e.target.value}))} style={{ background:"#2a2a2a", borderColor:"#333", color:"#F5F1E8" }} />
-              </div>
-              <div className="field">
-                <label style={{ color:"#888" }}>E-postadress</label>
-                <input type="email" placeholder="din@email.se" value={loyaltyForm.email} onChange={e => setLoyaltyForm(f => ({...f, email: e.target.value}))} style={{ background:"#2a2a2a", borderColor:"#333", color:"#F5F1E8" }} />
-              </div>
-              <button className="btn btn-red" onClick={submitLoyalty} disabled={loyaltyStatus === "loading" || !loyaltyForm.fname || !loyaltyForm.email.includes("@")}>
-                {loyaltyStatus === "loading" ? "Joinар..." : "Gå med i Inner Circle →"}
-              </button>
-            </>
-          )}
-        </div>
-
         {/* STALLET BAR */}
         <div className="section">
           <p className="tag">12 aug · Stallet Bar</p>
           <h2 className="section-title">Välj din tid</h2>
-          <p className="section-sub">Anmäl vilken tid du vill ha din ramen serverad på onsdagens pop-up på Stallet Bar. Vi förbereder din bowl till den valda tidpunkten.</p>
+          <p className="section-sub">Anmäl vilken tid du vill ha din ramen serverad på onsdagens pop-up på Stallet Bar. Vi serverar din skål inom 30 minuter från den valda tiden — vi förbereder 11–25 skålar per tid.</p>
           {stalletStatus === "done" ? (
             <div className="success">
               <div className="success-emoji">🕐</div>
