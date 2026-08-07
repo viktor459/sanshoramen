@@ -75,6 +75,7 @@ type Product = { id: number; name: string; description: string; price: number; i
 type WaitlistEntry = { id: number; created_at: string; event_id: number; event_name: string; fname: string; lname: string; email: string; phone?: string; guests: number; vegetarian_count: number; note: string; };
 type RamenSpot = { id: number; name: string; city: string; country: string; lat: number; lng: number; rating: number; note: string; image_url: string; visited_at: string; };
 type Review = { id: number; created_at: string; event_name: string; event_slug: string; name: string; rating: number; comment: string; };
+type StalletPref = { id: number; created_at: string; name: string; email: string; preferred_time: string; guests: number; };
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
@@ -85,7 +86,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -117,6 +118,7 @@ export default function Admin() {
 
   // Reviews
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [stalletPrefs, setStalletPrefs] = useState<StalletPref[]>([]);
   const [filterReviewEvent, setFilterReviewEvent] = useState("all");
 
   // Ramen Map
@@ -139,7 +141,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs();
   }, []);
 
   const fetchEvents = async () => {
@@ -190,6 +192,11 @@ export default function Admin() {
   const deleteWaitlistEntry = async (id: number) => {
     await supabase.from("waitlist").delete().eq("id", id);
     fetchWaitlist();
+  };
+
+  const fetchStalletPrefs = async () => {
+    const { data } = await supabase.from("stallet_preferences").select("*").order("preferred_time").order("created_at");
+    if (data) setStalletPrefs(data);
   };
 
   const fetchReviews = async () => {
@@ -630,9 +637,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "recensioner", "karta"] as const).map(t => (
+        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "recensioner", "karta", "stallet"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : t === "recensioner" ? `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}` : "Ramen Map"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : t === "recensioner" ? `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}` : t === "stallet" ? `Stallet Bar${stalletPrefs.length > 0 ? ` (${stalletPrefs.length})` : ""}` : "Ramen Map"}
           </button>
         ))}
       </div>
@@ -1201,6 +1208,45 @@ export default function Admin() {
               </>
             );
           })()}
+        </div>
+      )}
+
+      {/* STALLET BAR TAB */}
+      {tab === "stallet" && (
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>Stallet Bar — 12 aug · Tidsval</div>
+          <div style={{ fontSize: 13, color: "#6B6560", marginBottom: 20 }}>
+            {stalletPrefs.length} anmälningar · {stalletPrefs.reduce((s, p) => s + p.guests, 0)} gäster totalt
+          </div>
+          {["16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30"].map(time => {
+            const group = stalletPrefs.filter(p => p.preferred_time === time);
+            if (group.length === 0) return null;
+            return (
+              <div key={time} style={{ marginBottom: 24 }}>
+                <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
+                  {time}
+                  <span style={{ fontSize: 12, background: "#F0EDE6", borderRadius: 99, padding: "2px 10px", color: "#6B6560" }}>
+                    {group.length} anmälningar · {group.reduce((s, p) => s + p.guests, 0)} gäster
+                  </span>
+                </div>
+                <div style={{ border: "1.5px solid #DDD8CE", borderRadius: 10, overflow: "hidden" }}>
+                  <table style={{ width: "100%" }}>
+                    <thead><tr><th style={{ textAlign: "left", padding: "8px 16px", fontSize: 11, color: "#6B6560", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid #EDE8DF" }}>Namn</th><th style={{ textAlign: "left", padding: "8px 16px", fontSize: 11, color: "#6B6560", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid #EDE8DF" }}>E-post</th><th style={{ textAlign: "center", padding: "8px 16px", fontSize: 11, color: "#6B6560", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid #EDE8DF" }}>Sällskap</th></tr></thead>
+                    <tbody>
+                      {group.map(p => (
+                        <tr key={p.id} style={{ borderBottom: "0.5px solid #F0EDE6" }}>
+                          <td style={{ padding: "10px 16px", fontSize: 14 }}>{p.name}</td>
+                          <td style={{ padding: "10px 16px", fontSize: 13, color: "#6B6560" }}>{p.email}</td>
+                          <td style={{ padding: "10px 16px", fontSize: 14, textAlign: "center" }}>{p.guests}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+          {stalletPrefs.length === 0 && <div style={{ color: "#6B6560", padding: 40, textAlign: "center" }}>Inga anmälningar än.</div>}
         </div>
       )}
 

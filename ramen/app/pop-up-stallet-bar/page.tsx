@@ -34,6 +34,7 @@ const S = `
 `;
 
 const TIMES = ["16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00","20:30"];
+const FULL_TIMES = ["16:00","20:00"];
 
 export default function Community() {
   // Newsletter
@@ -41,7 +42,7 @@ export default function Community() {
   const [nlStatus, setNlStatus] = useState<"idle"|"loading"|"done"|"error">("idle");
 
   // Stallet
-  const [stalletForm, setStalletForm] = useState({ name: "", email: "", time: "" });
+  const [stalletForm, setStalletForm] = useState({ name: "", email: "", time: "", guests: "1" });
   const [stalletStatus, setStalletStatus] = useState<"idle"|"loading"|"done">("idle");
 
   const submitNewsletter = async () => {
@@ -54,7 +55,7 @@ export default function Community() {
   const submitStallet = async () => {
     if (!stalletForm.name || !stalletForm.email.includes("@") || !stalletForm.time) return;
     setStalletStatus("loading");
-    await supabase.from("stallet_preferences").insert([{ name: stalletForm.name, email: stalletForm.email, preferred_time: stalletForm.time }]);
+    await supabase.from("stallet_preferences").insert([{ name: stalletForm.name, email: stalletForm.email, preferred_time: stalletForm.time, guests: Number(stalletForm.guests) }]);
     setStalletStatus("done");
   };
 
@@ -67,8 +68,8 @@ export default function Community() {
         {/* NEWSLETTER */}
         <div className="section">
           <p className="tag">Nyhetsbrev</p>
-          <h2 className="section-title">Håll dig uppdaterad</h2>
-          <p className="section-sub">Få nyheter om kommande pop-ups, menyer och exklusiva erbjudanden direkt i inkorgen.</p>
+          <h2 className="section-title">Börja samla stämplar</h2>
+          <p className="section-sub">Anmäl dig till vårt nyhetsbrev och starta ditt stämpelkort. Ju fler pop-ups du besöker, desto mer får du tillbaka.</p>
           {nlStatus === "done" ? (
             <div className="success">
               <div className="success-emoji">📬</div>
@@ -93,7 +94,7 @@ export default function Community() {
         <div className="section">
           <p className="tag">12 aug · Stallet Bar</p>
           <h2 className="section-title">Välj din tid</h2>
-          <p className="section-sub">Anmäl vilken tid du vill ha din ramen serverad på onsdagens pop-up på Stallet Bar. Vi serverar din skål inom 30 minuter från den valda tiden — vi förbereder 11–25 skålar per tid.</p>
+          <p className="section-sub">Anmäl vilken tid du vill ha din ramen serverad på onsdagens pop-up på Stallet Bar. Vi serverar din skål inom 30 minuter från den valda tiden.</p>
           {stalletStatus === "done" ? (
             <div className="success">
               <div className="success-emoji">🕐</div>
@@ -105,11 +106,14 @@ export default function Community() {
               <div className="field">
                 <label>Välj tid</label>
                 <div className="times-grid">
-                  {TIMES.map(t => (
-                    <button key={t} className={`time-btn${stalletForm.time === t ? " sel" : ""}`} onClick={() => setStalletForm(f => ({...f, time: t}))}>
-                      {t}
-                    </button>
-                  ))}
+                  {TIMES.map(t => {
+                    const full = FULL_TIMES.includes(t);
+                    return (
+                      <button key={t} className={`time-btn${stalletForm.time === t ? " sel" : ""}${full ? " full" : ""}`} onClick={() => !full && setStalletForm(f => ({...f, time: t}))} disabled={full} style={full ? { opacity:0.35, cursor:"not-allowed", textDecoration:"line-through" } : {}}>
+                        {t}{full ? " •" : ""}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="field">
@@ -119,6 +123,12 @@ export default function Community() {
               <div className="field">
                 <label>E-post</label>
                 <input type="email" placeholder="din@email.se" value={stalletForm.email} onChange={e => setStalletForm(f => ({...f, email: e.target.value}))} />
+              </div>
+              <div className="field">
+                <label>Antal i sällskapet</label>
+                <select value={stalletForm.guests} onChange={e => setStalletForm(f => ({...f, guests: e.target.value}))}>
+                  {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "personer"}</option>)}
+                </select>
               </div>
               <button className="btn" onClick={submitStallet} disabled={stalletStatus === "loading" || !stalletForm.name || !stalletForm.email.includes("@") || !stalletForm.time}>
                 {stalletStatus === "loading" ? "Skickar..." : "Skicka →"}
