@@ -86,7 +86,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev">("events");
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -120,6 +120,7 @@ export default function Admin() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stalletPrefs, setStalletPrefs] = useState<StalletPref[]>([]);
   const [filterReviewEvent, setFilterReviewEvent] = useState("all");
+  const [subscribers, setSubscribers] = useState<{ id: number; created_at: string; email: string }[]>([]);
 
   // Ramen Map
   const [spots, setSpots] = useState<RamenSpot[]>([]);
@@ -141,7 +142,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs(); fetchSubscribers();
   }, []);
 
   const fetchEvents = async () => {
@@ -192,6 +193,11 @@ export default function Admin() {
   const deleteWaitlistEntry = async (id: number) => {
     await supabase.from("waitlist").delete().eq("id", id);
     fetchWaitlist();
+  };
+
+  const fetchSubscribers = async () => {
+    const { data } = await supabase.from("subscribers").select("id, created_at, email").order("created_at", { ascending: false });
+    if (data) setSubscribers(data);
   };
 
   const fetchStalletPrefs = async () => {
@@ -637,9 +643,9 @@ export default function Admin() {
       </div>
 
       <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "recensioner", "karta", "stallet"] as const).map(t => (
+        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "recensioner", "karta", "stallet", "nyhetsbrev"] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : t === "recensioner" ? `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}` : t === "stallet" ? `Stallet Bar${stalletPrefs.length > 0 ? ` (${stalletPrefs.length})` : ""}` : "Ramen Map"}
+            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : t === "recensioner" ? `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}` : t === "stallet" ? `Stallet Bar${stalletPrefs.length > 0 ? ` (${stalletPrefs.length})` : ""}` : t === "nyhetsbrev" ? `Nyhetsbrev${subscribers.length > 0 ? ` (${subscribers.length})` : ""}` : "Ramen Map"}
           </button>
         ))}
       </div>
@@ -1247,6 +1253,38 @@ export default function Admin() {
             );
           })}
           {stalletPrefs.length === 0 && <div style={{ color: "#6B6560", padding: 40, textAlign: "center" }}>Inga anmälningar än.</div>}
+        </div>
+      )}
+
+      {/* NYHETSBREV TAB */}
+      {tab === "nyhetsbrev" && (
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Nyhetsbrev</div>
+          <div style={{ color: "#6B6560", fontSize: 14, marginBottom: 20 }}>{subscribers.length} prenumeranter</div>
+          {subscribers.length === 0 ? (
+            <div style={{ color: "#6B6560", padding: 40, textAlign: "center" }}>Inga prenumeranter än.</div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #E8E3D8", textAlign: "left" }}>
+                    <th style={{ padding: "8px 12px" }}>#</th>
+                    <th style={{ padding: "8px 12px" }}>E-post</th>
+                    <th style={{ padding: "8px 12px" }}>Anmäld</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscribers.map((s, i) => (
+                    <tr key={s.id} style={{ borderBottom: "1px solid #F0EDE6" }}>
+                      <td style={{ padding: "10px 12px", color: "#6B6560" }}>{subscribers.length - i}</td>
+                      <td style={{ padding: "10px 12px" }}>{s.email}</td>
+                      <td style={{ padding: "10px 12px", color: "#6B6560" }}>{new Date(s.created_at).toLocaleDateString("sv-SE")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
