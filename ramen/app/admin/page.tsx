@@ -524,8 +524,8 @@ export default function Admin() {
 
   const exportCSV = () => {
     const filtered = filteredBookings;
-    const rows = [["Bokningskod", "Namn", "E-post", "Event", "Tid", "Gäster", "Totalt", "Status", "Datum"]];
-    filtered.forEach(b => rows.push([b.booking_code, `${b.fname} ${b.lname}`, b.email, b.event_name, b.timeslot_time || "-", String(b.guests), `${b.total_price} kr`, b.status, new Date(b.created_at).toLocaleDateString("sv-SE")]));
+    const rows = [["Bokningskod", "Namn", "E-post", "Event", "Tid", "Gäster", "Veggie", "Totalt", "Status", "Datum"]];
+    filtered.forEach(b => rows.push([b.booking_code, `${b.fname} ${b.lname}`, b.email, b.event_name, b.timeslot_time || "-", String(b.guests), String(b.vegetarian_count ?? 0), `${b.total_price} kr`, b.status, new Date(b.created_at).toLocaleDateString("sv-SE")]));
     const csv = rows.map(r => r.join(";")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
