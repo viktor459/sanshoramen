@@ -170,6 +170,10 @@ export default function EventPage() {
         </p>
         {event.description && <p className="bk-desc">{event.description}</p>}
 
+        <div className="notice" style={{ background: "#FFF3F3", borderColor: "#F5C6C6", color: "#7B2020", marginBottom: 28 }}>
+          Vi kan tyvärr inte ta hänsyn till allergier eller specialkost, inklusive gluten och nötter. Vänligen ta detta i beaktning innan du bokar.
+        </div>
+
         {isExternal && !full ? (
           <a href={event.external_url || "#"} target="_blank" rel="noreferrer"
             style={{ display: "inline-block", background: "var(--ink)", color: "var(--bg)", padding: "16px 32px", borderRadius: "var(--r)", textDecoration: "none", fontSize: 15, fontWeight: 500 }}>
