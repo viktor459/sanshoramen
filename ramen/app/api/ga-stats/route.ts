@@ -4,10 +4,12 @@ import { GoogleAuth } from "google-auth-library";
 const PROPERTY_ID = process.env.GA_PROPERTY_ID;
 
 async function gaRequest(body: object) {
+  const rawKey = process.env.GA_PRIVATE_KEY || "";
+  const privateKey = rawKey.includes("\\n") ? rawKey.replace(/\\n/g, "\n") : rawKey;
   const auth = new GoogleAuth({
     credentials: {
       client_email: process.env.GA_CLIENT_EMAIL,
-      private_key: process.env.GA_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      private_key: privateKey,
     },
     scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
   });
