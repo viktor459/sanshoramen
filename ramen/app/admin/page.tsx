@@ -88,10 +88,13 @@ const formatDate = (dateStr: string) => {
 export default function Admin() {
   const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev">("events");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const close = () => setOpenDropdown(null);
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
+    const close = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenDropdown(null);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, []);
 
   // Events
@@ -648,14 +651,14 @@ export default function Admin() {
         <button style={S.btnOutline} onClick={async () => { await fetch("/api/admin-logout", { method: "POST" }); window.location.href = "/admin/login"; }}>Log out</button>
       </div>
 
-      <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content", flexWrap: "wrap" }} onClick={e => { if (e.target === e.currentTarget) setOpenDropdown(null); }}>
+      <div ref={navRef} style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content", flexWrap: "wrap" }}>
         {/* Bokningar dropdown */}
         {(() => {
           const inGroup = ["events","bookings","waitlist"].includes(tab);
           const label = tab === "events" ? "Events & Tider" : tab === "bookings" ? "Bokningar" : tab === "waitlist" ? "Waitlist" : "Bokningar";
           return (
             <div style={{ position: "relative" }}>
-              <button onClick={e => { e.stopPropagation(); setOpenDropdown(openDropdown === "bokningar" ? null : "bokningar"); }}
+              <button onClick={() => setOpenDropdown(openDropdown === "bokningar" ? null : "bokningar")}
                 style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: inGroup ? "#F5F1E8" : "transparent", fontWeight: inGroup ? 500 : 400, display: "flex", alignItems: "center", gap: 6 }}>
                 {inGroup ? label : "Bokningar"} ▾
               </button>
@@ -679,7 +682,7 @@ export default function Admin() {
           const label = tab === "products" ? "Produkter" : tab === "ordrar" ? "Ordrar" : "Shop";
           return (
             <div style={{ position: "relative" }}>
-              <button onClick={e => { e.stopPropagation(); setOpenDropdown(openDropdown === "shop" ? null : "shop"); }}
+              <button onClick={() => setOpenDropdown(openDropdown === "shop" ? null : "shop")}
                 style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: inGroup ? "#F5F1E8" : "transparent", fontWeight: inGroup ? 500 : 400, display: "flex", alignItems: "center", gap: 6 }}>
                 {inGroup ? label : "Shop"} ▾
               </button>
