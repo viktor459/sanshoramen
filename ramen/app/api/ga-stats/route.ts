@@ -4,13 +4,16 @@ import { GoogleAuth } from "google-auth-library";
 const PROPERTY_ID = process.env.GA_PROPERTY_ID;
 
 async function gaRequest(body: object) {
-  const rawKey = process.env.GA_PRIVATE_KEY || "";
-  const privateKey = rawKey.includes("\\n") ? rawKey.replace(/\\n/g, "\n") : rawKey;
+  let credentials: any;
+  if (process.env.GA_SERVICE_ACCOUNT_B64) {
+    credentials = JSON.parse(Buffer.from(process.env.GA_SERVICE_ACCOUNT_B64, "base64").toString("utf-8"));
+  } else {
+    const rawKey = process.env.GA_PRIVATE_KEY || "";
+    const privateKey = rawKey.includes("\\n") ? rawKey.replace(/\\n/g, "\n") : rawKey;
+    credentials = { client_email: process.env.GA_CLIENT_EMAIL, private_key: privateKey };
+  }
   const auth = new GoogleAuth({
-    credentials: {
-      client_email: process.env.GA_CLIENT_EMAIL,
-      private_key: privateKey,
-    },
+    credentials,
     scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
   });
   const client = await auth.getClient();
