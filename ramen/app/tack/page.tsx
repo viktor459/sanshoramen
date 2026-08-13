@@ -76,9 +76,15 @@ export default function Tack() {
                   <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "0.1em" }}>{booking.booking_code}</div>
                 </div>
               )}
-              <p style={{ fontSize: 13, color: "#6B6560", lineHeight: 1.7, marginBottom: 36 }}>
+              <p style={{ fontSize: 13, color: "#6B6560", lineHeight: 1.7, marginBottom: 28 }}>
                 A confirmation has been sent to your email. 🍜
               </p>
+              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 14, padding: "20px 24px", marginBottom: 36, textAlign: "left" }}>
+                <div style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C0392B", marginBottom: 6 }}>While you wait</div>
+                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>Check out our shop</div>
+                <p style={{ fontSize: 13, color: "#6B6560", lineHeight: 1.6, marginBottom: 14 }}>Stickers, merch and more — pick up your order at the event.</p>
+                <a href="/shop" style={{ display: "inline-block", background: "#1D1D1D", color: "#F5F1E8", padding: "11px 22px", borderRadius: "100px", textDecoration: "none", fontSize: 13, fontWeight: 500 }}>Visit the shop →</a>
+              </div>
             </>
           ) : type === "club" ? (
             <>

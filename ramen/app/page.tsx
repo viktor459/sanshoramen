@@ -280,7 +280,6 @@ export default function Home() {
         <div className="about-text">
           <h2 className="section-title">Who are we?</h2>
           <p>We are two ramen nerds living in Skåne. Our concept is to take over restaurants, cafés or bars for a night and serve ramen at a seriously high level.</p>
-          <p>Every event is exclusive with 50–100 seats and the menu changes every time.</p>
           <p>Want to book us for an evening? Don't hesitate to reach out.</p>
           <a href="mailto:contact@sanshoramen.se" className="btn-dark" style={{ marginTop: 24, display: "inline-flex" }}>Get in touch →</a>
         </div>

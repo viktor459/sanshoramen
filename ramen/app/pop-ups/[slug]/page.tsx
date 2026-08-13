@@ -171,7 +171,7 @@ export default function EventPage() {
         {event.description && <p className="bk-desc">{event.description}</p>}
 
         <div className="notice" style={{ background: "#FFF3F3", borderColor: "#F5C6C6", color: "#7B2020", marginBottom: 28 }}>
-          Vi kan tyvärr inte ta hänsyn till allergier eller specialkost, inklusive gluten och nötter. Vänligen ta detta i beaktning innan du bokar.
+          Please note that we are unable to accommodate allergies or dietary requirements, including gluten and nuts. Keep this in mind before booking.
         </div>
 
         {isExternal && !full ? (
@@ -232,12 +232,6 @@ export default function EventPage() {
                 <strong>Free to book — card verification required.</strong> We save your card details and charge <strong>250 SEK</strong> for no-shows if you don't cancel at least 48 hours before the event.
               </div>
             )}
-            {event.price != null && (
-              <div className="notice" style={{ background: "#F0F7FF", borderColor: "#BFDBFE", color: "#1E40AF" }}>
-                <strong>Payment required.</strong> This event is paid upfront — you'll be redirected to our secure payment page to complete your booking.
-              </div>
-            )}
-
             {timeslots.length > 0 && (
               <div style={{ marginBottom: 24 }}>
                 <p className="sec-label">Select time</p>
@@ -319,6 +313,11 @@ export default function EventPage() {
               onClick={handleBook}>
               {loading ? "Sending..." : isOnSite ? "Confirm booking →" : event.require_card ? "Verify card & confirm booking →" : "Confirm booking →"}
             </button>
+            {event.price != null && (
+              <p style={{ textAlign: "center", fontSize: 13, color: "#1E40AF", marginTop: 10 }}>
+                Payment required — you'll be redirected to our secure checkout.
+              </p>
+            )}
           </>
         )}
       </div>
