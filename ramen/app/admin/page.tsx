@@ -86,7 +86,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev" | "lojalitet">("events");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -130,6 +130,8 @@ export default function Admin() {
   const [stalletPrefs, setStalletPrefs] = useState<StalletPref[]>([]);
   const [filterReviewEvent, setFilterReviewEvent] = useState("all");
   const [subscribers, setSubscribers] = useState<{ id: number; created_at: string; email: string }[]>([]);
+  type LoyaltyEntry = { email: string; name: string; luma_events: number; system_events: number; total: number };
+  const [loyalty, setLoyalty] = useState<LoyaltyEntry[]>([]);
 
   // Ramen Map
   const [spots, setSpots] = useState<RamenSpot[]>([]);
@@ -151,7 +153,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs(); fetchSubscribers();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs(); fetchSubscribers(); fetchLoyalty();
   }, []);
 
   const fetchEvents = async () => {
@@ -202,6 +204,24 @@ export default function Admin() {
   const deleteWaitlistEntry = async (id: number) => {
     await supabase.from("waitlist").delete().eq("id", id);
     fetchWaitlist();
+  };
+
+  const fetchLoyalty = async () => {
+    const [{ data: luma }, { data: bks }] = await Promise.all([
+      supabase.from("luma_members").select("email, name, luma_events"),
+      supabase.from("bookings").select("email, event_name").eq("status", "confirmed"),
+    ]);
+    const systemCount: Record<string, number> = {};
+    (bks || []).forEach(b => { const e = b.email?.toLowerCase(); if (e) systemCount[e] = (systemCount[e] || 0) + 1; });
+    const map: Record<string, LoyaltyEntry> = {};
+    (luma || []).forEach(l => {
+      const e = l.email.toLowerCase();
+      map[e] = { email: e, name: l.name || "", luma_events: l.luma_events, system_events: systemCount[e] || 0, total: l.luma_events + (systemCount[e] || 0) };
+    });
+    Object.entries(systemCount).forEach(([e, cnt]) => {
+      if (!map[e]) map[e] = { email: e, name: "", luma_events: 0, system_events: cnt, total: cnt };
+    });
+    setLoyalty(Object.values(map).sort((a, b) => b.total - a.total));
   };
 
   const fetchSubscribers = async () => {
@@ -705,6 +725,7 @@ export default function Admin() {
           ["blogg", "Blogg"],
           ["recensioner", `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}`],
           ["nyhetsbrev", `Nyhetsbrev${subscribers.length > 0 ? ` (${subscribers.length})` : ""}`],
+          ["lojalitet", "Lojalitet"],
           ["karta", "Ramen Map"],
         ] as const).map(([t, label]) => (
           <button key={t} onClick={() => { setTab(t as any); setOpenDropdown(null); }}
@@ -1349,6 +1370,42 @@ export default function Admin() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* LOJALITET TAB */}
+      {tab === "lojalitet" && (
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Lojalitet</div>
+          <div style={{ color: "#6B6560", fontSize: 14, marginBottom: 20 }}>Rankad efter totalt antal besökta events (Luma + systemet)</div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid #E8E3D8", textAlign: "left" }}>
+                  <th style={{ padding: "8px 12px" }}>#</th>
+                  <th style={{ padding: "8px 12px" }}>Namn</th>
+                  <th style={{ padding: "8px 12px" }}>E-post</th>
+                  <th style={{ padding: "8px 12px", textAlign: "center" }}>Luma</th>
+                  <th style={{ padding: "8px 12px", textAlign: "center" }}>System</th>
+                  <th style={{ padding: "8px 12px", textAlign: "center" }}>Totalt</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loyalty.map((l, i) => (
+                  <tr key={l.email} style={{ borderBottom: "1px solid #F0EDE6", background: l.total >= 3 ? "#FFFBEB" : l.total >= 2 ? "#F9F9F9" : "transparent" }}>
+                    <td style={{ padding: "10px 12px", color: "#6B6560" }}>{i + 1}</td>
+                    <td style={{ padding: "10px 12px", fontWeight: l.total >= 2 ? 600 : 400 }}>
+                      {l.total >= 3 ? "🏆 " : l.total >= 2 ? "⭐ " : ""}{l.name || "—"}
+                    </td>
+                    <td style={{ padding: "10px 12px", color: "#6B6560" }}>{l.email}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center" }}>{l.luma_events || "—"}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center" }}>{l.system_events || "—"}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>{l.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
