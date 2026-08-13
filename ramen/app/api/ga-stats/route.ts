@@ -35,6 +35,17 @@ export async function GET() {
   }
 
   try {
+    // Test single request first to check for errors
+    const testResp = await gaRequest({
+      dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+      dimensions: [{ name: "date" }],
+      metrics: [{ name: "sessions" }],
+      limit: 1,
+    });
+    if (testResp.error) {
+      return NextResponse.json({ error: testResp.error.message || JSON.stringify(testResp.error) }, { status: 400 });
+    }
+
     const [sessions, topPages, sources, devices] = await Promise.all([
       // Sessions + users last 30 days (daily)
       gaRequest({
