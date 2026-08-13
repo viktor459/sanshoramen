@@ -87,6 +87,12 @@ const formatDate = (dateStr: string) => {
 
 export default function Admin() {
   const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev">("events");
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  useEffect(() => {
+    const close = () => setOpenDropdown(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, []);
 
   // Events
   const [events, setEvents] = useState<Event[]>([]);
@@ -642,10 +648,65 @@ export default function Admin() {
         <button style={S.btnOutline} onClick={async () => { await fetch("/api/admin-logout", { method: "POST" }); window.location.href = "/admin/login"; }}>Log out</button>
       </div>
 
-      <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content" }}>
-        {(["events", "bookings", "waitlist", "ordrar", "blogg", "products", "recensioner", "karta", "stallet", "nyhetsbrev"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
-            {t === "events" ? "Events & Tider" : t === "bookings" ? "Bokningar" : t === "waitlist" ? `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}` : t === "ordrar" ? "Ordrar" : t === "blogg" ? "Blogg" : t === "products" ? "Shop" : t === "recensioner" ? `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}` : t === "stallet" ? `Stallet Bar${stalletPrefs.length > 0 ? ` (${stalletPrefs.length})` : ""}` : t === "nyhetsbrev" ? `Nyhetsbrev${subscribers.length > 0 ? ` (${subscribers.length})` : ""}` : "Ramen Map"}
+      <div style={{ display: "flex", gap: 4, marginBottom: 32, background: "#E8E3D8", borderRadius: 10, padding: 4, width: "fit-content", flexWrap: "wrap" }} onClick={e => { if (e.target === e.currentTarget) setOpenDropdown(null); }}>
+        {/* Bokningar dropdown */}
+        {(() => {
+          const inGroup = ["events","bookings","waitlist"].includes(tab);
+          const label = tab === "events" ? "Events & Tider" : tab === "bookings" ? "Bokningar" : tab === "waitlist" ? "Waitlist" : "Bokningar";
+          return (
+            <div style={{ position: "relative" }}>
+              <button onClick={e => { e.stopPropagation(); setOpenDropdown(openDropdown === "bokningar" ? null : "bokningar"); }}
+                style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: inGroup ? "#F5F1E8" : "transparent", fontWeight: inGroup ? 500 : 400, display: "flex", alignItems: "center", gap: 6 }}>
+                {inGroup ? label : "Bokningar"} ▾
+              </button>
+              {openDropdown === "bokningar" && (
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 10, padding: 6, zIndex: 100, minWidth: 170, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
+                  {(["events","bookings","waitlist"] as const).map(t => (
+                    <button key={t} onClick={() => { setTab(t); setOpenDropdown(null); }}
+                      style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 14px", border: "none", borderRadius: 7, fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 600 : 400 }}>
+                      {t === "events" ? "Events & Tider" : t === "bookings" ? `Bokningar (${bookings.length})` : `Waitlist${waitlist.length > 0 ? ` (${waitlist.length})` : ""}`}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Shop dropdown */}
+        {(() => {
+          const inGroup = ["products","ordrar"].includes(tab);
+          const label = tab === "products" ? "Produkter" : tab === "ordrar" ? "Ordrar" : "Shop";
+          return (
+            <div style={{ position: "relative" }}>
+              <button onClick={e => { e.stopPropagation(); setOpenDropdown(openDropdown === "shop" ? null : "shop"); }}
+                style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: inGroup ? "#F5F1E8" : "transparent", fontWeight: inGroup ? 500 : 400, display: "flex", alignItems: "center", gap: 6 }}>
+                {inGroup ? label : "Shop"} ▾
+              </button>
+              {openDropdown === "shop" && (
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 10, padding: 6, zIndex: 100, minWidth: 150, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
+                  {(["products","ordrar"] as const).map(t => (
+                    <button key={t} onClick={() => { setTab(t); setOpenDropdown(null); }}
+                      style={{ display: "block", width: "100%", textAlign: "left", padding: "9px 14px", border: "none", borderRadius: 7, fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 600 : 400 }}>
+                      {t === "products" ? "Produkter" : `Ordrar (${shopOrders.length})`}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Standalone tabs */}
+        {([
+          ["blogg", "Blogg"],
+          ["recensioner", `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}`],
+          ["nyhetsbrev", `Nyhetsbrev${subscribers.length > 0 ? ` (${subscribers.length})` : ""}`],
+          ["karta", "Ramen Map"],
+        ] as const).map(([t, label]) => (
+          <button key={t} onClick={() => { setTab(t as any); setOpenDropdown(null); }}
+            style={{ padding: "8px 20px", borderRadius: 8, border: "none", fontFamily: "'Quicksand',sans-serif", fontSize: 14, cursor: "pointer", background: tab === t ? "#F5F1E8" : "transparent", fontWeight: tab === t ? 500 : 400 }}>
+            {label}
           </button>
         ))}
       </div>
