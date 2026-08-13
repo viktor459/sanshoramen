@@ -86,7 +86,7 @@ const formatDate = (dateStr: string) => {
 };
 
 export default function Admin() {
-  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev" | "lojalitet">("events");
+  const [tab, setTab] = useState<"events" | "bookings" | "blogg" | "products" | "ordrar" | "waitlist" | "karta" | "recensioner" | "stallet" | "nyhetsbrev" | "lojalitet" | "analytics">("events");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -132,6 +132,9 @@ export default function Admin() {
   const [subscribers, setSubscribers] = useState<{ id: number; created_at: string; email: string }[]>([]);
   type LoyaltyEntry = { email: string; name: string; luma_events: number; system_events: number; total: number };
   const [loyalty, setLoyalty] = useState<LoyaltyEntry[]>([]);
+  type GAStats = { totalSessions: number; totalUsers: number; daily: {date:string;sessions:number;users:number}[]; topPages: {path:string;views:number}[]; sources: {channel:string;sessions:number}[]; devices: {device:string;sessions:number}[] };
+  const [gaStats, setGaStats] = useState<GAStats | null>(null);
+  const [gaLoading, setGaLoading] = useState(false);
 
   // Ramen Map
   const [spots, setSpots] = useState<RamenSpot[]>([]);
@@ -726,6 +729,7 @@ export default function Admin() {
           ["recensioner", `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}`],
           ["nyhetsbrev", `Nyhetsbrev${subscribers.length > 0 ? ` (${subscribers.length})` : ""}`],
           ["lojalitet", "Lojalitet"],
+          ["analytics", "Analytics"],
           ["karta", "Ramen Map"],
         ] as const).map(([t, label]) => (
           <button key={t} onClick={() => { setTab(t as any); setOpenDropdown(null); }}
@@ -1406,6 +1410,86 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ANALYTICS TAB */}
+      {tab === "analytics" && (
+        <div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Analytics — senaste 30 dagarna</div>
+              <div style={{ color: "#6B6560", fontSize: 13 }}>Data från Google Analytics</div>
+            </div>
+            <button style={S.btn} onClick={async () => { setGaLoading(true); const r = await fetch("/api/ga-stats"); const d = await r.json(); setGaStats(d); setGaLoading(false); }}>
+              {gaLoading ? "Laddar..." : gaStats ? "Uppdatera" : "Hämta data"}
+            </button>
+          </div>
+          {!gaStats && !gaLoading && (
+            <div style={{ color: "#6B6560", textAlign: "center", padding: 60 }}>Tryck på "Hämta data" för att ladda analytics.</div>
+          )}
+          {gaLoading && <div style={{ color: "#6B6560", textAlign: "center", padding: 60 }}>Hämtar från Google Analytics...</div>}
+          {gaStats && !gaLoading && (
+            <>
+              {/* KPI cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16, marginBottom: 32 }}>
+                {[
+                  { label: "Sessioner", value: gaStats.totalSessions.toLocaleString("sv-SE") },
+                  { label: "Unika besökare", value: gaStats.totalUsers.toLocaleString("sv-SE") },
+                  { label: "Mobil", value: `${Math.round(((gaStats.devices.find(d => d.device === "mobile")?.sessions || 0) / gaStats.totalSessions) * 100)}%` },
+                  { label: "Desktop", value: `${Math.round(((gaStats.devices.find(d => d.device === "desktop")?.sessions || 0) / gaStats.totalSessions) * 100)}%` },
+                ].map(kpi => (
+                  <div key={kpi.label} style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: "20px 20px" }}>
+                    <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6560", marginBottom: 8 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 28, fontWeight: 700 }}>{kpi.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top pages + Sources side by side */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+                <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 14 }}>Mest besökta sidor</div>
+                  {gaStats.topPages.map((p, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "6px 0", borderBottom: "1px solid #F0EDE6" }}>
+                      <span style={{ color: "#6B6560", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{p.path || "/"}</span>
+                      <span style={{ fontWeight: 600 }}>{p.views.toLocaleString("sv-SE")}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 14 }}>Trafikkällor</div>
+                  {gaStats.sources.map((s, i) => {
+                    const pct = Math.round((s.sessions / gaStats.totalSessions) * 100);
+                    return (
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                          <span>{s.channel}</span><span style={{ fontWeight: 600 }}>{pct}%</span>
+                        </div>
+                        <div style={{ height: 4, background: "#F0EDE6", borderRadius: 4 }}>
+                          <div style={{ height: 4, background: "#1D1D1D", borderRadius: 4, width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Daily chart */}
+              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
+                <div style={{ fontWeight: 600, marginBottom: 14 }}>Dagliga sessioner (30 dagar)</div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 80 }}>
+                  {gaStats.daily.map((d, i) => {
+                    const max = Math.max(...gaStats.daily.map(x => x.sessions));
+                    const h = max > 0 ? Math.round((d.sessions / max) * 80) : 0;
+                    return (
+                      <div key={i} title={`${d.date}: ${d.sessions} sessioner`} style={{ flex: 1, background: "#1D1D1D", borderRadius: "2px 2px 0 0", height: h, minHeight: d.sessions > 0 ? 2 : 0, opacity: 0.8 }} />
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
