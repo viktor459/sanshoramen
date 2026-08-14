@@ -507,6 +507,11 @@ export default function Admin() {
     alert(`${w.fname} ${w.lname} är nu bokad med kod ${booking_code}.`);
   };
 
+  const confirmBooking = async (id: string) => {
+    await supabase.from("bookings").update({ status: "confirmed" }).eq("id", id);
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: "confirmed" } : b));
+  };
+
   const deleteBooking = async (id: string) => {
     if (!confirm("Ta bort bokningen?")) return;
     const booking = bookings.find(b => b.id === id);
@@ -1145,7 +1150,14 @@ export default function Admin() {
                         {b.status === "confirmed" ? "Bekräftad" : "Pending"}
                       </span>
                     </td>
-                    <td><button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button></td>
+                    <td>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {b.status === "pending" && (
+                          <button style={{ ...S.btnOutline, fontSize: 12, padding: "4px 10px", borderColor: "#065F46", color: "#065F46" }} onClick={() => confirmBooking(b.id)} title="Bekräfta manuellt">✓</button>
+                        )}
+                        <button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
