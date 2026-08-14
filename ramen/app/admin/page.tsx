@@ -213,13 +213,22 @@ export default function Admin() {
 
   const fetchLoyalty = async () => {
     const [{ data: luma }, { data: bks }] = await Promise.all([
-      supabase.from("luma_members").select("email, name, luma_events"),
+      supabase.from("luma_members").select("email, name, luma_events, excluded"),
       supabase.from("bookings").select("email, event_name").eq("status", "confirmed"),
     ]);
+    // Count distinct events per email from system bookings
+    const systemEvents: Record<string, Set<string>> = {};
+    (bks || []).forEach(b => {
+      const e = b.email?.toLowerCase();
+      if (e && b.event_name) {
+        if (!systemEvents[e]) systemEvents[e] = new Set();
+        systemEvents[e].add(b.event_name);
+      }
+    });
     const systemCount: Record<string, number> = {};
-    (bks || []).forEach(b => { const e = b.email?.toLowerCase(); if (e) systemCount[e] = (systemCount[e] || 0) + 1; });
+    Object.entries(systemEvents).forEach(([e, s]) => { systemCount[e] = s.size; });
     const map: Record<string, LoyaltyEntry> = {};
-    (luma || []).forEach(l => {
+    (luma || []).filter(l => !l.excluded).forEach(l => {
       const e = l.email.toLowerCase();
       map[e] = { email: e, name: l.name || "", luma_events: l.luma_events, system_events: systemCount[e] || 0, total: l.luma_events + (systemCount[e] || 0) };
     });
