@@ -216,6 +216,7 @@ export default function Admin() {
       supabase.from("luma_members").select("email, name, luma_events, excluded"),
       supabase.from("bookings").select("email, event_name").eq("status", "confirmed"),
     ]);
+    const excludedEmails = new Set((luma || []).filter(l => l.excluded).map(l => l.email.toLowerCase()));
     // Count distinct events per email from system bookings
     const systemEvents: Record<string, Set<string>> = {};
     (bks || []).forEach(b => {
@@ -233,7 +234,7 @@ export default function Admin() {
       map[e] = { email: e, name: l.name || "", luma_events: l.luma_events, system_events: systemCount[e] || 0, total: l.luma_events + (systemCount[e] || 0) };
     });
     Object.entries(systemCount).forEach(([e, cnt]) => {
-      if (!map[e]) map[e] = { email: e, name: "", luma_events: 0, system_events: cnt, total: cnt };
+      if (!map[e] && !excludedEmails.has(e)) map[e] = { email: e, name: "", luma_events: 0, system_events: cnt, total: cnt };
     });
     setLoyalty(Object.values(map).sort((a, b) => b.total - a.total));
   };
