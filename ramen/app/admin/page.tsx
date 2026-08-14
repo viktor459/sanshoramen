@@ -113,6 +113,8 @@ export default function Admin() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filterEvent, setFilterEvent] = useState<string>("all");
   const [filterWaitlistEvent, setFilterWaitlistEvent] = useState<string>("all");
+  const [showArchivedBookings, setShowArchivedBookings] = useState(false);
+  const [showArchivedWaitlist, setShowArchivedWaitlist] = useState(false);
   const [editingGuests, setEditingGuests] = useState<{ id: string; value: string } | null>(null);
   const [editingVeg, setEditingVeg] = useState<{ id: string; value: string } | null>(null);
   const [editingEventSpots, setEditingEventSpots] = useState<{ id: number; spots: string; spots_left: string } | null>(null);
@@ -597,7 +599,10 @@ export default function Admin() {
     fetchPosts();
   };
 
-  const filteredBookings = filterEvent === "all" ? bookings : bookings.filter(b => b.event_name === filterEvent);
+  const archivedEventNames = new Set(events.filter(e => e.archived).map(e => e.title));
+  const filteredBookings = bookings
+    .filter(b => showArchivedBookings || !archivedEventNames.has(b.event_name))
+    .filter(b => filterEvent === "all" || b.event_name === filterEvent);
 
   const mapsEmbedUrl = (location: string) =>
     location ? `https://maps.google.com/maps?q=${encodeURIComponent(location)}&output=embed` : null;
@@ -1059,14 +1064,21 @@ export default function Admin() {
               <div style={{ fontWeight: 700, fontSize: 18 }}>Bokningar ({filteredBookings.length})</div>
               <select value={filterEvent} onChange={e => setFilterEvent(e.target.value)} style={{ ...S.input, width: "auto" }}>
                 <option value="all">Alla events</option>
-                {[...new Set(bookings.map(b => b.event_name))].map(name => (
+                {[...new Set(bookings
+                  .filter(b => showArchivedBookings || !archivedEventNames.has(b.event_name))
+                  .map(b => b.event_name))].map(name => (
                   <option key={name} value={name}>{name}</option>
                 ))}
               </select>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6B6560", cursor: "pointer" }}>
+                <input type="checkbox" checked={showArchivedBookings} onChange={e => { setShowArchivedBookings(e.target.checked); setFilterEvent("all"); }} />
+                Visa arkiverade
+              </label>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button style={S.btn} onClick={exportCSV}>Exportera CSV</button>
               <button style={S.btnOutline} onClick={async () => { const r = await fetch("/api/send-reminders"); const d = await r.json(); alert(`Påminnelsemejl skickade: ${d.sent}`); }}>Skicka påminnelser</button>
+              <button style={{ ...S.btnOutline, borderColor: "#F59E0B", color: "#92400E" }} onClick={async () => { if (!confirm(`Skicka varning till alla pending-bokningar om att deras plats försvinner inom 24h?`)) return; const r = await fetch("/api/send-pending-warning"); const d = await r.json(); alert(`Varning skickade till ${d.sent} pending-bokningar`); }}>Varna pending</button>
               <button style={S.btnOutline} onClick={async () => { const r = await fetch("/api/send-followup"); const d = await r.json(); alert(`Uppföljningsmejl skickade: ${d.sent}`); }}>Skicka uppföljning</button>
               {filteredBookings.length > 0 && (
                 <button style={S.btnDanger} onClick={deleteAllVisible}>Ta bort alla ({filteredBookings.length})</button>
@@ -1075,9 +1087,9 @@ export default function Admin() {
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
-              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Totalt</th><th>Datum</th><th></th></tr></thead>
+              <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Totalt</th><th>Datum</th><th>Status</th><th></th></tr></thead>
               <tbody>
-                {filteredBookings.length === 0 && <tr><td colSpan={12} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
+                {filteredBookings.length === 0 && <tr><td colSpan={13} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
                 {filteredBookings.map(b => (
                   <tr key={b.id}>
                     <td style={{ fontWeight: 500 }}>{b.booking_code}</td>
@@ -1128,6 +1140,11 @@ export default function Admin() {
                     <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 160 }} title={b.note || ""}>{b.note ? (b.note.length > 30 ? b.note.slice(0, 30) + "…" : b.note) : "—"}</td>
                     <td>{b.total_price} kr</td>
                     <td style={{ color: "#6B6560" }}>{new Date(b.created_at).toLocaleDateString("sv-SE")}</td>
+                    <td>
+                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: b.status === "confirmed" ? "#D1FAE5" : "#FEF3C7", color: b.status === "confirmed" ? "#065F46" : "#92400E" }}>
+                        {b.status === "confirmed" ? "Bekräftad" : "Pending"}
+                      </span>
+                    </td>
                     <td><button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button></td>
                   </tr>
                 ))}
@@ -1217,18 +1234,24 @@ export default function Admin() {
               }}>Exportera CSV</button>
             )}
           </div>
-          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16, alignItems: "center" }}>
             <select value={filterWaitlistEvent} onChange={e => setFilterWaitlistEvent(e.target.value)} style={{ ...S.input, width: "auto" }}>
               <option value="all">Alla events</option>
-              {[...new Set(waitlist.map(w => w.event_name))].map(name => <option key={name} value={name}>{name}</option>)}
+              {[...new Set(waitlist
+                .filter(w => showArchivedWaitlist || !archivedEventNames.has(w.event_name))
+                .map(w => w.event_name))].map(name => <option key={name} value={name}>{name}</option>)}
             </select>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6B6560", cursor: "pointer" }}>
+              <input type="checkbox" checked={showArchivedWaitlist} onChange={e => { setShowArchivedWaitlist(e.target.checked); setFilterWaitlistEvent("all"); }} />
+              Visa arkiverade
+            </label>
           </div>
           <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
             <table>
               <thead><tr><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
-                {waitlist.filter(w => filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent).length === 0 && <tr><td colSpan={9} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Ingen på waitlist än</td></tr>}
-                {waitlist.filter(w => filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent).map(w => (
+                {waitlist.filter(w => (showArchivedWaitlist || !archivedEventNames.has(w.event_name)) && (filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent)).length === 0 && <tr><td colSpan={9} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Ingen på waitlist än</td></tr>}
+                {waitlist.filter(w => (showArchivedWaitlist || !archivedEventNames.has(w.event_name)) && (filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent)).map(w => (
                   <tr key={w.id}>
                     <td style={{ fontWeight: 500 }}>{w.fname} {w.lname}</td>
                     <td style={{ color: "#6B6560" }}>{w.email}</td>
@@ -1245,7 +1268,7 @@ export default function Admin() {
             </table>
           </div>
           {(() => {
-            const filtered = waitlist.filter(w => filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent);
+            const filtered = waitlist.filter(w => (showArchivedWaitlist || !archivedEventNames.has(w.event_name)) && (filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent));
             const totalGuests = filtered.reduce((sum, w) => sum + w.guests, 0);
             const totalVeg = filtered.reduce((sum, w) => sum + (w.vegetarian_count ?? 0), 0);
             return filtered.length > 0 ? (

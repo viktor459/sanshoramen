@@ -201,6 +201,7 @@ export default function EventPage() {
                     {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} {n === 1 ? "person" : "people"}</option>)}
                   </select>
                 </div>
+                {event.show_vegetarian !== false && (
                 <div className="f-field">
                   <label>Vegetarian options</label>
                   <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 10 }}>How many guests want a vegetarian option?</p>
@@ -216,6 +217,7 @@ export default function EventPage() {
                     ))}
                   </div>
                 </div>
+                )}
                 <div className="f-field"><label>Allergies / requests</label><textarea value={waitlistForm.note} onChange={e => setWaitlistForm({ ...waitlistForm, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
                 <button className="submit-btn"
                   disabled={!waitlistForm.fname || !waitlistForm.lname || !waitlistForm.email.includes("@") || !waitlistForm.phone || waitlistLoading}
@@ -264,6 +266,7 @@ export default function EventPage() {
               </select>
             </div>
 
+            {event.show_vegetarian !== false && (
             <div style={{ marginBottom: 14 }}>
               <div className="sec-label" style={{ marginBottom: 10 }}>Vegetarian / plant-based</div>
               <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 10 }}>How many guests want a vegetarian option?</p>
@@ -279,6 +282,7 @@ export default function EventPage() {
                 ))}
               </div>
             </div>
+            )}
 
             <div className="f-field"><label>Allergies / requests</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
 

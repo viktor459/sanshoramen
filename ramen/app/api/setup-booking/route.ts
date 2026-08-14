@@ -30,6 +30,19 @@ const calendarUrl = (event_name: string, date: string, location: string, event_t
 export async function POST(req: Request) {
   const { event_name, event_id, timeslot_id, timeslot_time, fname, lname, email, phone, guests, note, price, vegetarian_count, newsletter_consent, date, location, time } = await req.json();
 
+  // Check for duplicate confirmed booking
+  const { data: existingBooking } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("email", email.toLowerCase())
+    .eq("event_id", event_id)
+    .eq("status", "confirmed")
+    .maybeSingle();
+
+  if (existingBooking) {
+    return NextResponse.json({ error: "Du har redan en bekräftad bokning för detta event." }, { status: 400 });
+  }
+
   // Fetch event to check require_card
   const { data: event } = await supabase.from("events").select("require_card").eq("id", event_id).single();
   const requireCard = event?.require_card !== false; // default true if missing
