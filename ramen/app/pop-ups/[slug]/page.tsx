@@ -43,7 +43,7 @@ const S = `
   }
 `;
 
-type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; require_card: boolean; require_stuk: boolean; slug: string; };
+type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; description: string; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; external_url?: string; require_card: boolean; require_stuk: boolean; slug: string; show_vegetarian: boolean; };
 type Timeslot = { id: number; event_id: number; time: string; spots: number; spots_left: number; };
 
 export default function EventPage() {
