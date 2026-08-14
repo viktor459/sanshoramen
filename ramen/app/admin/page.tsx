@@ -1090,8 +1090,8 @@ export default function Admin() {
               )}
             </div>
           </div>
-          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
-            <table>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflowX: "auto" }}>
+            <table style={{ minWidth: 900 }}>
               <thead><tr><th>Kod</th><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Tid</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Totalt</th><th>Datum</th><th>Status</th><th></th></tr></thead>
               <tbody>
                 {filteredBookings.length === 0 && <tr><td colSpan={13} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga bokningar än</td></tr>}
