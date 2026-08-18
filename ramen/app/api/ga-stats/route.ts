@@ -35,7 +35,6 @@ export async function GET() {
   }
 
   try {
-    // Test single request first to check for errors
     const testResp = await gaRequest({
       dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
       dimensions: [{ name: "date" }],
@@ -46,7 +45,7 @@ export async function GET() {
       return NextResponse.json({ error: testResp.error.message || JSON.stringify(testResp.error) }, { status: 400 });
     }
 
-    const [sessions, topPages, sources, devices] = await Promise.all([
+    const [sessions, topPages, sources, devices, overview, newVsReturning, countries, hours] = await Promise.all([
       // Sessions + users last 30 days (daily)
       gaRequest({
         dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
@@ -77,15 +76,44 @@ export async function GET() {
         metrics: [{ name: "sessions" }],
         orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
       }),
+      // Bounce rate + avg session duration
+      gaRequest({
+        dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+        metrics: [{ name: "bounceRate" }, { name: "averageSessionDuration" }],
+      }),
+      // New vs returning
+      gaRequest({
+        dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+        dimensions: [{ name: "newVsReturning" }],
+        metrics: [{ name: "sessions" }],
+      }),
+      // Top countries
+      gaRequest({
+        dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+        dimensions: [{ name: "country" }],
+        metrics: [{ name: "sessions" }],
+        orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+        limit: 5,
+      }),
+      // Hourly distribution (sessions by hour of day)
+      gaRequest({
+        dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+        dimensions: [{ name: "hour" }],
+        metrics: [{ name: "sessions" }],
+        orderBys: [{ dimension: { dimensionName: "hour" } }],
+      }),
     ]);
 
-    // Totals
     const totalSessions = sessions.rows?.reduce((s: number, r: any) => s + Number(r.metricValues[0].value), 0) || 0;
     const totalUsers = sessions.rows?.reduce((s: number, r: any) => s + Number(r.metricValues[1].value), 0) || 0;
+    const bounceRate = overview.rows?.[0] ? Number(overview.rows[0].metricValues[0].value) : 0;
+    const avgSessionDuration = overview.rows?.[0] ? Number(overview.rows[0].metricValues[1].value) : 0;
 
     return NextResponse.json({
       totalSessions,
       totalUsers,
+      bounceRate,
+      avgSessionDuration,
       daily: sessions.rows?.map((r: any) => ({
         date: r.dimensionValues[0].value,
         sessions: Number(r.metricValues[0].value),
@@ -101,6 +129,18 @@ export async function GET() {
       })) || [],
       devices: devices.rows?.map((r: any) => ({
         device: r.dimensionValues[0].value,
+        sessions: Number(r.metricValues[0].value),
+      })) || [],
+      newVsReturning: newVsReturning.rows?.map((r: any) => ({
+        type: r.dimensionValues[0].value,
+        sessions: Number(r.metricValues[0].value),
+      })) || [],
+      countries: countries.rows?.map((r: any) => ({
+        country: r.dimensionValues[0].value,
+        sessions: Number(r.metricValues[0].value),
+      })) || [],
+      hours: hours.rows?.map((r: any) => ({
+        hour: Number(r.dimensionValues[0].value),
         sessions: Number(r.metricValues[0].value),
       })) || [],
     });

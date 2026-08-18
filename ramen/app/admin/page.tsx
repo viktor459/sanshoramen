@@ -134,7 +134,7 @@ export default function Admin() {
   const [subscribers, setSubscribers] = useState<{ id: number; created_at: string; email: string }[]>([]);
   type LoyaltyEntry = { email: string; name: string; luma_events: number; system_events: number; total: number };
   const [loyalty, setLoyalty] = useState<LoyaltyEntry[]>([]);
-  type GAStats = { totalSessions: number; totalUsers: number; daily: {date:string;sessions:number;users:number}[]; topPages: {path:string;views:number}[]; sources: {channel:string;sessions:number}[]; devices: {device:string;sessions:number}[] };
+  type GAStats = { totalSessions: number; totalUsers: number; bounceRate: number; avgSessionDuration: number; daily: {date:string;sessions:number;users:number}[]; topPages: {path:string;views:number}[]; sources: {channel:string;sessions:number}[]; devices: {device:string;sessions:number}[]; newVsReturning: {type:string;sessions:number}[]; countries: {country:string;sessions:number}[]; hours: {hour:number;sessions:number}[] };
   const [gaStats, setGaStats] = useState<GAStats | null>(null);
   const [gaLoading, setGaLoading] = useState(false);
 
@@ -1481,6 +1481,8 @@ export default function Admin() {
                 {[
                   { label: "Sessioner", value: gaStats.totalSessions.toLocaleString("sv-SE") },
                   { label: "Unika besökare", value: gaStats.totalUsers.toLocaleString("sv-SE") },
+                  { label: "Bounce rate", value: `${Math.round(gaStats.bounceRate * 100)}%` },
+                  { label: "Snitt-session", value: (() => { const s = Math.round(gaStats.avgSessionDuration); return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; })() },
                   { label: "Mobil", value: `${Math.round(((gaStats.devices.find(d => d.device === "mobile")?.sessions || 0) / gaStats.totalSessions) * 100)}%` },
                   { label: "Desktop", value: `${Math.round(((gaStats.devices.find(d => d.device === "desktop")?.sessions || 0) / gaStats.totalSessions) * 100)}%` },
                 ].map(kpi => (
@@ -1491,7 +1493,40 @@ export default function Admin() {
                 ))}
               </div>
 
-              {/* Top pages + Sources side by side */}
+              {/* Daily chart */}
+              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                <div style={{ fontWeight: 600, marginBottom: 14 }}>Dagliga sessioner (30 dagar)</div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 80 }}>
+                  {gaStats.daily.map((d, i) => {
+                    const max = Math.max(...gaStats.daily.map(x => x.sessions));
+                    const h = max > 0 ? Math.round((d.sessions / max) * 80) : 0;
+                    return (
+                      <div key={i} title={`${d.date}: ${d.sessions} sessioner`} style={{ flex: 1, background: "#1D1D1D", borderRadius: "2px 2px 0 0", height: h, minHeight: d.sessions > 0 ? 2 : 0, opacity: 0.8 }} />
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Hourly distribution */}
+              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                <div style={{ fontWeight: 600, marginBottom: 14 }}>Trafik per timme (senaste 30 dagar)</div>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 60 }}>
+                  {Array.from({ length: 24 }, (_, h) => {
+                    const found = gaStats.hours.find(x => x.hour === h);
+                    const sessions = found?.sessions || 0;
+                    const max = Math.max(...gaStats.hours.map(x => x.sessions), 1);
+                    const height = Math.round((sessions / max) * 60);
+                    return (
+                      <div key={h} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        <div title={`${h}:00 — ${sessions} sessioner`} style={{ width: "100%", background: "#1D1D1D", borderRadius: "2px 2px 0 0", height, minHeight: sessions > 0 ? 2 : 0, opacity: 0.75 }} />
+                        {h % 6 === 0 && <div style={{ fontSize: 9, color: "#6B6560" }}>{h}h</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Top pages + Sources + New vs Returning + Countries */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
                 <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
                   <div style={{ fontWeight: 600, marginBottom: 14 }}>Mest besökta sidor</div>
@@ -1518,19 +1553,31 @@ export default function Admin() {
                     );
                   })}
                 </div>
-              </div>
-
-              {/* Daily chart */}
-              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
-                <div style={{ fontWeight: 600, marginBottom: 14 }}>Dagliga sessioner (30 dagar)</div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 80 }}>
-                  {gaStats.daily.map((d, i) => {
-                    const max = Math.max(...gaStats.daily.map(x => x.sessions));
-                    const h = max > 0 ? Math.round((d.sessions / max) * 80) : 0;
+                <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 14 }}>Nya vs återkommande</div>
+                  {gaStats.newVsReturning.map((r, i) => {
+                    const pct = Math.round((r.sessions / gaStats.totalSessions) * 100);
+                    const label = r.type === "new" ? "Nya" : r.type === "returning" ? "Återkommande" : r.type;
                     return (
-                      <div key={i} title={`${d.date}: ${d.sessions} sessioner`} style={{ flex: 1, background: "#1D1D1D", borderRadius: "2px 2px 0 0", height: h, minHeight: d.sessions > 0 ? 2 : 0, opacity: 0.8 }} />
+                      <div key={i} style={{ marginBottom: 12 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                          <span>{label}</span><span style={{ fontWeight: 600 }}>{pct}% ({r.sessions.toLocaleString("sv-SE")})</span>
+                        </div>
+                        <div style={{ height: 4, background: "#F0EDE6", borderRadius: 4 }}>
+                          <div style={{ height: 4, background: i === 0 ? "#1D1D1D" : "#6B6560", borderRadius: 4, width: `${pct}%` }} />
+                        </div>
+                      </div>
                     );
                   })}
+                </div>
+                <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 14 }}>Länder</div>
+                  {gaStats.countries.map((c, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "6px 0", borderBottom: "1px solid #F0EDE6" }}>
+                      <span style={{ color: "#6B6560" }}>{c.country}</span>
+                      <span style={{ fontWeight: 600 }}>{c.sessions.toLocaleString("sv-SE")}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>
