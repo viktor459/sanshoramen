@@ -218,7 +218,7 @@ export default function EventPage() {
                   </div>
                 </div>
                 )}
-                <div className="f-field"><label>Allergies / requests</label><textarea value={waitlistForm.note} onChange={e => setWaitlistForm({ ...waitlistForm, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
+                <div className="f-field"><label>Extra notes</label><textarea value={waitlistForm.note} onChange={e => setWaitlistForm({ ...waitlistForm, note: e.target.value })} placeholder="Extra notes or requests..." /></div>
                 <button className="submit-btn"
                   disabled={!waitlistForm.fname || !waitlistForm.lname || !waitlistForm.email.includes("@") || !waitlistForm.phone || waitlistLoading}
                   onClick={handleWaitlist}>
@@ -284,7 +284,7 @@ export default function EventPage() {
             </div>
             )}
 
-            <div className="f-field"><label>Allergies / requests</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Gluten free, lactose intolerant..." /></div>
+            <div className="f-field"><label>Extra notes</label><textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Extra notes or requests..." /></div>
 
             {event.require_stuk && (
               <div style={{ background: "#FFF3E0", border: "1.5px solid #F0A830", borderRadius: 10, padding: "16px 20px", marginBottom: 16, fontSize: 13, color: "#7A5000", lineHeight: 1.6 }}>
