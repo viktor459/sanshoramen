@@ -1494,37 +1494,85 @@ export default function Admin() {
               </div>
 
               {/* Daily chart */}
-              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
-                <div style={{ fontWeight: 600, marginBottom: 14 }}>Dagliga sessioner (30 dagar)</div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 80 }}>
-                  {gaStats.daily.map((d, i) => {
-                    const max = Math.max(...gaStats.daily.map(x => x.sessions));
-                    const h = max > 0 ? Math.round((d.sessions / max) * 80) : 0;
-                    return (
-                      <div key={i} title={`${d.date}: ${d.sessions} sessioner`} style={{ flex: 1, background: "#1D1D1D", borderRadius: "2px 2px 0 0", height: h, minHeight: d.sessions > 0 ? 2 : 0, opacity: 0.8 }} />
-                    );
-                  })}
-                </div>
-              </div>
+              {(() => {
+                const CHART_H = 100;
+                const dailyMax = Math.max(...gaStats.daily.map(x => x.sessions), 1);
+                const dailyMid = Math.round(dailyMax / 2);
+                return (
+                  <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 14 }}>Dagliga sessioner (30 dagar)</div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {/* Y-axis */}
+                      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-end", height: CHART_H, paddingBottom: 0, flexShrink: 0 }}>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>{dailyMax}</div>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>{dailyMid}</div>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>0</div>
+                      </div>
+                      {/* Bars */}
+                      <div style={{ flex: 1, position: "relative" }}>
+                        {/* Grid lines */}
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", pointerEvents: "none" }}>
+                          <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                          <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                          <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                        </div>
+                        <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: CHART_H }}>
+                          {gaStats.daily.map((d, i) => {
+                            const barH = Math.round((d.sessions / dailyMax) * CHART_H);
+                            return (
+                              <div key={i} title={`${d.date}: ${d.sessions} sessioner`} style={{ flex: 1, background: "#1D1D1D", borderRadius: "2px 2px 0 0", height: barH, minHeight: d.sessions > 0 ? 2 : 0, opacity: 0.8 }} />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Hourly distribution */}
-              <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
-                <div style={{ fontWeight: 600, marginBottom: 14 }}>Trafik per timme (senaste 30 dagar)</div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 60 }}>
-                  {Array.from({ length: 24 }, (_, h) => {
-                    const found = gaStats.hours.find(x => x.hour === h);
-                    const sessions = found?.sessions || 0;
-                    const max = Math.max(...gaStats.hours.map(x => x.sessions), 1);
-                    const height = Math.round((sessions / max) * 60);
-                    return (
-                      <div key={h} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                        <div title={`${h}:00 — ${sessions} sessioner`} style={{ width: "100%", background: "#1D1D1D", borderRadius: "2px 2px 0 0", height, minHeight: sessions > 0 ? 2 : 0, opacity: 0.75 }} />
-                        {h % 6 === 0 && <div style={{ fontSize: 9, color: "#6B6560" }}>{h}h</div>}
+              {(() => {
+                const CHART_H = 80;
+                const hourMax = Math.max(...gaStats.hours.map(x => x.sessions), 1);
+                const hourMid = Math.round(hourMax / 2);
+                return (
+                  <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 14 }}>Trafik per timme (senaste 30 dagar)</div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {/* Y-axis */}
+                      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-end", height: CHART_H, flexShrink: 0 }}>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>{hourMax}</div>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>{hourMid}</div>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>0</div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ position: "relative" }}>
+                          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 16, display: "flex", flexDirection: "column", justifyContent: "space-between", pointerEvents: "none" }}>
+                            <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                            <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                            <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                          </div>
+                          <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: CHART_H }}>
+                            {Array.from({ length: 24 }, (_, h) => {
+                              const found = gaStats.hours.find(x => x.hour === h);
+                              const sessions = found?.sessions || 0;
+                              const height = Math.round((sessions / hourMax) * (CHART_H - 16));
+                              return (
+                                <div key={h} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                  <div style={{ flex: 1, display: "flex", alignItems: "flex-end", width: "100%" }}>
+                                    <div title={`${h}:00 — ${sessions} sessioner`} style={{ width: "100%", background: "#1D1D1D", borderRadius: "2px 2px 0 0", height, minHeight: sessions > 0 ? 2 : 0, opacity: 0.75 }} />
+                                  </div>
+                                  <div style={{ fontSize: 9, color: "#6B6560", marginTop: 3 }}>{h % 6 === 0 ? `${h}h` : ""}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Top pages + Sources + New vs Returning + Countries */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
