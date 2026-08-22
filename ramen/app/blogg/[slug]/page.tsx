@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase";
 import { use } from "react";
+import RamenMapEmbed from "../../components/RamenMapEmbed";
 
 type Post = {
   id: number;
@@ -17,6 +18,7 @@ type Post = {
 
 function renderContent(content: string) {
   return content.split("\n").map((line, i) => {
+    if (line.trim() === "[ramen-map]") return <RamenMapEmbed key={i} />;
     if (line.startsWith("## ")) return <h2 key={i} style={{ fontSize: 26, fontWeight: 700, marginTop: 40, marginBottom: 12, letterSpacing: "0.03em" }}>{line.slice(3)}</h2>;
     if (line.startsWith("### ")) return <h3 key={i} style={{ fontSize: 20, fontWeight: 600, marginTop: 28, marginBottom: 10 }}>{line.slice(4)}</h3>;
     const imgMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
