@@ -49,11 +49,8 @@ export async function GET(req: Request) {
     const { data: sub } = await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" }).select("unsubscribe_token").single();
     unsubscribeToken = sub?.unsubscribe_token ?? null;
     try {
-      const audienceId = event_name.toLowerCase().includes("lunds nation")
-        ? "8b1e1750-7e45-47c6-b6be-20efb71f5235"
-        : "a0ff9f3b-8238-4e07-b6ab-5e7dbcd6e0c1";
       await resend.contacts.create({
-        audienceId,
+        audienceId: "b8414d5f-d16f-4001-bdcd-f6c66912725f",
         email,
         firstName: fname,
         lastName: m.lname || "",

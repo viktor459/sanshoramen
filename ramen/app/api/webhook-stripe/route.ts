@@ -67,5 +67,28 @@ export async function POST(req: Request) {
     }
   }
 
+  // Checkout abandoned — release the held spot so it doesn't stay locked forever
+  if (event.type === "checkout.session.expired") {
+    const session = event.data.object as any;
+    const m = session.metadata || {};
+
+    if (m.booking_id) {
+      const { data: booking } = await supabase
+        .from("bookings")
+        .select("id, status, guests, timeslot_id, event_id")
+        .eq("id", m.booking_id)
+        .maybeSingle();
+
+      if (booking && booking.status === "pending") {
+        await supabase.from("bookings").update({ status: "expired" }).eq("id", booking.id);
+        if (booking.timeslot_id) {
+          await supabase.rpc("increment_timeslot_spots", { slot_id: booking.timeslot_id, n: booking.guests }).maybeSingle();
+        } else {
+          await supabase.rpc("increment_event_spots", { ev_id: booking.event_id, n: booking.guests }).maybeSingle();
+        }
+      }
+    }
+  }
+
   return NextResponse.json({ received: true });
 }

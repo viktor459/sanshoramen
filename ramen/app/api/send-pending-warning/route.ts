@@ -34,7 +34,7 @@ export async function GET() {
 
             <div style="background:#FEF3C7;border:1.5px solid #F59E0B;border-radius:12px;padding:20px 24px;margin-bottom:28px;">
               <p style="font-size:14px;color:#92400E;line-height:1.7;margin:0;">
-                Din plats kommer att släppas inom <strong>24 timmar</strong> om bokningen inte slutförs.
+                Din plats kommer att släppas inom <strong>60 minuter</strong> från att bokningen påbörjades, om den inte slutförs.
                 ${b.total_price > 0 ? "Gå tillbaka till eventsidan och genomför betalningen för att säkra din plats." : "Gå tillbaka till eventsidan och spara ditt kort för att säkra din plats."}
               </p>
             </div>

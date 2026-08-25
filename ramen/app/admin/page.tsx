@@ -46,6 +46,8 @@ type Booking = {
   event_id: number;
   status: string;
   phone?: string;
+  stripe_setup_intent_id?: string;
+  no_show_charged_at?: string;
 };
 
 type ShopOrder = {
@@ -117,6 +119,7 @@ export default function Admin() {
   const [showArchivedWaitlist, setShowArchivedWaitlist] = useState(false);
   const [editingGuests, setEditingGuests] = useState<{ id: string; value: string } | null>(null);
   const [editingVeg, setEditingVeg] = useState<{ id: string; value: string } | null>(null);
+  const [editingNote, setEditingNote] = useState<{ id: string; value: string } | null>(null);
   const [editingEventSpots, setEditingEventSpots] = useState<{ id: number; spots: string; spots_left: string } | null>(null);
   const [manualBooking, setManualBooking] = useState<{ eventId: number; slotId: string } | null>(null);
   const [manualForm, setManualForm] = useState({ fname: "", lname: "", email: "", phone: "", guests: "1", note: "", vegetarian_count: "0" });
@@ -517,9 +520,39 @@ export default function Admin() {
     alert(`${w.fname} ${w.lname} är nu bokad med kod ${booking_code}.`);
   };
 
-  const confirmBooking = async (id: string) => {
-    await supabase.from("bookings").update({ status: "confirmed" }).eq("id", id);
-    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: "confirmed" } : b));
+  const confirmBooking = async (b: Booking) => {
+    // An "expired" booking already gave its spot back — reclaim it now that we're
+    // confirming for real. Pending bookings still hold their spot from creation,
+    // so nothing to claim there.
+    if (b.status === "expired") {
+      const { data: claimed } = b.timeslot_id
+        ? await supabase.rpc("decrement_timeslot_spots", { slot_id: b.timeslot_id, n: b.guests })
+        : await supabase.rpc("decrement_event_spots", { ev_id: b.event_id, n: b.guests });
+      if (!claimed) {
+        const force = confirm("Inte tillräckligt med platser kvar för den här tiden. Bekräfta ändå utan att räkna som en plats (t.ex. personal)?");
+        if (!force) return;
+      } else {
+        fetchEvents();
+      }
+    }
+    await supabase.from("bookings").update({ status: "confirmed" }).eq("id", b.id);
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, status: "confirmed" } : x));
+  };
+
+  const chargeNoShow = async (b: Booking) => {
+    if (!confirm(`Dra 250 kr no-show-avgift från ${b.fname} ${b.lname} (${b.email})?`)) return;
+    const r = await fetch("/api/charge-no-show", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ booking_id: b.id }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      alert(`Kunde inte dra avgiften: ${data.error}`);
+      return;
+    }
+    setBookings(prev => prev.map(x => x.id === b.id ? { ...x, no_show_charged_at: new Date().toISOString() } : x));
+    alert("250 kr no-show-avgift dragen.");
   };
 
   const deleteBooking = async (id: string) => {
@@ -562,6 +595,12 @@ export default function Admin() {
       fetchBookings();
     }
     setEditingVeg(null);
+  };
+
+  const saveNote = async (id: string, value: string) => {
+    await supabase.from("bookings").update({ note: value || null }).eq("id", id);
+    fetchBookings();
+    setEditingNote(null);
   };
 
   const deleteAllVisible = async () => {
@@ -1152,18 +1191,40 @@ export default function Admin() {
                         </span>
                       )}
                     </td>
-                    <td style={{ color: "#6B6560", fontSize: 13, maxWidth: 160 }} title={b.note || ""}>{b.note ? (b.note.length > 30 ? b.note.slice(0, 30) + "…" : b.note) : "—"}</td>
+                    <td style={{ maxWidth: 160 }}>
+                      {editingNote?.id === b.id ? (
+                        <input
+                          value={editingNote.value}
+                          onChange={e => setEditingNote({ id: b.id, value: e.target.value })}
+                          onBlur={() => saveNote(b.id, editingNote.value)}
+                          onKeyDown={e => { if (e.key === "Enter") saveNote(b.id, editingNote.value); if (e.key === "Escape") setEditingNote(null); }}
+                          autoFocus
+                          style={{ width: 150, fontFamily: "'Quicksand', sans-serif", fontSize: 13, border: "1.5px solid #1D1D1D", borderRadius: 6, padding: "2px 6px" }}
+                        />
+                      ) : (
+                        <span onClick={() => setEditingNote({ id: b.id, value: b.note || "" })} style={{ cursor: "pointer", color: "#6B6560", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }} title={b.note || ""}>
+                          {b.note ? (b.note.length > 30 ? b.note.slice(0, 30) + "…" : b.note) : "—"} <span style={{ fontSize: 11, color: "#bbb" }}>✎</span>
+                        </span>
+                      )}
+                    </td>
                     <td>{b.total_price} kr</td>
                     <td style={{ color: "#6B6560" }}>{new Date(b.created_at).toLocaleDateString("sv-SE")}</td>
                     <td>
-                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: b.status === "confirmed" ? "#D1FAE5" : "#FEF3C7", color: b.status === "confirmed" ? "#065F46" : "#92400E" }}>
-                        {b.status === "confirmed" ? "Bekräftad" : "Pending"}
+                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: b.status === "confirmed" ? "#D1FAE5" : b.status === "expired" ? "#E8E3D8" : "#FEF3C7", color: b.status === "confirmed" ? "#065F46" : b.status === "expired" ? "#6B6560" : "#92400E" }}>
+                        {b.status === "confirmed" ? "Bekräftad" : b.status === "expired" ? "Utgången" : "Pending"}
                       </span>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6 }}>
-                        {b.status === "pending" && (
-                          <button style={{ ...S.btnOutline, fontSize: 12, padding: "4px 10px", borderColor: "#065F46", color: "#065F46" }} onClick={() => confirmBooking(b.id)} title="Bekräfta manuellt">✓</button>
+                        {(b.status === "pending" || b.status === "expired") && (
+                          <button style={{ ...S.btnOutline, fontSize: 12, padding: "4px 10px", borderColor: "#065F46", color: "#065F46" }} onClick={() => confirmBooking(b)} title="Bekräfta manuellt">✓</button>
+                        )}
+                        {b.status === "confirmed" && b.stripe_setup_intent_id && (
+                          b.no_show_charged_at ? (
+                            <span style={{ fontSize: 11, color: "#92400E", alignSelf: "center" }} title={new Date(b.no_show_charged_at).toLocaleString("sv-SE")}>Avgift dragen</span>
+                          ) : (
+                            <button style={{ ...S.btnOutline, fontSize: 12, padding: "4px 10px", borderColor: "#92400E", color: "#92400E" }} onClick={() => chargeNoShow(b)} title="Dra 250 kr no-show-avgift">No-show</button>
+                          )
                         )}
                         <button style={S.btnDanger} onClick={() => deleteBooking(b.id)}>×</button>
                       </div>
@@ -1175,9 +1236,9 @@ export default function Admin() {
           </div>
           <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
             {[
-              { label: "Totalt intäkter", value: filteredBookings.reduce((s, b) => s + b.total_price, 0).toLocaleString("sv-SE") + " kr" },
-              { label: "Antal bokningar", value: String(filteredBookings.length) },
-              { label: "Antal gäster", value: String(filteredBookings.reduce((s, b) => s + b.guests, 0)) },
+              { label: "Totalt intäkter", value: filteredBookings.filter(b => b.status !== "expired").reduce((s, b) => s + b.total_price, 0).toLocaleString("sv-SE") + " kr" },
+              { label: "Antal bokningar", value: String(filteredBookings.filter(b => b.status !== "expired").length) },
+              { label: "Antal gäster", value: String(filteredBookings.filter(b => b.status !== "expired").reduce((s, b) => s + b.guests, 0)) },
             ].map(m => (
               <div key={m.label} style={S.card}>
                 <div style={S.label}>{m.label}</div>

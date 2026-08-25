@@ -43,6 +43,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Du har redan en bekräftad bokning för detta event." }, { status: 400 });
   }
 
+  // Clean up any abandoned pending booking(s) from a previous attempt by this person,
+  // so their own unfinished checkout doesn't keep permanently holding a spot hostage.
+  const { data: stalePending } = await supabase
+    .from("bookings")
+    .select("id, guests, timeslot_id, event_id")
+    .eq("email", email.toLowerCase())
+    .eq("event_id", event_id)
+    .eq("status", "pending");
+
+  if (stalePending && stalePending.length > 0) {
+    for (const stale of stalePending) {
+      if (stale.timeslot_id) {
+        await supabase.rpc("increment_timeslot_spots", { slot_id: stale.timeslot_id, n: stale.guests }).maybeSingle();
+      } else {
+        await supabase.rpc("increment_event_spots", { ev_id: stale.event_id, n: stale.guests }).maybeSingle();
+      }
+    }
+    await supabase.from("bookings").update({ status: "expired" }).in("id", stalePending.map(b => b.id));
+  }
+
   // Fetch event to check require_card
   const { data: event } = await supabase.from("events").select("require_card").eq("id", event_id).single();
   const requireCard = event?.require_card !== false; // default true if missing
@@ -50,12 +70,23 @@ export async function POST(req: Request) {
   const booking_code = "SR-" + Math.random().toString(36).substring(2, 7).toUpperCase();
   const total_price = price ? price * Number(guests) : 0;
 
+  // Claim the spots atomically first — this both checks and reserves capacity in one
+  // DB call, so two people racing for the last spot can't both succeed, and nobody
+  // (pending or not) can book past "fullt".
+  const { data: claimed } = timeslot_id
+    ? await supabase.rpc("decrement_timeslot_spots", { slot_id: timeslot_id, n: Number(guests) })
+    : await supabase.rpc("decrement_event_spots", { ev_id: event_id, n: Number(guests) });
+
+  if (!claimed) {
+    return NextResponse.json({ error: "Tyvärr, det finns inte tillräckligt med platser kvar." }, { status: 400 });
+  }
+
   const { data: booking, error } = await supabase.from("bookings").insert([{
     event_id,
     event_name,
     fname,
     lname,
-    email,
+    email: email.toLowerCase(),
     phone: phone || null,
     guests: Number(guests),
     note,
@@ -68,13 +99,13 @@ export async function POST(req: Request) {
   }]).select("id").single();
 
   if (error || !booking) {
+    // Roll back the claimed spots since the booking itself failed to save
+    if (timeslot_id) {
+      await supabase.rpc("increment_timeslot_spots", { slot_id: timeslot_id, n: Number(guests) }).maybeSingle();
+    } else {
+      await supabase.rpc("increment_event_spots", { ev_id: event_id, n: Number(guests) }).maybeSingle();
+    }
     return NextResponse.json({ error: "Kunde inte spara bokning" }, { status: 500 });
-  }
-
-  if (timeslot_id) {
-    await supabase.rpc("decrement_timeslot_spots", { slot_id: timeslot_id, n: Number(guests) }).maybeSingle();
-  } else {
-    await supabase.rpc("decrement_event_spots", { ev_id: event_id, n: Number(guests) }).maybeSingle();
   }
 
   if (!requireCard) {
@@ -84,11 +115,8 @@ export async function POST(req: Request) {
       const { data: sub } = await supabase.from("subscribers").upsert([{ email }], { onConflict: "email" }).select("unsubscribe_token").single();
       unsubscribeToken = sub?.unsubscribe_token ?? null;
       try {
-        const audienceId = event_name.toLowerCase().includes("lunds nation")
-          ? "8b1e1750-7e45-47c6-b6be-20efb71f5235"
-          : "a0ff9f3b-8238-4e07-b6ab-5e7dbcd6e0c1";
         await resend.contacts.create({
-          audienceId,
+          audienceId: "b8414d5f-d16f-4001-bdcd-f6c66912725f",
           email,
           firstName: fname,
           lastName: lname || "",
@@ -161,6 +189,8 @@ export async function POST(req: Request) {
     newsletter_consent: newsletter_consent ? "1" : "0",
   };
 
+  const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60; // 60 min
+
   if (total_price > 0) {
     // Paid event — charge card immediately
     const session = await stripe.checkout.sessions.create({
@@ -168,6 +198,7 @@ export async function POST(req: Request) {
       currency: "sek",
       payment_method_types: ["card"],
       customer_email: email,
+      expires_at: expiresAt,
       line_items: [{
         price_data: {
           currency: "sek",
@@ -180,6 +211,7 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_URL}/pop-ups`,
       metadata: commonMetadata,
     });
+    await supabase.from("bookings").update({ stripe_checkout_url: session.url }).eq("id", booking.id);
     return NextResponse.json({ url: session.url });
   }
 
@@ -189,10 +221,12 @@ export async function POST(req: Request) {
     currency: "sek",
     payment_method_types: ["card"],
     customer_email: email,
+    expires_at: expiresAt,
     success_url: `${process.env.NEXT_PUBLIC_URL}/tack?session_id={CHECKOUT_SESSION_ID}&type=booking`,
     cancel_url: `${process.env.NEXT_PUBLIC_URL}/pop-ups`,
     metadata: commonMetadata,
   });
 
+  await supabase.from("bookings").update({ stripe_checkout_url: session.url }).eq("id", booking.id);
   return NextResponse.json({ url: session.url });
 }

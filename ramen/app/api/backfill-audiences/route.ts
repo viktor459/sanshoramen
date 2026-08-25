@@ -3,37 +3,48 @@ import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const GENERAL = "a0ff9f3b-8238-4e07-b6ab-5e7dbcd6e0c1";
-const LUNDS_NATION = "8b1e1750-7e45-47c6-b6be-20efb71f5235";
+const NEWSLETTER = "b8414d5f-d16f-4001-bdcd-f6c66912725f";
 
-async function addContact(audienceId: string, email: string, firstName: string, lastName: string) {
-  const { data, error } = await resend.contacts.create({ audienceId, email, firstName, lastName, unsubscribed: false });
+async function addContact(email: string, firstName: string, lastName: string) {
+  const { data, error } = await resend.contacts.create({ audienceId: NEWSLETTER, email, firstName, lastName, unsubscribed: false });
   return { data, error: error ? JSON.stringify(error) : null };
 }
 
 export async function GET() {
-  const results: object[] = [];
+  const contacts = new Map<string, { firstName: string; lastName: string; source: string }>();
+  const add = (email: string | null | undefined, firstName: string, lastName: string, source: string) => {
+    const e = email?.trim().toLowerCase();
+    if (!e || !e.includes("@")) return;
+    const existing = contacts.get(e);
+    if (!existing || (!existing.firstName && firstName)) contacts.set(e, { firstName, lastName, source });
+  };
 
-  // Subscribers (bookers with newsletter consent) — join with bookings for name
-  const { data: subscribers } = await supabase.from("subscribers").select("email");
-  const { data: bookings } = await supabase.from("bookings").select("fname, lname, email, event_name");
+  const [{ data: subscribers }, { data: bookings }, { data: waitlist }, { data: luma }, { data: club }, { data: stallet }] = await Promise.all([
+    supabase.from("subscribers").select("email"),
+    supabase.from("bookings").select("fname, lname, email").neq("status", "pending"),
+    supabase.from("waitlist").select("fname, lname, email"),
+    supabase.from("luma_members").select("email, name").eq("excluded", false),
+    supabase.from("club_members").select("email, fname, lname"),
+    supabase.from("stallet_preferences").select("email, name"),
+  ]);
 
-  const bookingMap = new Map<string, { fname: string; lname: string; event_name: string }>();
-  for (const b of bookings || []) bookingMap.set(b.email, b);
-
-  for (const s of subscribers || []) {
-    const b = bookingMap.get(s.email);
-    const audienceId = b?.event_name?.toLowerCase().includes("lunds nation") ? LUNDS_NATION : GENERAL;
-    const r = await addContact(audienceId, s.email, b?.fname || "", b?.lname || "");
-    results.push({ source: "subscriber", email: s.email, audienceId, ...r });
+  for (const b of bookings || []) add(b.email, b.fname || "", b.lname || "", "booking");
+  for (const w of waitlist || []) add(w.email, w.fname || "", w.lname || "", "waitlist");
+  for (const l of luma || []) {
+    const [firstName, ...rest] = (l.name || "").split(" ");
+    add(l.email, firstName || "", rest.join(" "), "luma");
   }
+  for (const c of club || []) add(c.email, c.fname || "", c.lname || "", "club");
+  for (const s of stallet || []) {
+    const [firstName, ...rest] = (s.name || "").split(" ");
+    add(s.email, firstName || "", rest.join(" "), "stallet");
+  }
+  for (const s of subscribers || []) add(s.email, "", "", "subscriber");
 
-  // Waitlist
-  const { data: waitlist } = await supabase.from("waitlist").select("fname, lname, email, event_name");
-  for (const w of waitlist || []) {
-    const audienceId = w.event_name?.toLowerCase().includes("lunds nation") ? LUNDS_NATION : GENERAL;
-    const r = await addContact(audienceId, w.email, w.fname || "", w.lname || "");
-    results.push({ source: "waitlist", email: w.email, audienceId, ...r });
+  const results: object[] = [];
+  for (const [email, c] of contacts) {
+    const r = await addContact(email, c.firstName, c.lastName);
+    results.push({ source: c.source, email, ...r });
   }
 
   const errors = results.filter((r: any) => r.error);
