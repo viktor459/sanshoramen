@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [{ url: "/og-default.jpg", width: 1200, height: 630 }],
   },
+  verification: {
+    google: "XDSNJZ2xB_iaofck2FEyMZSbu0WYCUDN7sJXZpGUHfA",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
