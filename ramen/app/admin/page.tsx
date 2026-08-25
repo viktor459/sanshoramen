@@ -559,7 +559,9 @@ export default function Admin() {
     if (!confirm("Ta bort bokningen?")) return;
     const booking = bookings.find(b => b.id === id);
     await supabase.from("bookings").delete().eq("id", id);
-    if (booking) {
+    // "expired" bookings already gave their spot back when they expired — only
+    // pending/confirmed ones still hold a real spot that needs releasing here.
+    if (booking && booking.status !== "expired") {
       if (booking.timeslot_id) {
         await supabase.rpc("increment_timeslot_spots", { slot_id: booking.timeslot_id, n: booking.guests }).maybeSingle();
       } else {
