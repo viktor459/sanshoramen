@@ -51,15 +51,12 @@ export async function GET() {
 
             <p style="font-size:15px;color:#1D1D1D;margin-bottom:20px;font-weight:600;">Hur upplevde du kvällen?</p>
 
-            <div style="display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap;">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
               <a href="${feedbackUrl}" style="padding:12px 20px;background:#1D1D1D;color:#F5F1E8;text-decoration:none;border-radius:100px;font-size:13px;font-weight:500;">⭐ Lämna feedback</a>
-              <a href="https://www.instagram.com/sanshoramen" target="_blank" style="padding:12px 20px;background:transparent;color:#1D1D1D;border:1.5px solid #1D1D1D;text-decoration:none;border-radius:100px;font-size:13px;font-weight:500;">Tagga oss på Instagram</a>
+              <a href="https://www.instagram.com/sanshoramen" target="_blank" style="padding:12px 20px;background:transparent;color:#1D1D1D;border:1.5px solid #1D1D1D;text-decoration:none;border-radius:100px;font-size:13px;font-weight:500;">Följ oss på Instagram</a>
             </div>
 
-            <div style="background:#1D1D1D;border-radius:12px;padding:28px;color:#F5F1E8;">
-              <p style="font-size:13px;color:#888;margin-bottom:12px;">Nästa pop-up</p>
-              <p style="font-size:15px;color:#F5F1E8;line-height:1.7;">Håll utkik — nästa event annonseras snart. Är du med i <strong>Sanshō Ramen Club</strong>? Annars kan du gå med på <a href="https://sanshoramen.se/#club" style="color:#C0392B;">sanshoramen.se</a> för att få early access.</p>
-            </div>
+            <p style="font-size:13px;color:#6B6560;margin-bottom:32px;line-height:1.7;">Håll utkik på Instagram — det är där vi annonserar nästa pop-up.</p>
 
             <p style="font-size:13px;color:#6B6560;margin-top:28px;line-height:1.7;">Tack för att du var med.<br /><strong>/ Sanshō Ramen</strong></p>
             <p style="font-size:12px;color:#aaa;margin-top:24px;">© ${new Date().getFullYear()} Sanshō Ramen · Skåne</p>
