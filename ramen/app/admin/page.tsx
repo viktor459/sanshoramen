@@ -664,7 +664,7 @@ export default function Admin() {
     location ? `https://maps.google.com/maps?q=${encodeURIComponent(location)}&output=embed` : null;
 
   const S = {
-    page: { minHeight: "100vh", background: "#F5F1E8", fontFamily: "'Quicksand', sans-serif", padding: "100px 48px 40px" } as React.CSSProperties,
+    page: { minHeight: "100vh", background: "#F5F1E8", fontFamily: "'Quicksand', sans-serif" } as React.CSSProperties,
     input: { background: "transparent", border: "1.5px solid #1D1D1D", borderRadius: 8, padding: "10px 14px", fontFamily: "'Quicksand', sans-serif", fontSize: 14, color: "#1D1D1D", outline: "none", width: "100%" } as React.CSSProperties,
     textarea: { background: "transparent", border: "1.5px solid #1D1D1D", borderRadius: 8, padding: "10px 14px", fontFamily: "'Quicksand', sans-serif", fontSize: 14, color: "#1D1D1D", outline: "none", width: "100%", resize: "vertical" as const, minHeight: 120 } as React.CSSProperties,
     btn: { background: "#1D1D1D", color: "#F5F1E8", border: "none", padding: "10px 20px", borderRadius: 100, fontFamily: "'Quicksand', sans-serif", fontSize: 14, cursor: "pointer", whiteSpace: "nowrap" as const } as React.CSSProperties,
@@ -727,11 +727,29 @@ export default function Admin() {
   );
 
   return (
-    <div style={S.page}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap'); * { box-sizing: border-box; } table { width: 100%; border-collapse: collapse; } th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B6560; padding: 8px 12px; text-align: left; border-bottom: 1.5px solid #1D1D1D; } td { font-size: 14px; padding: 12px 12px; border-bottom: 0.5px solid #ccc; vertical-align: top; } tr:last-child td { border-bottom: none; } input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }`}</style>
+    <div className="admin-page" style={S.page}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap');
+        * { box-sizing: border-box; }
+        body { color: #1D1D1D; color-scheme: light; }
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B6560; padding: 8px 12px; text-align: left; border-bottom: 1.5px solid #1D1D1D; }
+        td { font-size: 14px; padding: 12px 12px; border-bottom: 0.5px solid #ccc; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
+        .admin-page { padding: 100px 48px 40px; }
+        .admin-2col { display: grid; grid-template-columns: 1fr 1fr; }
+        .admin-3col { display: grid; grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 860px) {
+          .admin-page { padding: 84px 16px 32px; }
+          .admin-2col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+          .admin-3col { grid-template-columns: 1fr; }
+        }
+      `}</style>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
-        <div style={{ fontWeight: 700, fontSize: 28, letterSpacing: "0.1em" }}>SANSHŌ ADMIN</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, flexWrap: "wrap", gap: 12 }}>
+        <div style={{ fontWeight: 700, fontSize: 22, letterSpacing: "0.1em" }}>SANSHŌ ADMIN</div>
         <button style={S.btnOutline} onClick={async () => { await fetch("/api/admin-logout", { method: "POST" }); window.location.href = "/admin/login"; }}>Log out</button>
       </div>
 
@@ -802,7 +820,7 @@ export default function Admin() {
 
       {/* EVENTS TAB */}
       {tab === "events" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        <div className="admin-2col" style={{ gap: 32 }}>
           <div>
             {eventsView === "add" ? (
               <>
@@ -915,7 +933,7 @@ export default function Admin() {
                       </a>
                     )}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <div className="admin-3col" style={{ gap: 12 }}>
                     <div>
                       <label style={S.label}>Totalt platser</label>
                       <input style={S.input} type="number" value={editingEvent.spots} onChange={e => setEditingEvent({ ...editingEvent, spots: Number(e.target.value) })} />
@@ -1236,7 +1254,7 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
-          <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <div className="admin-3col" style={{ marginTop: 24, gap: 16 }}>
             {[
               { label: "Totalt intäkter", value: filteredBookings.filter(b => b.status !== "expired").reduce((s, b) => s + b.total_price, 0).toLocaleString("sv-SE") + " kr" },
               { label: "Antal bokningar", value: String(filteredBookings.filter(b => b.status !== "expired").length) },
@@ -1257,8 +1275,8 @@ export default function Admin() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div style={{ fontWeight: 700, fontSize: 18 }}>Shop-ordrar ({shopOrders.length})</div>
           </div>
-          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
-            <table>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflowX: "auto" }}>
+            <table style={{ minWidth: 700 }}>
               <thead><tr><th>Produkt</th><th>Antal</th><th>Totalt</th><th>E-post</th><th>Status</th><th>Datum</th><th></th></tr></thead>
               <tbody>
                 {shopOrders.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga ordrar än</td></tr>}
@@ -1290,7 +1308,7 @@ export default function Admin() {
               </tbody>
             </table>
           </div>
-          <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <div className="admin-3col" style={{ marginTop: 24, gap: 16 }}>
             {[
               { label: "Totalt intäkter", value: shopOrders.filter(o => o.status === "paid").reduce((s, o) => s + o.total_price, 0).toLocaleString("sv-SE") + " kr" },
               { label: "Betalda ordrar", value: String(shopOrders.filter(o => o.status === "paid").length) },
@@ -1331,8 +1349,8 @@ export default function Admin() {
               Visa arkiverade
             </label>
           </div>
-          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
-            <table>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflowX: "auto" }}>
+            <table style={{ minWidth: 900 }}>
               <thead><tr><th>Namn</th><th>E-post</th><th>Tel</th><th>Event</th><th>Gäster</th><th>Veg</th><th>Övrigt</th><th>Datum</th><th></th></tr></thead>
               <tbody>
                 {waitlist.filter(w => (showArchivedWaitlist || !archivedEventNames.has(w.event_name)) && (filterWaitlistEvent === "all" || w.event_name === filterWaitlistEvent)).length === 0 && <tr><td colSpan={9} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Ingen på waitlist än</td></tr>}
@@ -1385,8 +1403,8 @@ export default function Admin() {
             return (
               <>
                 {avg && <div style={{ marginBottom: 16, fontSize: 14, color: "#6B6560" }}>Snittbetyg: <strong style={{ color: "#C9A96E", fontSize: 18 }}>{"★".repeat(Math.round(Number(avg)))} {avg}/5</strong></div>}
-                <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
-                  <table>
+                <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflowX: "auto" }}>
+                  <table style={{ minWidth: 650 }}>
                     <thead><tr><th>Namn</th><th>Betyg</th><th>Kommentar</th><th>Event</th><th>Datum</th><th></th></tr></thead>
                     <tbody>
                       {filtered.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga recensioner än</td></tr>}
@@ -1432,8 +1450,8 @@ export default function Admin() {
                     {group.length} anmälningar · {group.reduce((s, p) => s + p.guests, 0)} gäster
                   </span>
                 </div>
-                <div style={{ border: "1.5px solid #DDD8CE", borderRadius: 10, overflow: "hidden" }}>
-                  <table style={{ width: "100%" }}>
+                <div style={{ border: "1.5px solid #DDD8CE", borderRadius: 10, overflowX: "auto" }}>
+                  <table style={{ width: "100%", minWidth: 420 }}>
                     <thead><tr><th style={{ textAlign: "left", padding: "8px 16px", fontSize: 11, color: "#6B6560", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid #EDE8DF" }}>Namn</th><th style={{ textAlign: "left", padding: "8px 16px", fontSize: 11, color: "#6B6560", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid #EDE8DF" }}>E-post</th><th style={{ textAlign: "center", padding: "8px 16px", fontSize: 11, color: "#6B6560", textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: "1px solid #EDE8DF" }}>Sällskap</th></tr></thead>
                     <tbody>
                       {group.map(p => (
@@ -1638,7 +1656,7 @@ export default function Admin() {
               })()}
 
               {/* Top pages + Sources + New vs Returning + Countries */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+              <div className="admin-2col" style={{ gap: 20, marginBottom: 24 }}>
                 <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
                   <div style={{ fontWeight: 600, marginBottom: 14 }}>Mest besökta sidor</div>
                   {gaStats.topPages.map((p, i) => (
@@ -1720,8 +1738,8 @@ export default function Admin() {
           </div>
 
           {/* Spots list */}
-          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
-            <table>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflowX: "auto" }}>
+            <table style={{ minWidth: 800 }}>
               <thead><tr><th>Namn</th><th>Stad</th><th>Land</th><th>Betyg</th><th>Besökt</th><th>Kommentar</th><th></th></tr></thead>
               <tbody>
                 {spots.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga ställen tillagda än</td></tr>}
@@ -1760,8 +1778,8 @@ export default function Admin() {
             <div style={{ fontWeight: 700, fontSize: 18 }}>Inlägg ({posts.length})</div>
             <button style={S.btn} onClick={() => setBlogView("new")}>+ Nytt inlägg</button>
           </div>
-          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflow: "hidden" }}>
-            <table>
+          <div style={{ border: "1.5px solid #1D1D1D", borderRadius: 12, overflowX: "auto" }}>
+            <table style={{ minWidth: 600 }}>
               <thead><tr><th>Titel</th><th>Kategori</th><th>Status</th><th>Datum</th><th></th></tr></thead>
               <tbody>
                 {posts.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center", color: "#6B6560", padding: 40 }}>Inga inlägg än — skriv ditt första!</td></tr>}
@@ -1874,7 +1892,7 @@ export default function Admin() {
 
       {/* PRODUCTS TAB */}
       {tab === "products" && !editingProduct && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        <div className="admin-2col" style={{ gap: 32 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 20 }}>Lägg till produkt</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
