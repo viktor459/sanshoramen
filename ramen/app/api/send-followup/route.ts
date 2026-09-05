@@ -7,10 +7,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // GET /api/send-followup
 // Sends follow-up/feedback emails to all confirmed bookings for events that happened yesterday.
 // Trigger manually from the admin bookings tab the day after an event.
-export async function GET() {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const dateStr = yesterday.toISOString().slice(0, 10);
+// Optional ?date=YYYY-MM-DD overrides "yesterday" for catching up a missed send.
+export async function GET(request: Request) {
+  const dateParam = new URL(request.url).searchParams.get("date");
+  let dateStr = dateParam;
+  if (!dateStr) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    dateStr = yesterday.toISOString().slice(0, 10);
+  }
 
   const { data: events } = await supabase
     .from("events")
