@@ -134,7 +134,8 @@ export default function Admin() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stalletPrefs, setStalletPrefs] = useState<StalletPref[]>([]);
   const [filterReviewEvent, setFilterReviewEvent] = useState("all");
-  const [subscribers, setSubscribers] = useState<{ id: number; created_at: string; email: string }[]>([]);
+  type ReachStats = { total: number; datedTotal: number; lumaLump: number; monthly: { month: string; count: number }[] };
+  const [reachStats, setReachStats] = useState<ReachStats | null>(null);
   type LoyaltyEntry = { email: string; name: string; luma_events: number; system_events: number; total: number };
   const [loyalty, setLoyalty] = useState<LoyaltyEntry[]>([]);
   type GAStats = { totalSessions: number; totalUsers: number; bounceRate: number; avgSessionDuration: number; daily: {date:string;sessions:number;users:number}[]; topPages: {path:string;views:number}[]; sources: {channel:string;sessions:number}[]; devices: {device:string;sessions:number}[]; newVsReturning: {type:string;sessions:number}[]; countries: {country:string;sessions:number}[]; hours: {hour:number;sessions:number}[] };
@@ -161,7 +162,7 @@ export default function Admin() {
   const [blogView, setBlogView] = useState<"list" | "edit" | "new">("list");
 
   useEffect(() => {
-    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs(); fetchSubscribers(); fetchLoyalty();
+    fetchEvents(); fetchBookings(); fetchPosts(); fetchProducts(); fetchShopOrders(); fetchWaitlist(); fetchSpots(); fetchReviews(); fetchStalletPrefs(); fetchReachStats(); fetchLoyalty();
   }, []);
 
   const fetchEvents = async () => {
@@ -242,9 +243,34 @@ export default function Admin() {
     setLoyalty(Object.values(map).sort((a, b) => b.total - a.total));
   };
 
-  const fetchSubscribers = async () => {
-    const { data } = await supabase.from("subscribers").select("id, created_at, email").order("created_at", { ascending: false });
-    if (data) setSubscribers(data);
+  const fetchReachStats = async () => {
+    const [{ data: bks }, { data: subs }, { data: wl }, { data: luma }] = await Promise.all([
+      supabase.from("bookings").select("email, created_at").eq("status", "confirmed"),
+      supabase.from("subscribers").select("email, created_at"),
+      supabase.from("waitlist").select("email, created_at"),
+      supabase.from("luma_members").select("email, excluded"),
+    ]);
+    // Earliest known date per email across every source that actually carries a date
+    const firstDate: Record<string, string> = {};
+    [...(bks || []), ...(subs || []), ...(wl || [])].forEach(r => {
+      const e = r.email?.toLowerCase();
+      const d = r.created_at?.slice(0, 10);
+      if (!e || !d) return;
+      if (!firstDate[e] || d < firstDate[e]) firstDate[e] = d;
+    });
+    const datedEmails = new Set(Object.keys(firstDate));
+    // Luma's historical import has no per-person date, so anyone only known from Luma
+    // is added as a lump sum rather than smeared across fake dates.
+    const lumaEmails = new Set((luma || []).filter(l => !l.excluded).map(l => l.email.toLowerCase()));
+    let lumaLump = 0;
+    lumaEmails.forEach(e => { if (!datedEmails.has(e)) lumaLump++; });
+    const monthCounts: Record<string, number> = {};
+    Object.values(firstDate).forEach(d => {
+      const month = d.slice(0, 7);
+      monthCounts[month] = (monthCounts[month] || 0) + 1;
+    });
+    const monthly = Object.entries(monthCounts).sort(([a], [b]) => a.localeCompare(b)).map(([month, count]) => ({ month, count }));
+    setReachStats({ total: datedEmails.size + lumaLump, datedTotal: datedEmails.size, lumaLump, monthly });
   };
 
   const fetchStalletPrefs = async () => {
@@ -806,7 +832,7 @@ export default function Admin() {
         {([
           ["blogg", "Blogg"],
           ["recensioner", `Recensioner${reviews.length > 0 ? ` (${reviews.length})` : ""}`],
-          ["nyhetsbrev", `Nyhetsbrev${subscribers.length > 0 ? ` (${subscribers.length})` : ""}`],
+          ["nyhetsbrev", `Nyhetsbrev${reachStats && reachStats.total > 0 ? ` (${reachStats.total})` : ""}`],
           ["lojalitet", "Lojalitet"],
           ["analytics", "Analytics"],
           ["karta", "Ramen Map"],
@@ -1475,30 +1501,64 @@ export default function Admin() {
       {tab === "nyhetsbrev" && (
         <div>
           <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Nyhetsbrev</div>
-          <div style={{ color: "#6B6560", fontSize: 14, marginBottom: 20 }}>{subscribers.length} prenumeranter</div>
-          {subscribers.length === 0 ? (
-            <div style={{ color: "#6B6560", padding: 40, textAlign: "center" }}>Inga prenumeranter än.</div>
+          <div style={{ color: "#6B6560", fontSize: 14, marginBottom: 20 }}>Alla mejladresser vi kan nå — bokat via hemsidan, bokat via Luma, eller anmält sig till nyhetsbrevet/waitlisten.</div>
+          {!reachStats ? (
+            <div style={{ color: "#6B6560", padding: 40, textAlign: "center" }}>Laddar...</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-                <thead>
-                  <tr style={{ borderBottom: "2px solid #E8E3D8", textAlign: "left" }}>
-                    <th style={{ padding: "8px 12px" }}>#</th>
-                    <th style={{ padding: "8px 12px" }}>E-post</th>
-                    <th style={{ padding: "8px 12px" }}>Anmäld</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subscribers.map((s, i) => (
-                    <tr key={s.id} style={{ borderBottom: "1px solid #F0EDE6" }}>
-                      <td style={{ padding: "10px 12px", color: "#6B6560" }}>{subscribers.length - i}</td>
-                      <td style={{ padding: "10px 12px" }}>{s.email}</td>
-                      <td style={{ padding: "10px 12px", color: "#6B6560" }}>{new Date(s.created_at).toLocaleDateString("sv-SE")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
+                {[
+                  { label: "Totalt", value: reachStats.total },
+                  { label: "Hemsida + waitlist", value: reachStats.datedTotal },
+                  { label: "Från Luma (historik)", value: reachStats.lumaLump },
+                ].map(kpi => (
+                  <div key={kpi.label} style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: "20px 20px" }}>
+                    <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "#6B6560", marginBottom: 8 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 28, fontWeight: 700 }}>{kpi.value.toLocaleString("sv-SE")}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, color: "#6B6560", marginBottom: 24 }}>
+                "Från Luma (historik)" är personer vi bara känner till via den gamla Luma-importen, som saknar datum per person — de räknas med i totalen men syns inte i grafen nedan.
+              </div>
+              {reachStats.monthly.length > 0 && (() => {
+                const CHART_H = 100;
+                const max = Math.max(...reachStats.monthly.map(m => m.count), 1);
+                const mid = Math.round(max / 2);
+                return (
+                  <div style={{ background: "#fff", border: "1.5px solid #E8E3D8", borderRadius: 12, padding: 20 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 14 }}>Nya kontakter per månad (hemsida + waitlist)</div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", alignItems: "flex-end", height: CHART_H, flexShrink: 0 }}>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>{max}</div>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>{mid}</div>
+                        <div style={{ fontSize: 10, color: "#6B6560" }}>0</div>
+                      </div>
+                      <div style={{ flex: 1, position: "relative" }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", pointerEvents: "none" }}>
+                          <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                          <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                          <div style={{ borderTop: "1px solid #F0EDE6" }} />
+                        </div>
+                        <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: CHART_H }}>
+                          {reachStats.monthly.map(m => {
+                            const barH = Math.round((m.count / max) * CHART_H);
+                            return (
+                              <div key={m.month} title={`${m.month}: ${m.count} nya`} style={{ flex: 1, background: "#1D1D1D", borderRadius: "2px 2px 0 0", height: barH, minHeight: m.count > 0 ? 2 : 0, opacity: 0.8 }} />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, marginTop: 6, paddingLeft: 28 }}>
+                      {reachStats.monthly.map(m => (
+                        <div key={m.month} style={{ flex: 1, textAlign: "center", fontSize: 10, color: "#6B6560" }}>{m.month.slice(5)}</div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
           )}
         </div>
       )}
