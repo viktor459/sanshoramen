@@ -11,11 +11,12 @@ export default function Footer() {
           <div>
             <img src="/logotype.png" alt="Sanshō" style={{ height: 26, filter: "invert(1)", marginBottom: 20 }} />
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.8, maxWidth: 260 }}>
-              Ramen pop-ups in Skåne. We take over restaurants and bars for a night and serve high quality ramen.
+              High quality ramen in Skåne. Pop-ups around the region and, October–December, a ramen bar at Saluhallen Lund.
             </p>
           </div>
           <div>
             <h4 style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "#444", marginBottom: 16 }}>Explore</h4>
+            <a href="/#saluhallen" className="footer-link">Saluhallen Lund</a>
             <a href="/pop-ups" className="footer-link">Pop-ups</a>
             <a href="/blogg" className="footer-link">Blog</a>
             <a href="/shop" className="footer-link">Shop</a>

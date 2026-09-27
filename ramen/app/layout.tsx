@@ -7,10 +7,10 @@ import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "Sanshō Ramen – Pop-ups in Skåne",
+    default: "Sanshō Ramen – Ramen bar in Lund & pop-ups in Skåne",
     template: "%s – Sanshō Ramen",
   },
-  description: "Exclusive ramen pop-ups in Skåne. Book your spot and experience high quality ramen in unique venues.",
+  description: "High quality ramen in Skåne. Visit our ramen bar at Saluhallen Lund (October–December) or book a spot at one of our exclusive pop-ups.",
   icons: {
     icon: "/logotype.png",
     apple: "/logotype.png",

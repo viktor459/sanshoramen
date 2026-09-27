@@ -32,6 +32,7 @@ export default function Nav() {
       <nav>
         <a href="/" className="nav-logo"><img src="/logotype.png" alt="Sanshō Ramen" /></a>
         <ul className="nav-links">
+          <li><a href="/#saluhallen">Saluhallen</a></li>
           <li><a href="/pop-ups" className={path === "/pop-ups" ? "active" : ""}>Pop-ups</a></li>
           <li><a href="/blogg" className={path.startsWith("/blogg") ? "active" : ""}>Blog</a></li>
           <li><a href="/shop" className={path === "/shop" ? "active" : ""}>Shop</a></li>
@@ -43,6 +44,7 @@ export default function Nav() {
       </nav>
       <div className={`mobile-menu${open ? " open" : ""}`}>
         <button className="close-btn" onClick={() => setOpen(false)}>×</button>
+        <a href="/#saluhallen" onClick={() => setOpen(false)}>Saluhallen</a>
         <a href="/pop-ups" onClick={() => setOpen(false)}>Pop-ups</a>
         <a href="/blogg" onClick={() => setOpen(false)}>Blog</a>
         <a href="/shop" onClick={() => setOpen(false)}>Shop</a>

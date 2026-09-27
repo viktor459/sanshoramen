@@ -25,6 +25,25 @@ const S = `
   .hero-right img { width: 110%; max-width: 820px; object-fit: contain; transform: translateX(40px) translateY(20px); animation: floatIn 1.4s cubic-bezier(0.16,1,0.3,1) forwards; }
   @keyframes floatIn { from { opacity:0; transform:translateX(80px) translateY(40px); } to { opacity:1; transform:translateX(40px) translateY(20px); } }
 
+  /* SALUHALLEN BAR */
+  .bar-section { padding: 100px 80px; background: var(--ink); color: var(--bg); display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; scroll-margin-top: 72px; }
+  .bar-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: #fff; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 99px; margin-bottom: 24px; }
+  .bar-title { font-weight: 700; font-size: 42px; letter-spacing: 0.02em; line-height: 1.15; margin-bottom: 20px; }
+  .bar-title span { color: var(--red); }
+  .bar-sub { font-size: 15px; color: #aaa; line-height: 1.9; max-width: 520px; margin-bottom: 32px; }
+  .bar-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .bar-cta .btn-ghost { color: var(--bg); border-color: #444; }
+  .bar-cta .btn-ghost:hover { border-color: var(--bg); }
+  .bar-card { border: 1.5px solid #333; border-radius: 16px; padding: 32px; }
+  .bar-card-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #777; margin-bottom: 16px; }
+  .bar-hours { display: flex; flex-direction: column; margin-bottom: 28px; }
+  .bar-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #2e2e2e; font-size: 15px; }
+  .bar-row:last-child { border-bottom: none; }
+  .bar-row span:last-child { font-weight: 500; }
+  .bar-row.closed span:last-child { color: #666; font-weight: 400; }
+  .bar-where { font-size: 14px; color: #aaa; line-height: 1.8; }
+  .bar-where strong { color: var(--bg); font-weight: 500; }
+
   /* EVENTS TEASER */
   .events-section { padding: 100px 80px; }
   .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; }
@@ -113,7 +132,11 @@ const S = `
     .hero-h1{font-size:36px;}
     .hero-right{height:260px;}
     .hero-right img{width:100%; transform:translateX(20px) translateY(10px);}
-    .events-section,.about-section,.social-section,.club-section,.map-section{padding:60px 24px;}
+    .events-section,.about-section,.social-section,.club-section,.map-section,.bar-section{padding:60px 24px;}
+    .bar-section{grid-template-columns:1fr; gap:40px;}
+    .bar-title{font-size:30px;}
+    .bar-card{padding:24px;}
+    .bar-cta a{width:100%; justify-content:center;}
     .map-section{grid-template-columns:1fr;}
     .newsletter-section{padding:60px 24px;}
     .events-grid{grid-template-columns:1fr;}
@@ -193,15 +216,38 @@ export default function Home() {
       {/* HERO */}
       <section className="hero">
         <div className="hero-left">
-          <p className="hero-tag">Ramen pop-ups in Skåne</p>
-          <h1 className="hero-h1">High quality ramen.<br />Exclusive evenings.</h1>
-          <p className="hero-sub">We take over restaurants and bars for a night and serve ramen at a high level. Every event is unique — the menu and venue change every time.</p>
+          <p className="hero-tag">Ramen in Skåne</p>
+          <h1 className="hero-h1">High quality ramen.<br />Now at Saluhallen Lund.</h1>
+          <p className="hero-sub">From October to December we're serving ramen six days a week at Saluhallen in Lund. And the pop-ups continue — exclusive evenings in restaurants and bars around Skåne.</p>
           <div className="hero-cta">
-            <a href="/pop-ups" className="btn-dark">See upcoming pop-ups →</a>
+            <a href="#saluhallen" className="btn-red">Visit us at Saluhallen →</a>
+            <a href="/pop-ups" className="btn-ghost">Upcoming pop-ups</a>
           </div>
         </div>
         <div className="hero-right">
           <img src="/illustration.png" alt="Sanshō Ramen" />
+        </div>
+      </section>
+
+      {/* SALUHALLEN BAR */}
+      <section className="bar-section" id="saluhallen">
+        <div>
+          <p className="bar-badge">Ramen bar · Oct – Dec</p>
+          <h2 className="bar-title">Find us at <span>Saluhallen Lund.</span></h2>
+          <p className="bar-sub">For three months we're opening a ramen bar at Saluhallen in Lund. No booking needed — just drop by, scan the QR code at the counter and order straight from your phone.</p>
+          <div className="bar-cta">
+            <a href="https://weiq.app/sansho-ramen" target="_blank" rel="noreferrer" className="btn-red">See the menu →</a>
+            <a href="https://www.google.com/maps/search/?api=1&query=Saluhallen+Lund" target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
+          </div>
+        </div>
+        <div className="bar-card">
+          <p className="bar-card-label">Opening hours</p>
+          <div className="bar-hours">
+            <div className="bar-row"><span>Monday – Friday</span><span>10–18</span></div>
+            <div className="bar-row"><span>Saturday</span><span>10–15</span></div>
+            <div className="bar-row closed"><span>Sunday</span><span>Closed</span></div>
+          </div>
+          <p className="bar-where"><strong>Saluhallen</strong>, Mårtenstorget, Lund<br />October – December</p>
         </div>
       </section>
 
@@ -279,7 +325,8 @@ export default function Home() {
       <section className="about-section" id="om">
         <div className="about-text">
           <h2 className="section-title">Who are we?</h2>
-          <p>We are two ramen nerds living in Skåne. Our concept is to take over restaurants, cafés or bars for a night and serve ramen at a seriously high level.</p>
+          <p>We are two ramen nerds living in Skåne. We started out taking over restaurants, cafés and bars for a night to serve ramen at a seriously high level — and we still do.</p>
+          <p>This autumn you'll also find us every day at our ramen bar at Saluhallen in Lund.</p>
           <p>Want to book us for an evening? Don't hesitate to reach out.</p>
           <a href="mailto:contact@sanshoramen.se" className="btn-dark" style={{ marginTop: 24, display: "inline-flex" }}>Get in touch →</a>
         </div>
