@@ -10,8 +10,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const { data: post } = await supabaseServer
     .from("posts")
-    .select("title, excerpt, cover_image_url")
+    .select("title, excerpt, image_url")
     .eq("slug", slug)
+    .eq("published", true)
     .single();
 
   if (!post) return { title: "Blogg" };
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: post.title,
       description: post.excerpt || undefined,
-      images: post.cover_image_url ? [{ url: post.cover_image_url, width: 1200, height: 630 }] : [{ url: "/og-default.jpg", width: 1200, height: 630 }],
+      images: post.image_url ? [{ url: post.image_url, width: 1200, height: 630 }] : [{ url: "/og-default.jpg", width: 1200, height: 630 }],
     },
   };
 }
