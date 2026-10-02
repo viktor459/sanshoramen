@@ -13,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: "https://sanshoramen.se", lastModified: new Date(), priority: 1 },
     { url: "https://sanshoramen.se/pop-ups", lastModified: new Date(), priority: 0.9 },
+    { url: "https://sanshoramen.se/newsletter", lastModified: new Date(), priority: 0.8 },
     { url: "https://sanshoramen.se/blogg", lastModified: new Date(), priority: 0.7 },
     ...(posts ?? []).map(p => ({ url: `https://sanshoramen.se/blogg/${p.slug}`, lastModified: new Date(p.created_at), priority: 0.6 })),
   ];
