@@ -31,6 +31,8 @@ const S = `
   .bar-title { font-weight: 700; font-size: 42px; letter-spacing: 0.02em; line-height: 1.15; margin-bottom: 20px; }
   .bar-title span { color: var(--red); }
   .bar-sub { font-size: 15px; color: #aaa; line-height: 1.9; max-width: 520px; margin-bottom: 32px; }
+  .bar-note { display: flex; gap: 12px; align-items: flex-start; border: 1px solid #444; border-left: 3px solid var(--red); border-radius: 12px; padding: 14px 18px; max-width: 520px; margin-bottom: 32px; font-size: 14px; color: #ccc; line-height: 1.7; }
+  .bar-note strong { color: var(--bg); font-weight: 500; }
   .bar-cta { display: flex; gap: 12px; flex-wrap: wrap; }
   .bar-cta .btn-ghost { color: var(--bg); border-color: #444; }
   .bar-cta .btn-ghost:hover { border-color: var(--bg); }
@@ -235,9 +237,10 @@ export default function Home() {
           <p className="bar-badge">Ramen bar · Oct – Dec</p>
           <h2 className="bar-title">Find us at <span>Saluhallen Lund.</span></h2>
           <p className="bar-sub">For three months we're opening a ramen bar at Saluhallen in Lund. No booking needed — just drop by, scan the QR code at the counter and order straight from your phone.</p>
+          <p className="bar-note"><span aria-hidden="true">🌱</span><span><strong>No vegetarian option yet.</strong> Right now we only serve meat-based ramen at Saluhallen — a vegetarian bowl is coming soon.</span></p>
           <div className="bar-cta">
             <a href="https://weiq.app/sansho-ramen" target="_blank" rel="noreferrer" className="btn-red">See the menu →</a>
-            <a href="https://www.google.com/maps/search/?api=1&query=Saluhallen+Lund" target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
+            <a href="https://www.google.com/maps/place/Sansho+Ramen/@55.7016987,13.1947033,17z/data=!3m1!4b1!4m6!3m5!1s0x4653971565ac6725:0x16e8fa9b72673c75!8m2!3d55.7016987!4d13.1947033!16s%2Fg%2F11p1jzr5h0" target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
           </div>
         </div>
         <div className="bar-card">
