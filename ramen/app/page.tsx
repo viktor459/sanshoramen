@@ -240,7 +240,7 @@ export default function Home() {
           <p className="bar-note"><span aria-hidden="true">🌱</span><span><strong>No vegetarian option yet.</strong> Right now we only serve meat-based ramen at Saluhallen — a vegetarian bowl is coming soon.</span></p>
           <div className="bar-cta">
             <a href="https://weiq.app/sansho-ramen" target="_blank" rel="noreferrer" className="btn-red">See the menu →</a>
-            <a href="https://www.google.com/maps/place/Sansho+Ramen/@55.7016987,13.1947033,17z/data=!3m1!4b1!4m6!3m5!1s0x4653971565ac6725:0x16e8fa9b72673c75!8m2!3d55.7016987!4d13.1947033!16s%2Fg%2F11p1jzr5h0" target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
+            <a href="https://maps.google.com/?cid=1650844808977529973" target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
           </div>
         </div>
         <div className="bar-card">
