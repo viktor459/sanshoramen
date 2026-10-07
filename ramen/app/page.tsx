@@ -246,8 +246,8 @@ export default function Home() {
         <div className="bar-card">
           <p className="bar-card-label">Opening hours</p>
           <div className="bar-hours">
-            <div className="bar-row"><span>Monday – Friday</span><span>10–18</span></div>
-            <div className="bar-row"><span>Saturday</span><span>10–15</span></div>
+            <div className="bar-row"><span>Monday – Friday</span><span>11 – until sold out</span></div>
+            <div className="bar-row"><span>Saturday</span><span>11 – until sold out</span></div>
             <div className="bar-row closed"><span>Sunday</span><span>Closed</span></div>
           </div>
           <p className="bar-where"><strong>Saluhallen</strong>, Mårtenstorget, Lund<br />October – December</p>
