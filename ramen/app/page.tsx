@@ -46,6 +46,24 @@ const S = `
   .bar-where { font-size: 14px; color: #aaa; line-height: 1.8; }
   .bar-where strong { color: var(--bg); font-weight: 500; }
 
+  /* GOOGLE REVIEWS */
+  .reviews-section { padding: 100px 80px 40px; }
+  .reviews-top { display: grid; grid-template-columns: 1fr 1.6fr; gap: 64px; align-items: start; }
+  .rv-tag { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; }
+  .rv-score { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .rv-num { font-weight: 700; font-size: 72px; line-height: 1; letter-spacing: -0.02em; }
+  .rv-stars { color: #F2B01E; font-size: 22px; letter-spacing: 2px; }
+  .rv-count { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .rv-count strong { color: var(--ink); font-weight: 600; }
+  .rv-ask { font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 24px; max-width: 360px; }
+  .rv-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .rv-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .rv-card { border: 1.5px solid #DDD8CE; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .rv-card-stars { color: #F2B01E; font-size: 14px; letter-spacing: 1px; }
+  .rv-card-text { font-size: 14px; line-height: 1.75; flex: 1; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+  .rv-card-who { font-size: 12px; color: var(--muted); }
+  .rv-card-who strong { color: var(--ink); font-weight: 600; }
+
   /* EVENTS TEASER */
   .events-section { padding: 100px 80px; }
   .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; }
@@ -127,7 +145,7 @@ const S = `
   .social-link:hover { border-color:#555; background:rgba(255,255,255,0.04); }
   .social-link svg { width:16px; height:16px; fill:currentColor; flex-shrink:0; }
 
-  @media(max-width:1024px){ .events-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:1024px){ .events-grid{grid-template-columns:1fr 1fr;} .reviews-top{grid-template-columns:1fr; gap:40px;} }
   @media(max-width:768px){
     .hero{grid-template-columns:1fr; min-height:auto;}
     .hero-left{padding:40px 24px 32px; gap:20px;}
@@ -135,6 +153,10 @@ const S = `
     .hero-right{height:260px;}
     .hero-right img{width:100%; transform:translateX(20px) translateY(10px);}
     .events-section,.about-section,.social-section,.club-section,.map-section,.bar-section{padding:60px 24px;}
+    .reviews-section{padding:60px 24px 20px;}
+    .rv-num{font-size:56px;}
+    .rv-list{grid-template-columns:1fr;}
+    .rv-cta a{width:100%; justify-content:center;}
     .bar-section{grid-template-columns:1fr; gap:40px;}
     .bar-title{font-size:30px;}
     .bar-card{padding:24px;}
@@ -155,6 +177,10 @@ const S = `
 
 type Event = { id: number; title: string; date: string; time: string; location: string; spots: number; spots_left: number; price: number | null; active: boolean; image_url?: string; booking_type: "internal" | "on_site" | "external"; };
 type Timeslot = { id: number; event_id: number; spots: number; spots_left: number; };
+type GoogleReviews = { placeId: string; rating: number; count: number; fiveStar: number | null; reviews: { author: string; rating: number; text: string; when: string }[]; };
+
+const MAPS_URL = "https://maps.google.com/?cid=1650844808977529973";
+const stars = (n: number) => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
 
 const formatEventDate = (dateStr: string) => {
   if (!dateStr) return dateStr;
@@ -172,6 +198,11 @@ export default function Home() {
   const [clubEmail, setClubEmail] = useState("");
   const [clubFname, setClubFname] = useState("");
   const [clubStatus, setClubStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [gReviews, setGReviews] = useState<GoogleReviews | null>(null);
+
+  useEffect(() => {
+    fetch("/api/google-reviews").then(r => r.json()).then(setGReviews).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -240,7 +271,7 @@ export default function Home() {
           <p className="bar-note"><span aria-hidden="true">🌱</span><span><strong>No vegetarian option yet.</strong> Right now we only serve meat-based ramen at Saluhallen — a vegetarian bowl is coming soon.</span></p>
           <div className="bar-cta">
             <a href="https://weiq.app/sansho-ramen" target="_blank" rel="noreferrer" className="btn-red">See the menu →</a>
-            <a href="https://maps.google.com/?cid=1650844808977529973" target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
+            <a href={MAPS_URL} target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
           </div>
         </div>
         <div className="bar-card">
@@ -253,6 +284,39 @@ export default function Home() {
           <p className="bar-where"><strong>Saluhallen</strong>, Mårtenstorget, Lund<br />October – December</p>
         </div>
       </section>
+
+      {/* GOOGLE REVIEWS */}
+      {gReviews && (
+        <section className="reviews-section">
+          <div className="reviews-top">
+            <div>
+              <p className="rv-tag">Google reviews</p>
+              <div className="rv-score">
+                <span className="rv-num">{gReviews.rating.toFixed(1)}</span>
+                <span className="rv-stars" aria-label={`${gReviews.rating} out of 5 stars`}>{stars(gReviews.rating)}</span>
+              </div>
+              <p className="rv-count">
+                Based on <strong>{gReviews.count} reviews</strong> on Google
+                {gReviews.fiveStar != null && <> — <strong>{gReviews.fiveStar} of them 5 stars</strong></>}.
+              </p>
+              <p className="rv-ask">Had a bowl with us? A review on Google takes a minute and helps more people find their way to Saluhallen.</p>
+              <div className="rv-cta">
+                <a href={`https://search.google.com/local/writereview?placeid=${gReviews.placeId}`} target="_blank" rel="noreferrer" className="btn-dark">Leave a review ★</a>
+                <a href={MAPS_URL} target="_blank" rel="noreferrer" className="btn-ghost">Read all reviews</a>
+              </div>
+            </div>
+            <div className="rv-list">
+              {gReviews.reviews.map((r, i) => (
+                <figure key={i} className="rv-card">
+                  <span className="rv-card-stars" aria-label={`${r.rating} stars`}>{stars(r.rating)}</span>
+                  <blockquote className="rv-card-text">“{r.text}”</blockquote>
+                  <figcaption className="rv-card-who"><strong>{r.author}</strong>{r.when ? ` · ${r.when}` : ""}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* EVENTS TEASER */}
       <section className="events-section">
