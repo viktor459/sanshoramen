@@ -7,15 +7,15 @@ export const revalidate = 86400;
 
 type Review = { author: string; rating: number; text: string; when: string };
 
-// Snapshot from Google Maps 2026-10-25, used when GOOGLE_PLACES_API_KEY isn't set or the API fails.
+// Snapshot from Google Maps 2026-10-31, used when GOOGLE_PLACES_API_KEY isn't set or the API fails.
 const FALLBACK = {
-  rating: 4.7,
-  count: 19,
-  fiveStar: 17 as number | null,
+  rating: 4.8,
+  count: 31,
+  fiveStar: 27 as number | null,
   reviews: [
+    { author: "Elias D.", rating: 5, text: "Banger food, not spicey even for a swede", when: "October 2026" },
+    { author: "Oscar F.", rating: 5, text: "Absolutely incredible place, the tastes are so exquisite and rich. Haven't tasted a place in Sweden or the Nordics that even comes close. The most enthusiastic and passionate owners, super cool place. Can't recommend it enough.", when: "October 2026" },
     { author: "Nachi V.", rating: 5, text: "Loved the attention to detail and care that goes into each bowl. Their spicy tantanmen ramen has a cloudy and gently creamy broth which blends beautifully with the chili oil.", when: "October 2026" },
-    { author: "clafo28", rating: 5, text: "This ramen is soooo good! It's rich, fresh and delicious. The staff are super friendly and clearly know and care about the food they are making.", when: "October 2026" },
-    { author: "Kristina L.", rating: 5, text: "Super good ramen, don't miss this!", when: "October 2026" },
   ] as Review[],
 };
 

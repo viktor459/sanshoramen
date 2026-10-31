@@ -268,7 +268,7 @@ export default function Home() {
           <p className="bar-badge">Ramen bar · Oct – Dec</p>
           <h2 className="bar-title">Find us at <span>Saluhallen Lund.</span></h2>
           <p className="bar-sub">For three months we're opening a ramen bar at Saluhallen in Lund. No booking needed — just drop by, scan the QR code at the counter and order straight from your phone.</p>
-          <p className="bar-note"><span aria-hidden="true">🌱</span><span><strong>No vegetarian option yet.</strong> Right now we only serve meat-based ramen at Saluhallen — a vegetarian bowl is coming soon.</span></p>
+          <p className="bar-note"><span aria-hidden="true">🌱</span><span><strong>Now with vegan ramen.</strong> Our plant-based bowl is on the menu at Saluhallen, right next to our classic ramen.</span></p>
           <div className="bar-cta">
             <a href="https://weiq.app/sansho-ramen" target="_blank" rel="noreferrer" className="btn-red">See the menu →</a>
             <a href={MAPS_URL} target="_blank" rel="noreferrer" className="btn-ghost">Directions</a>
